@@ -397,25 +397,52 @@ function renderChancePhase(s, room, mine){
 
 function renderStealUI(s, room, ap){
   const others = room.players.filter(p=>p.id!==ap.id);
+  const hasAny = (p)=> ['red','yellow','blue'].some(c=> p.full[c]>0 || p.halves[c]>0);
+  const stealable = others.filter(hasAny);
+
+  // Nikdo nemá co ukrást — efekt se přeskakuje, hra pokračuje dalším hráčem.
+  if(stealable.length===0){
+    s.appendChild(el('div',{class:'banner-info'},'Nikdo zatím nemá žádnou kartu — efekt se přeskakuje.'));
+    s.appendChild(el('div',{style:'height:12px'}));
+    s.appendChild(button('Pokračovat','btn-primary', ()=>{
+      state.chanceUI={};
+      advanceTurn(room); saveAndRender();
+    }));
+    return;
+  }
+
   s.appendChild(el('div',{class:'subtitle',style:'text-align:center;margin-bottom:10px'},'Vyber hráče a barvu karty, kterou mu ukradneš:'));
-  const targetSel = state.chanceUI.target || (others[0] && others[0].id);
+
+  let targetSel = state.chanceUI.target;
+  if(!targetSel || !stealable.some(p=>p.id===targetSel)) targetSel = stealable[0].id;
   state.chanceUI.target = targetSel;
-  const colSel = state.chanceUI.color || 'red';
+
+  const target = room.players.find(p=>p.id===targetSel);
+  const availColors = ['red','yellow','blue'].filter(c=> target.full[c]>0 || target.halves[c]>0);
+
+  let colSel = state.chanceUI.color;
+  if(!colSel || !availColors.includes(colSel)) colSel = availColors[0];
   state.chanceUI.color = colSel;
-  const sel = el('select',{class:'card-input', onchange:(e)=>{state.chanceUI.target=e.target.value; render();}});
-  others.forEach(p=> sel.appendChild(el('option',{value:p.id, selected: p.id===targetSel?'selected':null}, p.name)));
+
+  const sel = el('select',{class:'card-input', onchange:(e)=>{
+    state.chanceUI.target=e.target.value;
+    state.chanceUI.color=null; // barvy se přepočítají podle nového hráče
+    render();
+  }});
+  stealable.forEach(p=> sel.appendChild(el('option',{value:p.id, selected: p.id===targetSel?'selected':null}, p.name)));
   s.appendChild(sel);
   s.appendChild(el('div',{style:'height:10px'}));
+
+  // nabízíme jen barvy, které vybraný hráč skutečně má
   s.appendChild(el('div',{class:'color-pick'},
-    ...['red','yellow','blue'].map(c=>el('button',{class:'color-dot-btn c-'+c+(colSel===c?' selected':''), onclick:()=>{state.chanceUI.color=c; render();}}))
+    ...availColors.map(c=>el('button',{class:'color-dot-btn c-'+c+(colSel===c?' selected':''), onclick:()=>{state.chanceUI.color=c; render();}}))
   ));
   s.appendChild(el('div',{style:'height:14px'}));
   s.appendChild(button('Ukrást','btn-primary', ()=>{
-    const target = room.players.find(p=>p.id===state.chanceUI.target);
+    const t = room.players.find(p=>p.id===state.chanceUI.target);
     const c = state.chanceUI.color;
-    if(target.full[c]>0){ target.full[c]--; ap.full[c]++; }
-    else if(target.halves[c]>0){ target.halves[c]--; addHalf(ap,c); }
-    else { alert(target.name+' nemá žádnou kartu této barvy.'); return; }
+    if(t.full[c]>0){ t.full[c]--; ap.full[c]++; }
+    else if(t.halves[c]>0){ t.halves[c]--; addHalf(ap,c); }
     if(checkWin(ap)){ room.phase='finished'; room.winnerId=ap.id; }
     else advanceTurn(room);
     state.chanceUI={};
