@@ -54,6 +54,19 @@ function addHalf(player, color){
   }
 }
 
+/* Hráč na tahu zodpověděl otázku -> získává celou kartu dané barvy. */
+function addFull(player, color){
+  player.full[color]++;
+}
+
+/* Hráč na tahu neodpověděl -> přichází o kartu dané barvy.
+   Nejdřív celá, pak půlka. Pokud nic nemá, nestane se nic. */
+function loseColor(player, color){
+  if(player.full[color]>0){ player.full[color]--; return true; }
+  if(player.halves[color]>0){ player.halves[color]--; return true; }
+  return false;
+}
+
 function activePlayer(room){ return room.players[room.turnIndex]; }
 
 function rightNeighbor(room){
