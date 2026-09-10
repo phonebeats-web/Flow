@@ -312,9 +312,22 @@ function renderQuestionPhase(s, room, mine){
   }));
 }
 
+/* Barevná vlna na horním/dolním okraji karty — tvar vychází
+   z tištěných podkladů (plná barva s vlnitou hranou). */
+function cardWave(cssColor, position){
+  return `<svg class="wave-band ${position}" viewBox="0 0 300 74" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 L300,0 L300,44 C255,64 215,30 165,42 C115,54 60,66 0,50 Z" fill="${cssColor}"/>
+  </svg>`;
+}
+
 function qcardEl(color, text){
-  const bg = color==='red'?'red':color==='blue'?'blue':color==='chance'?'orange':'yellow';
-  return el('div',{class:'qcard '+bg},
+  const cssColor = color==='red' ? 'var(--red)'
+                 : color==='blue' ? 'var(--blue)'
+                 : color==='chance' ? 'var(--orange)'
+                 : 'var(--yellow)';
+  return el('div',{class:'qcard'},
+    htmlToNode(cardWave(cssColor, 'top')),
+    htmlToNode(cardWave(cssColor, 'bottom')),
     el('div',{class:'qcard-text'}, text)
   );
 }
