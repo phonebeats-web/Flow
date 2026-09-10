@@ -33,12 +33,13 @@ function htmlToNode(html){
 function render(){
   const app = document.getElementById('app');
   app.innerHTML='';
-  if(state.screen==='home'){
+  const isHome = state.screen==='home';
+  if(isHome){
     app.appendChild(homeHero());
   } else {
     app.appendChild(el('div',{class:'wave-top'},htmlToNode(waveSVG('#E9502E','#F6C61E'))));
   }
-  const screen = el('div',{class:'screen'});
+  const screen = el('div',{class:'screen'+(isHome?' screen-sea':'')});
   app.appendChild(screen);
   const renderers = {
     home: renderHome,
@@ -64,23 +65,11 @@ function homeHero(){
     <path d="M0,44 C50,64 110,86 190,66 C300,38 395,88 520,52 L520,80 C390,116 300,66 190,92 C110,110 50,90 0,70 Z" fill="var(--yellow)"/>
   </svg>`;
 
-  const sea = `<svg class="hero-waves" viewBox="0 0 520 156" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="seaFadeA" x1="0" y1="0" x2="0" y2="156" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stop-color="var(--blue)" stop-opacity="1"/>
-        <stop offset="45%"  stop-color="var(--blue)" stop-opacity=".62"/>
-        <stop offset="78%"  stop-color="var(--blue)" stop-opacity=".22"/>
-        <stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="seaFadeB" x1="0" y1="16" x2="0" y2="156" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stop-color="var(--blue-dark)" stop-opacity="1"/>
-        <stop offset="45%"  stop-color="var(--blue-dark)" stop-opacity=".6"/>
-        <stop offset="78%"  stop-color="var(--blue-dark)" stop-opacity=".2"/>
-        <stop offset="100%" stop-color="var(--blue-dark)" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <path d="M0,4 C110,-22 210,28 320,8 C410,-8 470,18 520,4 L520,156 L0,156 Z" fill="url(#seaFadeA)"/>
-    <path d="M0,24 C120,0 220,46 330,26 C415,11 475,34 520,22 L520,156 L0,156 Z" fill="url(#seaFadeB)"/>
+  // Hladina: horní vlna a pod ní plná modrá, která navazuje
+  // na pozadí zbytku obrazovky — moře tak pokračuje až dolů.
+  const sea = `<svg class="hero-waves" viewBox="0 0 520 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,10 C110,-16 210,34 320,14 C410,-2 470,24 520,10 L520,60 L0,60 Z" fill="var(--blue-light)"/>
+    <path d="M0,30 C120,6 220,52 330,32 C415,17 475,40 520,28 L520,60 L0,60 Z" fill="var(--blue)"/>
   </svg>`;
 
   const miniCard = (color, rot) => `<svg class="hero-card" style="transform:rotate(${rot}deg)" viewBox="0 0 64 46" xmlns="http://www.w3.org/2000/svg">
