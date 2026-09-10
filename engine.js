@@ -17,25 +17,31 @@ function shuffle(arr){
   return a;
 }
 
+/* Balíčky drží POUZE indexy karet, ne jejich texty.
+   Texty má každý hráč lokálně v data.js, takže se nemusí
+   přenášet po síti — přenáší se jen pořadí. */
+function indexList(n){
+  const a=[]; for(let i=0;i<n;i++) a.push(i);
+  return shuffle(a);
+}
 function freshDecks(){
   return {
-    red: shuffle(QUESTIONS.red),
-    blue: shuffle(QUESTIONS.blue),
-    yellow: shuffle(QUESTIONS.yellow),
-    chance: shuffle(CHANCE_CARDS)
+    red: indexList(QUESTIONS.red.length),
+    blue: indexList(QUESTIONS.blue.length),
+    yellow: indexList(QUESTIONS.yellow.length),
+    chance: indexList(CHANCE_CARDS.length)
   };
 }
 
 function drawFrom(room, colorKey){
+  const source = colorKey==='chance' ? CHANCE_CARDS : QUESTIONS[colorKey];
   let deck = room.decks[colorKey];
-  if(deck.length===0){
-    const source = colorKey==='chance' ? CHANCE_CARDS : QUESTIONS[colorKey];
-    deck = shuffle(source);
+  if(!deck || deck.length===0){
+    deck = indexList(source.length);
   }
-  const card = deck[deck.length-1];
-  deck = deck.slice(0, deck.length-1);
-  room.decks[colorKey] = deck;
-  return card;
+  const idx = deck[deck.length-1];
+  room.decks[colorKey] = deck.slice(0, deck.length-1);
+  return source[idx];
 }
 
 function newPlayer(id, name){
