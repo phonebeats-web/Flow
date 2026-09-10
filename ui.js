@@ -49,7 +49,7 @@ function render(){
 
 /* ---------- HOME ---------- */
 function renderHome(s){
-  s.appendChild(el('div',{class:'title-xl'},'Flow'));
+  s.appendChild(el('div',{class:'title-xl'},'FLOU'));
   s.appendChild(el('div',{class:'subtitle'},'Karetní diskusní hra — otázky, hádání a trocha štěstí.'));
   s.appendChild(el('div',{style:'height:28px'}));
   s.appendChild(el('div',{class:'stack'},
@@ -242,20 +242,39 @@ function renderQuestionPhase(s, room, mine){
     s.appendChild(el('div',{class:'subtitle', style:'text-align:center'},'Otázku řeší ', el('b',{},activePlayer(room).name)));
     return;
   }
+  const ap = activePlayer(room);
+
   if(card.color==='blue'){
+    // Modrá: aktivní hráč získá celou modrou až po dokončení kola (po hádání).
     s.appendChild(el('div',{class:'banner-info'},'Označ si v hlavě pravdivou odpověď. Ostatní teď hádají nahlas. Až domluvíte, pokračuj.'));
     s.appendChild(el('div',{style:'height:12px'}));
-    s.appendChild(button('Pokračovat k hádání','btn-blue', ()=>{
+    s.appendChild(button('Odpověděl/a — pokračovat k hádání','btn-blue', ()=>{
       room.phase='guessing';
       state.guessSelections={}; state.guessColors={};
       saveAndRender();
     }));
-  } else {
-    s.appendChild(button('Hotovo, další na tahu','btn-primary', ()=>{
+    s.appendChild(el('div',{style:'height:8px'}));
+    s.appendChild(button('Neodpověděl/a — ztrácí kartu','btn-secondary', ()=>{
+      loseColor(ap, 'blue');
       advanceTurn(room);
       saveAndRender();
     }));
+    return;
   }
+
+  // Červená / žlutá: vyhodnotí se hned.
+  s.appendChild(button('Odpověděl/a — získává kartu','btn-primary', ()=>{
+    addFull(ap, card.color);
+    if(checkWin(ap)){ room.phase='finished'; room.winnerId=ap.id; }
+    else advanceTurn(room);
+    saveAndRender();
+  }));
+  s.appendChild(el('div',{style:'height:8px'}));
+  s.appendChild(button('Neodpověděl/a — ztrácí kartu','btn-secondary', ()=>{
+    loseColor(ap, card.color);
+    advanceTurn(room);
+    saveAndRender();
+  }));
 }
 
 function qcardEl(color, text){
@@ -299,13 +318,20 @@ function renderGuessingPhase(s, room, mine){
   s.appendChild(el('div',{class:'spacer'}));
   const allChosen = others.every(p=> !state.guessSelections[p.id] || state.guessColors[p.id]);
   s.appendChild(button('Potvrdit a pokračovat','btn-primary', ()=>{
+    const ap = activePlayer(room);
+    // Hádající, kteří uhodli, získávají půl kartu zvolené barvy.
     others.forEach(p=>{
       if(state.guessSelections[p.id] && state.guessColors[p.id]){
         addHalf(p, state.guessColors[p.id]);
-        if(checkWin(p)){ room.phase='finished'; room.winnerId=p.id; }
       }
     });
-    if(room.phase!=='finished') advanceTurn(room);
+    // Aktivní hráč odpověděl na modrou -> po dokončení kola získává celou modrou.
+    addFull(ap, 'blue');
+
+    // Vyhodnocení výhry: nejdřív hráč na tahu, pak ostatní.
+    let winner = checkWin(ap) ? ap : others.find(p=>checkWin(p));
+    if(winner){ room.phase='finished'; room.winnerId=winner.id; }
+    else advanceTurn(room);
     saveAndRender();
   }, !allChosen));
 }
