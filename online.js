@@ -94,30 +94,29 @@ const Online = {
     );
     state.myPlayerId = myUid;
     Online.rememberSession(code, hostName);
-    await FlowNet.setupDisconnect(code);
     Online.startSync(code);
+    FlowNet.setupDisconnect(code).catch(e=>console.error('disconnect setup', e));
     return code;
   },
 
   /* ---------- PŘIPOJENÍ DO MÍSTNOSTI ---------- */
   async joinRoom(code, name){
     const myUid = await FlowNet.ready();
-    const raw = await FlowNet.getRoom(code);
-    if(!raw) return { ok:false, reason:'not-found' };
-
-    const existing = raw.players && raw.players[myUid];
-    if(!existing){
-      const p = newPlayer(myUid, name);
-      p.joinedAt = Date.now();
-      await FlowNet.joinRoom(code, {
-        name: p.name, halves: p.halves, full: p.full,
-        skipNext: false, joinedAt: p.joinedAt, online: true
-      });
-    }
+    const p = newPlayer(myUid, name);
+    p.joinedAt = Date.now();
+    // Ověření místnosti i zápis hráče v jednom kroku.
+    const res = await FlowNet.joinRoomFast(code, {
+      name: p.name, halves: p.halves, full: p.full,
+      skipNext: false, joinedAt: p.joinedAt, online: true
+    });
+    if(!res.ok) return { ok:false, reason:'not-found' };
+    const raw = { phase: res.phase };
     state.myPlayerId = myUid;
     Online.rememberSession(code, name);
-    await FlowNet.setupDisconnect(code);
+    // Poslouchat začneme hned; nastavení "offline při zavření karty"
+    // běží na pozadí a nezdržuje vstup do místnosti.
     Online.startSync(code);
+    FlowNet.setupDisconnect(code).catch(e=>console.error('disconnect setup', e));
     return { ok:true, phase: raw.phase };
   },
 
