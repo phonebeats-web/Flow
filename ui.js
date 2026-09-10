@@ -33,7 +33,11 @@ function htmlToNode(html){
 function render(){
   const app = document.getElementById('app');
   app.innerHTML='';
-  app.appendChild(el('div',{class:'wave-top'},htmlToNode(waveSVG('#E9502E','#F6C61E'))));
+  if(state.screen==='home'){
+    app.appendChild(homeHero());
+  } else {
+    app.appendChild(el('div',{class:'wave-top'},htmlToNode(waveSVG('#E9502E','#F6C61E'))));
+  }
   const screen = el('div',{class:'screen'});
   app.appendChild(screen);
   const renderers = {
@@ -48,20 +52,72 @@ function render(){
 }
 
 /* ---------- HOME ---------- */
+
+/* Úvodní hlavička: západ slunce nad názvem, moře pod ním.
+   Písmena FLOU nesou čtyři herní barvy. Kreslí se jako SVG,
+   takže je ostré a přizpůsobí se šířce displeje. */
+function homeHero(){
+  const svg = `<svg class="hero-svg" viewBox="0 0 520 452" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- moře se ke spodnímu okraji vytrácí do pozadí -->
+      <linearGradient id="seaFadeA" x1="0" y1="288" x2="0" y2="440" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="var(--blue)" stop-opacity="1"/>
+        <stop offset="45%"  stop-color="var(--blue)" stop-opacity=".62"/>
+        <stop offset="78%"  stop-color="var(--blue)" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="seaFadeB" x1="0" y1="308" x2="0" y2="452" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="var(--blue-dark)" stop-opacity="1"/>
+        <stop offset="45%"  stop-color="var(--blue-dark)" stop-opacity=".6"/>
+        <stop offset="78%"  stop-color="var(--blue-dark)" stop-opacity=".2"/>
+        <stop offset="100%" stop-color="var(--blue-dark)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <!-- západ slunce -->
+    <path d="M0,0 L520,0 L520,26 C400,58 300,10 190,40 C110,62 50,40 0,20 Z" fill="var(--red)"/>
+    <path d="M0,20 C50,40 110,62 190,40 C300,10 400,58 520,26 L520,52 C395,88 300,38 190,66 C110,86 50,64 0,44 Z" fill="var(--orange)"/>
+    <path d="M0,44 C50,64 110,86 190,66 C300,38 395,88 520,52 L520,80 C390,116 300,66 190,92 C110,110 50,90 0,70 Z" fill="var(--yellow)"/>
+
+    <!-- karty po stranách (u kraje, ať nekolidují s názvem) -->
+    <g transform="translate(40 186) rotate(-10)">
+      <rect x="-30" y="-21" width="60" height="42" rx="8" fill="var(--red)"/>
+      <path d="M-30,-7 C-13,-18 8,-1 30,-9 L30,-21 L-30,-21 Z" fill="#FFFFFF" opacity=".93"/>
+    </g>
+    <g transform="translate(480 184) rotate(9)">
+      <rect x="-30" y="-21" width="60" height="42" rx="8" fill="var(--yellow)"/>
+      <path d="M-30,-5 C-11,-17 9,1 30,-8 L30,-21 L-30,-21 Z" fill="#FFFFFF" opacity=".93"/>
+    </g>
+
+    <!-- název -->
+    <g font-family="'Baloo 2', sans-serif" font-size="84" font-weight="800" text-anchor="middle">
+      <text x="150" y="200" fill="var(--red)">F</text>
+      <text x="222" y="200" fill="var(--yellow)">L</text>
+      <text x="298" y="200" fill="var(--blue)">O</text>
+      <text x="374" y="200" fill="var(--orange)">U</text>
+    </g>
+    <text x="260" y="238" font-family="Inter, sans-serif" font-size="14.5" font-weight="700"
+          letter-spacing="3.2" text-anchor="middle" fill="var(--navy-soft)">KARETNÍ DISKUSNÍ HRA</text>
+
+    <!-- moře -->
+    <path d="M0,296 C110,270 210,320 320,300 C410,284 470,310 520,296 L520,452 L0,452 Z" fill="url(#seaFadeA)"/>
+    <path d="M0,316 C120,292 220,338 330,318 C415,303 475,326 520,314 L520,452 L0,452 Z" fill="url(#seaFadeB)"/>
+  </svg>`;
+  return el('div',{class:'hero'}, htmlToNode(svg));
+}
+
 function renderHome(s){
-  s.appendChild(el('div',{class:'title-xl'},'FLOU'));
-  s.appendChild(el('div',{class:'subtitle'},'Karetní diskusní hra — otázky, hádání a trocha štěstí.'));
-  s.appendChild(el('div',{style:'height:28px'}));
   s.appendChild(el('div',{class:'stack'},
     button('Hrát na jednom zařízení','btn-primary',()=>{state.screen='setupLocal'; state.setupNames=['','']; render();}),
     button('Vytvořit online místnost','btn-secondary',()=>{state.myName=''; state.screen='setupHost'; render();}),
     button('Připojit se ke kódu','btn-secondary',()=>{state.joinCode=''; state.myName=''; state.screen='joinRoom'; render();}),
   ));
-  s.appendChild(el('div',{style:'height:20px'}));
+  s.appendChild(el('div',{style:'height:18px'}));
   s.appendChild(el('div',{class:'banner-info'},
     el('b',{},'Jak hrát: '),'Padne barva → táhne se otázka té barvy. Modrá karta = ostatní hádají, kdo uhodne, získá půl kartu. Dvě půl karty stejné barvy = 1 celá. Vyhrává, kdo má 2 celé karty od každé barvy.'
   ));
 }
+
 function button(label, cls, onClick, disabled=false){
   return el('button',{class:'btn '+cls, onclick:onClick, disabled: disabled?'disabled':null},label);
 }
