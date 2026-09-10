@@ -37,6 +37,8 @@ function normalizeRoom(raw){
   room.currentCard = raw.currentCard || null;
   room.winnerId = raw.winnerId || null;
   room.lastRolledColor = raw.lastRolledColor || null;
+  room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
+  room.awardColors = raw.awardColors || {}; // playerId -> barva půlkarty
   return room;
 }
 
@@ -65,6 +67,8 @@ function roomToFirebase(room){
     currentCard: room.currentCard,
     decks: room.decks,
     winnerId: room.winnerId,
+    votes: room.votes || {},
+    awardColors: room.awardColors || {},
     createdAt: room.createdAt || Date.now()
   };
 }
@@ -159,7 +163,9 @@ const Online = {
       'lastRolledColor': room.lastRolledColor,
       'currentCard': room.currentCard,
       'decks': room.decks,
-      'winnerId': room.winnerId
+      'winnerId': room.winnerId,
+      'votes': room.votes || {},
+      'awardColors': room.awardColors || {}
     };
     room.players.forEach(p=>{
       changes['players/'+p.id+'/halves'] = p.halves;
@@ -167,6 +173,16 @@ const Online = {
       changes['players/'+p.id+'/skipNext'] = !!p.skipNext;
     });
     await FlowNet.updateRoom(room.code, changes);
+  },
+
+  /* Zápis jednoho hlasu — jen vlastní větev, ne celý stav. */
+  async pushVote(code, playerId, optionIndex){
+    await FlowNet.updateRoom(code, { ['votes/'+playerId]: optionIndex });
+  },
+
+  /* Zápis zvolené barvy půlkarty jedním hráčem. */
+  async pushAwardColor(code, playerId, color){
+    await FlowNet.updateRoom(code, { ['awardColors/'+playerId]: color });
   },
 
   /* ---------- RECONNECT ---------- */
