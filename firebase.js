@@ -95,6 +95,27 @@ const FlowNet = (function(){
     await db.ref('rooms/'+code+'/players/'+myUid).set(player);
   }
 
+  /* Ověří existenci místnosti a zapíše hráče v JEDNOM síťovém kole.
+     Transakce nad větví players/: pokud místnost neexistuje, zápis se zruší. */
+  async function joinRoomFast(code, player){
+    await ready();
+    const roomRef = db.ref('rooms/'+code);
+    const res = await roomRef.child('players/'+myUid).transaction(current=>{
+      if(current) return current;   // už tam jsem (reconnect) -> neměnit
+      return player;
+    });
+    if(!res.committed) return { ok:false, uid:myUid };
+    // Ověření, že místnost opravdu existuje (ne jen osiřelá větev players).
+    const snap = await roomRef.child('phase').once('value');
+    if(!snap.exists()){
+      // Neexistující kód: smažeme celou osiřelou větev, ať v databázi
+      // nezůstávají prázdné místnosti po překlepech v kódu.
+      await roomRef.remove().catch(()=>{});
+      return { ok:false, uid:myUid };
+    }
+    return { ok:true, uid:myUid, phase: snap.val() };
+  }
+
   /* Cílený zápis konkrétních cest, ne přepis celého roomu.
      changes = { 'phase':'idle', 'turnIndex':2, 'players/abc/full/red':1 } */
   async function updateRoom(code, changes){
@@ -138,7 +159,7 @@ const FlowNet = (function(){
 
   return {
     ready, uidOrNull, available,
-    createRoom, roomExists, getRoom, joinRoom,
+    createRoom, roomExists, getRoom, joinRoom, joinRoomFast,
     updateRoom, listenToRoom, stopListening, setupDisconnect
   };
 })();
