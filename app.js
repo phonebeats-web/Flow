@@ -133,9 +133,15 @@ async function saveAndRender(){
 }
 
 /* ============ HERNÍ AKCE ============ */
-async function rollDice(){
+/* Vylosuje barvu. Odděleno od applyRoll, aby UI mohlo
+   nejdřív přehrát animaci hodu a teprve pak výsledek použít. */
+function pickDieColor(){
+  return ['red','blue','yellow'][Math.floor(Math.random()*3)];
+}
+
+async function rollDice(preRolled){
   const room = state.room;
-  const color = ['red','blue','yellow'][Math.floor(Math.random()*3)];
+  const color = preRolled || pickDieColor();
   const isDouble = room.lastRolledColor===color;
   room.lastRolledColor = color;
   if(isDouble){
