@@ -29,6 +29,7 @@ function initialState(){
     guessSelections: {}, // playerId -> true/false during guess resolution
     guessColors: {},     // playerId -> chosen color
     chanceUI: {},        // scratch state for chance resolution
+    rulesOpen: false,    // rozbalená pravidla na úvodní obrazovce
     blueCompose: {a:'', b:'', c:'', correct:0}, // rozepsané možnosti u modré karty
     secretCorrect: null, // správná odpověď — drží se lokálně do vyhodnocení
   };
