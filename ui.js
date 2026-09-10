@@ -228,6 +228,18 @@ function renderGame(s){
     renderRightNeighbor(s, room, mine);
     return;
   }
+  if(room.phase==='blue-compose'){
+    renderBlueCompose(s, room, mine);
+    return;
+  }
+  if(room.phase==='blue-guessing'){
+    renderBlueGuessing(s, room, mine);
+    return;
+  }
+  if(room.phase==='blue-reveal'){
+    renderBlueReveal(s, room, mine);
+    return;
+  }
 }
 function diePreviewColor(room){
   const c = room.lastRolledColor;
@@ -553,6 +565,190 @@ function renderRightNeighbor(s, room, mine){
     else if(nb.halves[c]>0) nb.halves[c]--;
     advanceTurn(room); saveAndRender();
   }));
+}
+
+/* ---------- MODRÁ KARTA: KVÍZOVÝ REŽIM (jen online) ---------- */
+
+/* Krok 1 — hráč na tahu vymyslí 3 možnosti a označí tu pravdivou. */
+function renderBlueCompose(s, room, mine){
+  const card = room.currentCard;
+  s.appendChild(qcardEl('blue', card.text));
+  s.appendChild(el('div',{style:'height:18px'}));
+
+  if(!mine){
+    s.appendChild(el('div',{class:'center-col'},
+      el('div',{class:'subtitle waiting-dots'}, activePlayer(room).name, ' vymýšlí odpovědi',
+        el('span',{},'.'),el('span',{},'.'),el('span',{},'.'))
+    ));
+    return;
+  }
+
+  if(!state.blueCompose) state.blueCompose = {a:'', b:'', c:'', correct:0};
+  const bc = state.blueCompose;
+
+  s.appendChild(el('div',{class:'banner-info'},'Napiš tři možné odpovědi a označ tu pravdivou. Ostatní pak budou hádat, která to je.'));
+  s.appendChild(el('div',{style:'height:14px'}));
+
+  const keys = ['a','b','c'];
+  const list = el('div',{class:'stack'});
+  keys.forEach((k,i)=>{
+    const row = el('div',{class:'row'});
+    row.appendChild(el('button',{
+      class:'color-dot-btn'+(bc.correct===i?' selected':''),
+      style:'background:'+(bc.correct===i?'var(--blue-dark)':'#E4DCC9')+';flex-shrink:0;width:36px;height:36px',
+      title:'Označit jako pravdivou',
+      onclick:()=>{ bc.correct=i; render(); }
+    }));
+    row.appendChild(el('input',{class:'card-input', placeholder:'Možnost '+(i+1), value:bc[k],
+      oninput:(e)=>{ bc[k]=e.target.value; }}));
+    list.appendChild(row);
+  });
+  s.appendChild(list);
+  s.appendChild(el('div',{class:'subtitle', style:'margin-top:8px'},'Modrým kolečkem označ pravdivou odpověď.'));
+
+  s.appendChild(el('div',{class:'spacer'}));
+  s.appendChild(button('Odeslat možnosti','btn-blue', ()=>{
+    const opts = keys.map(k=> (bc[k]||'').trim());
+    if(opts.some(o=>!o)){ alert('Vyplň všechny tři možnosti.'); return; }
+    // Správná odpověď se zatím NEODESÍLÁ — zůstává jen v zařízení hráče na tahu,
+    // aby si ji ostatní nemohli přečíst z databáze. Odešle se až při vyhodnocení.
+    state.secretCorrect = bc.correct;
+    room.currentCard = Object.assign({}, card, {options:opts, correct:null});
+    room.votes = {};
+    room.awardColors = {};
+    room.phase = 'blue-guessing';
+    state.blueCompose = {a:'', b:'', c:'', correct:0};
+    saveAndRender();
+  }));
+  s.appendChild(el('div',{style:'height:8px'}));
+  s.appendChild(button('Neodpověděl/a — ztrácí kartu','btn-secondary', ()=>{
+    loseColor(activePlayer(room), 'blue');
+    state.blueCompose = {a:'', b:'', c:'', correct:0};
+    advanceTurn(room);
+    saveAndRender();
+  }));
+}
+
+/* Krok 2 — ostatní hlasují, hráč na tahu čeká. */
+function renderBlueGuessing(s, room, mine){
+  const card = room.currentCard;
+  const ap = activePlayer(room);
+  const others = room.players.filter(p=>p.id!==ap.id);
+  const votes = room.votes || {};
+  const voted = others.filter(p=> votes[p.id]!==undefined && votes[p.id]!==null);
+
+  s.appendChild(qcardEl('blue', card.text));
+  s.appendChild(el('div',{style:'height:18px'}));
+
+  if(mine){
+    s.appendChild(el('div',{class:'banner-info'},'Ostatní hádají. Hlasovalo ', el('b',{}, voted.length+' z '+others.length), '.'));
+    s.appendChild(el('div',{style:'height:12px'}));
+    const list = el('div',{class:'stack'});
+    others.forEach(p=>{
+      list.appendChild(el('div',{class:'guess-row'},
+        el('span',{}, p.name),
+        el('span',{class:'subtitle', style:'margin:0'}, voted.includes(p) ? 'hlasoval/a' : 'čeká se…')
+      ));
+    });
+    s.appendChild(list);
+    s.appendChild(el('div',{class:'spacer'}));
+    s.appendChild(button('Vyhodnotit','btn-primary', ()=>{
+      // teprve teď odhalíme správnou odpověď všem
+      room.currentCard = Object.assign({}, card, {correct: state.secretCorrect});
+      room.phase='blue-reveal';
+      saveAndRender();
+    }, voted.length < others.length));
+    return;
+  }
+
+  // hráč, který hádá
+  const myVote = votes[state.myPlayerId];
+  if(myVote !== undefined && myVote !== null){
+    s.appendChild(el('div',{class:'center-col'},
+      el('div',{class:'banner-info'},'Tvoje odpověď: ', el('b',{}, card.options[myVote])),
+      el('div',{class:'subtitle waiting-dots'},'Čeká se na ostatní',
+        el('span',{},'.'),el('span',{},'.'),el('span',{},'.'))
+    ));
+    return;
+  }
+
+  s.appendChild(el('div',{class:'subtitle', style:'text-align:center;margin-bottom:12px'},'Která odpověď je podle tebe pravdivá?'));
+  const list = el('div',{class:'stack'});
+  (card.options||[]).forEach((opt,i)=>{
+    list.appendChild(button(opt,'btn-secondary', ()=>{
+      Online.pushVote(room.code, state.myPlayerId, i);
+    }));
+  });
+  s.appendChild(list);
+}
+
+/* Krok 3 — odhalení, kdo uhodl, a výběr barvy půlkarty. */
+function renderBlueReveal(s, room, mine){
+  const card = room.currentCard;
+  const ap = activePlayer(room);
+  const others = room.players.filter(p=>p.id!==ap.id);
+  const votes = room.votes || {};
+  const colors = room.awardColors || {};
+  const winners = others.filter(p=> votes[p.id]===card.correct);
+
+  s.appendChild(el('div',{class:'title-md', style:'text-align:center;margin-bottom:10px'},'Pravdivá odpověď'));
+  s.appendChild(qcardEl('blue', card.options[card.correct]));
+  s.appendChild(el('div',{style:'height:16px'}));
+
+  const list = el('div',{class:'stack'});
+  others.forEach(p=>{
+    const ok = votes[p.id]===card.correct;
+    list.appendChild(el('div',{class:'guess-row'},
+      el('span',{}, p.name),
+      el('span',{style:'font-weight:700;color:'+(ok?'var(--blue-dark)':'var(--navy-soft)')}, ok ? 'uhodl/a ✓' : 'neuhodl/a')
+    ));
+  });
+  s.appendChild(list);
+
+  // Ten, kdo uhodl, si volí barvu půlkarty na svém zařízení.
+  const iWon = winners.some(p=>p.id===state.myPlayerId);
+  if(iWon && !colors[state.myPlayerId]){
+    s.appendChild(el('div',{style:'height:14px'}));
+    s.appendChild(el('div',{class:'subtitle', style:'text-align:center'},'Uhodl/a jsi! Vyber barvu své půlkarty:'));
+    s.appendChild(el('div',{class:'color-pick'},
+      ...['red','yellow','blue'].map(cc=>el('button',{class:'color-dot-btn c-'+cc, onclick:()=>{
+        Online.pushAwardColor(room.code, state.myPlayerId, cc);
+      }}))
+    ));
+  } else if(iWon){
+    s.appendChild(el('div',{style:'height:14px'}));
+    s.appendChild(el('div',{class:'subtitle', style:'text-align:center'},'Zvolená barva půlkarty je uložena.'));
+  }
+
+  if(!mine){
+    s.appendChild(el('div',{style:'height:14px'}));
+    s.appendChild(el('div',{class:'subtitle waiting-dots', style:'text-align:center'},'Čeká se na ', ap.name,
+      el('span',{},'.'),el('span',{},'.'),el('span',{},'.')));
+    return;
+  }
+
+  const pending = winners.filter(p=>!colors[p.id]);
+  s.appendChild(el('div',{class:'spacer'}));
+  if(pending.length){
+    s.appendChild(el('div',{class:'subtitle', style:'text-align:center;margin-bottom:8px'},
+      'Barvu si ještě vybírá: '+pending.map(p=>p.name).join(', ')));
+  }
+  s.appendChild(button('Pokračovat','btn-primary', ()=>{
+    // Půlkarty pro ty, kdo uhodli.
+    winners.forEach(p=>{
+      const cc = colors[p.id];
+      if(cc) addHalf(p, cc);
+    });
+    // Hráč na tahu odpověděl -> získává celou modrou.
+    addFull(ap, 'blue');
+
+    let winner = checkWin(ap) ? ap : room.players.find(p=>checkWin(p));
+    if(winner){ room.phase='finished'; room.winnerId=winner.id; }
+    else advanceTurn(room);
+    room.votes = {};
+    room.awardColors = {};
+    saveAndRender();
+  }, pending.length>0));
 }
 
 /* ---------- FINISHED ---------- */
