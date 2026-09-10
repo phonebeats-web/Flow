@@ -201,11 +201,17 @@ function renderGame(s){
   const mine = isMyTurnOrLocal(room);
 
   if(room.phase==='idle'){
-    s.appendChild(el('div',{class:'center-col', style:'margin-top:10px'},
-      el('div',{class:'die'}, el('div',{class:'dot', style:'background:'+diePreviewColor(room)})),
-      mine ? button('Hodit kostkou','btn-primary', ()=>rollDice()) :
-             el('div',{class:'subtitle'},'Čeká se na hod hráče ', el('b',{},ap.name))
-    ));
+    const die = el('div',{class:'die'}, el('div',{class:'dot', style:'background:'+diePreviewColor(room)}));
+    const col = el('div',{class:'center-col', style:'margin-top:10px'}, die);
+    if(mine){
+      const btn = button('Hodit kostkou','btn-primary', ()=>{
+        animateRoll(die, btn);
+      });
+      col.appendChild(btn);
+    } else {
+      col.appendChild(el('div',{class:'subtitle'},'Čeká se na hod hráče ', el('b',{},ap.name)));
+    }
+    s.appendChild(col);
     return;
   }
   if(room.phase==='rolled-question'){
@@ -241,6 +247,37 @@ function renderGame(s){
     return;
   }
 }
+/* Animace hodu: kostka se roztočí a bliká barvami,
+   pak dosedne na vylosovanou barvu a teprve potom se táhne karta. */
+function animateRoll(dieEl, btnEl){
+  if(state.rolling) return;
+  state.rolling = true;
+
+  const result = pickDieColor();
+  const cssOf = c => c==='red' ? 'var(--red)' : c==='blue' ? 'var(--blue)' : 'var(--yellow)';
+  const dot = dieEl.children ? dieEl.children[0] : null;
+  const setDot = (c)=>{ if(dot && dot.style) dot.style.background = cssOf(c); };
+
+  dieEl.classList && dieEl.classList.add('rolling');
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = 'Kostka se točí…'; }
+
+  const seq = ['red','blue','yellow'];
+  let i = 0;
+  const spin = setInterval(()=>{ setDot(seq[i++ % seq.length]); }, 90);
+
+  setTimeout(()=>{
+    clearInterval(spin);
+    dieEl.classList && dieEl.classList.remove('rolling');
+    dieEl.classList && dieEl.classList.add('landed');
+    setDot(result);
+    // krátká pauza, ať je výsledek vidět, pak teprve karta
+    setTimeout(()=>{
+      state.rolling = false;
+      rollDice(result);
+    }, 420);
+  }, 900);
+}
+
 function diePreviewColor(room){
   const c = room.lastRolledColor;
   if(c==='red') return 'var(--red)';
