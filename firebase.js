@@ -73,18 +73,20 @@ const FlowNet = (function(){
   /* Založí místnost pod kódem, který ještě neexistuje.
      makeCode() dodá volající (engine uid()), aby tato vrstva
      neobsahovala herní logiku. */
+  /* Založí místnost. Kolizi kódu řeší transakcí — jedno síťové kolo
+     místo dvou (kontrola + zápis), takže je vytvoření znatelně rychlejší. */
   async function createRoom(makeCode, buildRoom){
     await ready();
-    let code = null;
     for(let attempt=0; attempt<8; attempt++){
       const candidate = makeCode();
-      const exists = await roomExists(candidate);
-      if(!exists){ code = candidate; break; }
+      const room = buildRoom(candidate, myUid);
+      const res = await db.ref('rooms/'+candidate).transaction(current=>{
+        if(current === null) return room;   // volné -> zabereme
+        return undefined;                    // obsazené -> zrušíme a zkusíme jiný kód
+      });
+      if(res.committed) return candidate;
     }
-    if(!code) throw new Error('Nepodařilo se vygenerovat volný kód místnosti');
-    const room = buildRoom(code, myUid);
-    await db.ref('rooms/'+code).set(room);
-    return code;
+    throw new Error('Nepodařilo se vygenerovat volný kód místnosti');
   }
 
   /* Přidá hráče pod jeho vlastní uid (jen do své vlastní větve). */
