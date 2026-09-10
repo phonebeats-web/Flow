@@ -110,10 +110,34 @@ function renderHome(s){
     button('Vytvořit online místnost','btn-secondary',()=>{state.myName=''; state.screen='setupHost'; render();}),
     button('Připojit se ke kódu','btn-secondary',()=>{state.joinCode=''; state.myName=''; state.screen='joinRoom'; render();}),
   ));
-  s.appendChild(el('div',{style:'height:18px'}));
-  s.appendChild(el('div',{class:'banner-info'},
-    el('b',{},'Jak hrát: '),'Padne barva → táhne se otázka té barvy. Modrá karta = ostatní hádají, kdo uhodne, získá půl kartu. Dvě půl karty stejné barvy = 1 celá. Vyhrává, kdo má 2 celé karty od každé barvy.'
+
+  // Pravidla schovaná pod rozbalovacím odkazem — nezabírají místo,
+  // dokud si je někdo nevyžádá.
+  const open = !!state.rulesOpen;
+  s.appendChild(el('div',{class:'rules'},
+    el('button',{class:'rules-toggle'+(open?' open':''), onclick:()=>{
+      state.rulesOpen = !state.rulesOpen; render();
+    }},
+      el('span',{},'Jak se hraje?'),
+      el('span',{class:'rules-chevron'},'⌄')
+    ),
+    open ? el('div',{class:'rules-body'},
+      rulesStep('var(--navy-soft)','1','Hoď kostkou','Padne barva a táhne se otázka té barvy.'),
+      rulesStep('var(--blue)','2','Modrá = hádání','Ostatní hádají tvoji odpověď. Kdo uhodne, bere půl kartu.'),
+      rulesStep('var(--yellow)','3','Skládej karty','Dvě půl karty stejné barvy dají jednu celou.'),
+      rulesStep('var(--red)','4','Vyhrává','Kdo má 2 celé karty od každé barvy.')
+    ) : null
   ));
+}
+
+function rulesStep(color, num, title, text){
+  return el('div',{class:'rules-step'},
+    el('div',{class:'rules-num', style:'background:'+color}, num),
+    el('div',{},
+      el('div',{class:'rules-step-title'}, title),
+      el('div',{class:'rules-step-text'}, text)
+    )
+  );
 }
 
 function button(label, cls, onClick, disabled=false){
