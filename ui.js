@@ -134,6 +134,11 @@ function renderJoinRoom(s){
 /* ---------- LOBBY ---------- */
 function renderLobby(s){
   const room = state.room;
+  s.appendChild(el('div',{style:'display:flex;justify-content:flex-end;margin-bottom:6px'},
+    el('button',{class:'link-btn', onclick:()=>{
+      if(confirm('Opravdu chcete opustit místnost?')) leaveOnlineRoom();
+    }},'Opustit místnost')
+  ));
   s.appendChild(el('div',{class:'title-lg'},'Místnost'));
   s.appendChild(el('div',{class:'code-display'}, room.code));
   s.appendChild(el('div',{style:'height:18px'}));
@@ -166,11 +171,29 @@ function backRow(onClick){
 }
 
 /* ============ GAME SCREEN ============ */
+function exitGameRow(){
+  return el('div',{style:'display:flex;justify-content:flex-end;margin-bottom:6px'},
+    el('button',{class:'link-btn', onclick:()=>{ confirmExitGame(); }},'Ukončit hru')
+  );
+}
+
+/* Potvrzení odchodu z rozehrané hry. */
+function confirmExitGame(){
+  const online = Store.mode==='online';
+  const msg = online
+    ? 'Opravdu chcete opustit rozehranou hru? Vrátíte se do hlavní nabídky a z místnosti odejdete.'
+    : 'Opravdu chcete ukončit rozehranou hru? Průběh se ztratí a vrátíte se do hlavní nabídky.';
+  if(!confirm(msg)) return;
+  if(online){ leaveOnlineRoom(); }
+  else { resetAppState(); render(); }
+}
+
 function renderGame(s){
   const room = state.room;
   if(room.phase==='finished'){ renderFinished(s, room); return; }
 
   const ap = activePlayer(room);
+  s.appendChild(exitGameRow());
   s.appendChild(el('div',{class:'turn-banner'}, 'Na tahu: ', el('b',{},ap.name)));
   s.appendChild(scoreRow(room));
   s.appendChild(el('div',{style:'height:18px'}));
