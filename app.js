@@ -29,6 +29,8 @@ function initialState(){
     guessSelections: {}, // playerId -> true/false during guess resolution
     guessColors: {},     // playerId -> chosen color
     chanceUI: {},        // scratch state for chance resolution
+    blueCompose: {a:'', b:'', c:'', correct:0}, // rozepsané možnosti u modré karty
+    secretCorrect: null, // správná odpověď — drží se lokálně do vyhodnocení
   };
 }
 let state = initialState();
@@ -143,7 +145,15 @@ async function rollDice(){
   } else {
     const q = drawFrom(room,color);
     room.currentCard = {type:'question', color, text:q};
-    room.phase='rolled-question';
+    // Online + modrá: hráč na tahu nejdřív vymyslí 3 možnosti (kvízový režim).
+    if(color==='blue' && Store.mode==='online'){
+      room.votes = {};
+      room.awardColors = {};
+      state.blueCompose = {a:'', b:'', c:'', correct:0};
+      room.phase='blue-compose';
+    } else {
+      room.phase='rolled-question';
+    }
   }
   await saveAndRender();
 }
