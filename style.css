@@ -248,6 +248,47 @@
   .color-dot-btn.c-red{background:var(--red);}
   .color-dot-btn.c-yellow{background:var(--yellow);}
   .color-dot-btn.c-blue{background:var(--blue);}
+  /* Pravidla schovanĂĄ pod rozbalovacĂ­m odkazem */
+  .rules{margin-top:14px;}
+  .rules-toggle{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    width:100%;
+    background:none;border:none;
+    font-family:'Baloo 2',sans-serif;
+    font-size:16px;font-weight:700;
+    color:var(--navy-soft);
+    padding:12px;cursor:pointer;
+  }
+  .rules-chevron{
+    display:inline-block;
+    font-size:19px;line-height:1;
+    transition:transform .22s ease;
+  }
+  .rules-toggle.open .rules-chevron{transform:rotate(180deg);}
+  .rules-body{
+    background:var(--white);
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+    animation:rules-in .22s ease both;
+  }
+  @keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .rules-step{display:flex;gap:12px;align-items:flex-start;}
+  .rules-step + .rules-step{margin-top:14px;}
+  .rules-num{
+    flex-shrink:0;
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;
+    color:var(--white);
+  }
+  .rules-step-title{font-weight:700;font-size:14.5px;color:var(--navy);}
+  .rules-step-text{font-size:13.5px;line-height:1.45;color:var(--navy-soft);margin-top:2px;}
+  @media (prefers-reduced-motion:reduce){
+    .rules-body{animation:none;}
+    .rules-chevron{transition:none;}
+  }
+
   .banner-info{
     background:var(--white);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);
     font-size:14.5px;color:var(--navy-soft);line-height:1.5;
