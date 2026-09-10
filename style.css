@@ -35,21 +35,59 @@
   }
   .wave-top{
     position:relative;
-    width:100%;
+    width:100vw;
+    margin-left:calc(50% - 50vw);
     height:150px;
     overflow:hidden;
     flex-shrink:0;
   }
   .wave-top svg{position:absolute;top:0;left:0;width:100%;height:100%;}
 
-  /* ĂvodnĂ­ hlaviÄka s nĂĄzvem â jen na domovskĂŠ obrazovce. */
+  /* ĂvodnĂ­ hlaviÄka â jen na domovskĂŠ obrazovce.
+     Vlny se roztahujĂ­ pĹes celĂŠ okno, nĂĄpis zĹŻstĂĄvĂĄ v rozumnĂŠ
+     velikosti nezĂĄvisle na ĹĄĂ­Ĺce displeje. */
   .hero{
-    width:100%;
+    width:100vw;
+    margin-left:calc(50% - 50vw);
     flex-shrink:0;
-    line-height:0;
     animation:hero-in .5s ease both;
   }
-  .hero-svg{width:100%;height:auto;display:block;}
+  .hero-band{width:100%;line-height:0;}
+  .hero-band .hero-waves{width:100%;display:block;height:74px;}
+  .hero-band-sea .hero-waves{height:150px;}
+
+  .hero-middle{
+    display:flex;align-items:center;justify-content:center;
+    gap:clamp(10px,4vw,34px);
+    padding:26px 16px 20px;
+  }
+  .hero-titleblock{text-align:center;}
+  .hero-title{
+    font-family:'Baloo 2',sans-serif;
+    font-size:clamp(52px,13vw,84px);
+    font-weight:800;
+    line-height:1;
+    letter-spacing:clamp(4px,1.6vw,12px);
+    white-space:nowrap;
+  }
+  .hero-sub{
+    font-family:'Inter',sans-serif;
+    font-size:clamp(11px,2.9vw,15px);
+    font-weight:700;
+    letter-spacing:clamp(2px,.8vw,4px);
+    color:var(--navy-soft);
+    margin-top:10px;
+    white-space:nowrap;
+  }
+  .hero-card{
+    width:clamp(44px,12vw,72px);
+    height:auto;
+    flex-shrink:0;
+  }
+  @media (max-width:340px){
+    .hero-card{display:none;}
+  }
+
   @keyframes hero-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
   @media (prefers-reduced-motion:reduce){ .hero{animation:none;} }
   .screen{
