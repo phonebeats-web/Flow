@@ -161,11 +161,17 @@ async function rollDice(){
 /* ============ BOOTSTRAP ============ */
 (async function boot(){
   render();
+
+  if(typeof FlowNet === 'undefined' || !FlowNet.available()) return;
+
+  // Přihlášení a navázání spojení spustíme HNED po načtení stránky,
+  // ne až po kliknutí. Než uživatel napíše své jméno, je hotové —
+  // takže vytvoření i připojení do místnosti je pak výrazně rychlejší.
+  FlowNet.ready().catch(e=>console.error('auth warmup failed', e));
+
   // pokus o návrat do rozehrané online místnosti po refreshi
-  if(typeof FlowNet !== 'undefined' && FlowNet.available()){
-    try{
-      const reconnected = await Online.tryReconnect();
-      if(reconnected) return; // listener nastaví obrazovku
-    }catch(e){ console.error('reconnect error', e); }
-  }
+  try{
+    const reconnected = await Online.tryReconnect();
+    if(reconnected) return; // listener nastaví obrazovku
+  }catch(e){ console.error('reconnect error', e); }
 })();
