@@ -7,6 +7,7 @@
     --orange:#F3873F;
     --yellow:#F6C61E;
     --blue:#5FC4DC;
+    --blue-light:#7FD2E6;
     --blue-dark:#3FA9C4;
     --white:#FFFFFF;
     --shadow: 0 10px 30px rgba(24,40,72,0.12);
@@ -54,7 +55,7 @@
   }
   .hero-band{width:100%;line-height:0;}
   .hero-band .hero-waves{width:100%;display:block;height:74px;}
-  .hero-band-sea .hero-waves{height:150px;}
+  .hero-band-sea .hero-waves{height:56px;}
 
   .hero-middle{
     display:flex;align-items:center;justify-content:center;
@@ -248,6 +249,50 @@
   .color-dot-btn.c-red{background:var(--red);}
   .color-dot-btn.c-yellow{background:var(--yellow);}
   .color-dot-btn.c-blue{background:var(--blue);}
+  /* DomovskĂĄ obrazovka: moĹe pokraÄuje aĹž ke spodnĂ­mu okraji.
+     Vlnky a plovoucĂ­ karty zaplnĂ­ prĂĄzdnou plochu dole. */
+  .screen-sea{
+    background-color:var(--blue);
+    position:relative;
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    padding-left:max(22px, calc(50vw - 238px));
+    padding-right:max(22px, calc(50vw - 238px));
+    overflow:hidden;
+  }
+  .screen-sea::after{
+    content:"";
+    position:absolute;left:0;right:0;bottom:0;height:230px;
+    pointer-events:none;
+    background-repeat:no-repeat;
+    background-size:100% 100%;
+    background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 230' preserveAspectRatio='none'>\
+<g fill='none' stroke='%23ffffff' stroke-linecap='round'>\
+<path d='M0,40 C130,18 250,58 380,36 C440,26 490,40 520,32' stroke-opacity='.14' stroke-width='6'/>\
+<path d='M0,92 C120,70 260,110 380,88 C445,76 490,92 520,84' stroke-opacity='.11' stroke-width='6'/>\
+<path d='M0,146 C140,124 250,164 390,142 C450,132 495,146 520,138' stroke-opacity='.09' stroke-width='6'/>\
+<path d='M0,198 C130,178 255,214 385,194 C447,184 494,196 520,190' stroke-opacity='.07' stroke-width='6'/>\
+</g>\
+<g opacity='.85'>\
+<g transform='translate(46 128) rotate(-14)'>\
+<rect x='-24' y='-17' width='48' height='34' rx='6' fill='%23F6C61E'/>\
+<path d='M-24,-6 C-10,-14 8,-2 24,-8 L24,-17 L-24,-17 Z' fill='%23ffffff' opacity='.92'/>\
+</g>\
+<g transform='translate(452 186) rotate(12)'>\
+<rect x='-22' y='-15' width='44' height='30' rx='6' fill='%23E9502E'/>\
+<path d='M-22,-5 C-9,-13 7,-1 22,-7 L22,-15 L-22,-15 Z' fill='%23ffffff' opacity='.92'/>\
+</g>\
+</g></svg>");
+  }
+  .screen-sea > *{position:relative;z-index:1;}
+
+  /* TlaÄĂ­tka na hladinÄ: bez obrysu, s mÄkkĂ˝m stĂ­nem jako karty na vodÄ */
+  .screen-sea .btn-secondary{border:none;box-shadow:0 8px 18px rgba(10,60,80,.20);}
+  .screen-sea .btn-primary{box-shadow:0 8px 18px rgba(10,60,80,.28);}
+  .screen-sea .rules-toggle{color:var(--white);}
+  .screen-sea .rules-step-text{color:var(--navy-soft);}
+
   /* Pravidla schovanĂĄ pod rozbalovacĂ­m odkazem */
   .rules{margin-top:14px;}
   .rules-toggle{
