@@ -54,7 +54,7 @@
     animation:hero-in .5s ease both;
   }
   .hero-band{width:100%;line-height:0;}
-  .hero-band .hero-waves{width:100%;display:block;height:74px;}
+  .hero-band .hero-waves{width:100%;display:block;height:86px;}
   .hero-band-sea .hero-waves{height:56px;}
 
   .hero-middle{
@@ -95,7 +95,7 @@
     flex:1;
     display:flex;
     flex-direction:column;
-    padding:24px 22px 40px;
+    padding:30px 22px 48px;
     animation:fadeIn .35s ease;
   }
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -121,7 +121,7 @@
   .btn-yellow{background:var(--yellow);color:var(--navy);}
   .btn-ghost{background:transparent;color:var(--navy-soft);font-weight:600;text-decoration:underline;box-shadow:none;padding:10px;}
   .btn:disabled{opacity:0.4;cursor:not-allowed;}
-  .stack{display:flex;flex-direction:column;gap:12px;}
+  .stack{display:flex;flex-direction:column;gap:14px;}
   .row{display:flex;gap:10px;align-items:center;}
   .card-input{
     width:100%;padding:14px 16px;border-radius:14px;border:2px solid #E4DCC9;
@@ -139,6 +139,33 @@
     letter-spacing:8px;text-align:center;background:var(--white);
     border-radius:18px;padding:18px;box-shadow:var(--shadow);color:var(--navy);
   }
+  /* SdĂ­lenĂ­ kĂłdu mĂ­stnosti */
+  .share-row{
+    display:flex;gap:10px;justify-content:center;
+    margin-top:12px;
+  }
+  .share-btn{
+    flex:1;max-width:190px;
+    background:var(--white);
+    border:2px solid rgba(24,40,72,.14);
+    border-radius:14px;
+    padding:11px 10px;
+    font-family:'Baloo 2',sans-serif;
+    font-size:14.5px;font-weight:700;
+    color:var(--navy);
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+    transition:border-color .16s ease, background-color .2s ease, color .2s ease;
+  }
+  .share-btn:hover{border-color:var(--navy);}
+  .share-btn:active{transform:scale(.97);}
+  .share-btn.done{
+    background:var(--blue);
+    border-color:var(--blue);
+    color:var(--white);
+  }
+
   .player-chip{
     display:flex;align-items:center;justify-content:space-between;
     background:var(--white);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);
@@ -176,6 +203,15 @@
     .qcard-text{font-size:21px;}
   }
   /* Kostka: bĂ­lĂĄ krychliÄka s barevnĂ˝m koleÄkem uprostĹed. */
+  /* VzduĹĄnÄjĹĄĂ­ hernĂ­ obrazovka â skĂłre, kostka a tlaÄĂ­tko
+     majĂ­ mezi sebou prostor, aĹĽ nejsou natlaÄenĂŠ na sebe. */
+  .gap-after-score{height:42px;}
+  .die-area{margin-top:26px;gap:34px;}
+  @media (max-width:420px){
+    .gap-after-score{height:34px;}
+    .die-area{margin-top:18px;gap:28px;}
+  }
+
   .die{
     width:86px;height:86px;border-radius:22px;
     background:linear-gradient(150deg,#FFFFFF 0%,#F4EEE1 100%);
@@ -214,19 +250,60 @@
   }
   .turn-banner{
     text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;
-    color:var(--navy-soft);margin-bottom:4px;
+    color:var(--navy-soft);margin-bottom:14px;
   }
   .turn-banner b{color:var(--navy);}
   .score-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
   .score-chip{
     flex-shrink:0;background:var(--white);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);
     min-width:110px;
+    border:2px solid transparent;
+    transition:border-color .16s ease;
   }
-  .score-chip .pname{font-weight:700;font-size:13px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .score-dots{display:flex;gap:5px;}
-  .mini-dot{width:14px;height:14px;border-radius:5px;position:relative;}
-  .mini-dot.full::after{content:"";position:absolute;inset:3px;background:rgba(255,255,255,0.85);border-radius:2px;}
-  .mini-dot.half{opacity:0.35;}
+  /* HrĂĄÄ na tahu: jen zvĂ˝raznÄnĂ˝ obrys */
+  .score-chip.active{border-color:var(--navy);}
+  .score-chip .pname{font-weight:700;font-size:13px;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .score-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+  .score-dots{display:flex;gap:9px;align-items:center;}
+
+  /* SkĂłre: kaĹždĂĄ barva mĂĄ dva sloty â tolik celĂ˝ch karet je tĹeba k vĂ˝hĹe.
+     PrĂĄzdnĂ˝ / poloviÄnĂ­ / plnĂ˝ slot je vidÄt na prvnĂ­ pohled. */
+  .score-color{display:flex;gap:3px;align-items:center;}
+  .score-color .slot{
+    width:13px;height:17px;border-radius:4px;
+    background:transparent;
+    border:2px solid var(--c);
+    opacity:.3;
+    position:relative;overflow:hidden;
+    transition:opacity .2s ease, background-color .2s ease;
+  }
+  .score-color .slot.filled{background:var(--c);opacity:1;}
+  .score-color .slot.halffull{opacity:1;}
+  .score-color .slot.halffull::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:50%;
+    background:var(--c);
+  }
+  .score-color .slot-extra{font-size:10.5px;font-weight:700;margin-left:1px;}
+
+  /* Odchod ze hry â nenĂĄpadnĂ˝ odkaz dole */
+  .exit-wrap{
+    display:flex;justify-content:center;
+    margin-top:34px;
+  }
+  .exit-btn{
+    background:none;border:none;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;font-weight:500;
+    color:var(--navy-soft);
+    opacity:.6;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    padding:8px 12px;
+    cursor:pointer;
+    transition:opacity .16s ease;
+  }
+  .exit-btn:hover{opacity:1;}
+
   .guess-row{
     display:flex;align-items:center;justify-content:space-between;
     background:var(--white);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);
@@ -273,16 +350,6 @@
 <path d='M0,92 C120,70 260,110 380,88 C445,76 490,92 520,84' stroke-opacity='.11' stroke-width='6'/>\
 <path d='M0,146 C140,124 250,164 390,142 C450,132 495,146 520,138' stroke-opacity='.09' stroke-width='6'/>\
 <path d='M0,198 C130,178 255,214 385,194 C447,184 494,196 520,190' stroke-opacity='.07' stroke-width='6'/>\
-</g>\
-<g opacity='.85'>\
-<g transform='translate(46 128) rotate(-14)'>\
-<rect x='-24' y='-17' width='48' height='34' rx='6' fill='%23F6C61E'/>\
-<path d='M-24,-6 C-10,-14 8,-2 24,-8 L24,-17 L-24,-17 Z' fill='%23ffffff' opacity='.92'/>\
-</g>\
-<g transform='translate(452 186) rotate(12)'>\
-<rect x='-22' y='-15' width='44' height='30' rx='6' fill='%23E9502E'/>\
-<path d='M-22,-5 C-9,-13 7,-1 22,-7 L22,-15 L-22,-15 Z' fill='%23ffffff' opacity='.92'/>\
-</g>\
 </g></svg>");
   }
   .screen-sea > *{position:relative;z-index:1;}
@@ -339,7 +406,7 @@
     font-size:14.5px;color:var(--navy-soft);line-height:1.5;
   }
   .banner-info b{color:var(--navy);}
-  .center-col{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+  .center-col{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;}
   .win-crown{font-size:64px;}
   .link-btn{background:none;border:none;color:var(--navy-soft);text-decoration:underline;cursor:pointer;font-size:14px;font-family:'Inter',sans-serif;}
   .badge{
