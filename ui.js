@@ -59,10 +59,12 @@ function render(){
    zatímco nápis má vlastní, na šířce nezávislou velikost — takže
    na širokém monitoru se grafika nenafoukne do obřích rozměrů. */
 function homeHero(){
-  const sunset = `<svg class="hero-waves" viewBox="0 0 520 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,0 L520,0 L520,26 C400,58 300,10 190,40 C110,62 50,40 0,20 Z" fill="var(--red)"/>
-    <path d="M0,20 C50,40 110,62 190,40 C300,10 400,58 520,26 L520,52 C395,88 300,38 190,66 C110,86 50,64 0,44 Z" fill="var(--orange)"/>
-    <path d="M0,44 C50,64 110,86 190,66 C300,38 395,88 520,52 L520,80 C390,116 300,66 190,92 C110,110 50,90 0,70 Z" fill="var(--yellow)"/>
+  // Všechny tři vlny se celé vejdou do výřezu, takže se nikde
+  // neuřezávají a u levého okraje nevzniká zub.
+  const sunset = `<svg class="hero-waves" viewBox="0 0 520 92" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 L520,0 L520,22 C480,30 430,45 350,32 C230,12 120,52 0,30 Z" fill="var(--red)"/>
+    <path d="M0,30 C120,52 230,12 350,32 C430,45 480,30 520,22 L520,44 C480,52 430,67 350,54 C230,34 120,74 0,52 Z" fill="var(--orange)"/>
+    <path d="M0,52 C120,74 230,34 350,54 C430,67 480,52 520,44 L520,64 C480,70 430,84 350,74 C230,56 120,88 0,72 Z" fill="var(--yellow)"/>
   </svg>`;
 
   // Hladina: horní vlna a pod ní plná modrá, která navazuje
@@ -198,6 +200,70 @@ function renderJoinRoom(s){
   }, state.busy));
 }
 
+/* ---------- SDÍLENÍ KÓDU ---------- */
+
+/* Odkaz, který kamaráda pustí rovnou do místnosti. */
+function roomLink(code){
+  const base = location.origin + location.pathname;
+  return base + '?kod=' + encodeURIComponent(code);
+}
+
+async function copyText(text){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){ /* zkusíme záložní cestu níže */ }
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+
+function shareRow(code){
+  const row = el('div',{class:'share-row'});
+
+  const codeBtn = el('button',{class:'share-btn', onclick: async ()=>{
+    const ok = await copyText(code);
+    flashLabel(codeBtn, ok ? 'Zkopírováno ✓' : 'Nelze zkopírovat', 'Zkopírovat kód');
+  }},'Zkopírovat kód');
+  row.appendChild(codeBtn);
+
+  const linkBtn = el('button',{class:'share-btn', onclick: async ()=>{
+    const link = roomLink(code);
+    // Na mobilu nabídneme systémové sdílení, jinak zkopírujeme.
+    if(navigator.share){
+      try{
+        await navigator.share({title:'FLOU', text:'Pojď hrát FLOU!', url:link});
+        return;
+      }catch(e){ /* uživatel zrušil nebo není podporováno -> zkopírujeme */ }
+    }
+    const ok = await copyText(link);
+    flashLabel(linkBtn, ok ? 'Odkaz zkopírován ✓' : 'Nelze zkopírovat', 'Sdílet odkaz');
+  }},'Sdílet odkaz');
+  row.appendChild(linkBtn);
+
+  return row;
+}
+
+/* Krátce změní popisek tlačítka a pak ho vrátí zpět. */
+function flashLabel(btn, temp, original){
+  btn.textContent = temp;
+  btn.classList && btn.classList.add('done');
+  setTimeout(()=>{
+    btn.textContent = original;
+    btn.classList && btn.classList.remove('done');
+  }, 1600);
+}
+
 /* ---------- LOBBY ---------- */
 function renderLobby(s){
   const room = state.room;
@@ -208,6 +274,7 @@ function renderLobby(s){
   ));
   s.appendChild(el('div',{class:'title-lg'},'Místnost'));
   s.appendChild(el('div',{class:'code-display'}, room.code));
+  s.appendChild(shareRow(room.code));
   s.appendChild(el('div',{style:'height:18px'}));
   s.appendChild(el('div',{class:'title-md'},'Hráči ('+room.players.length+')'));
   s.appendChild(el('div',{style:'height:8px'}));
@@ -238,9 +305,10 @@ function backRow(onClick){
 }
 
 /* ============ GAME SCREEN ============ */
+/* Odchod ze hry — nenápadný odkaz úplně dole. */
 function exitGameRow(){
-  return el('div',{style:'display:flex;justify-content:flex-end;margin-bottom:6px'},
-    el('button',{class:'link-btn', onclick:()=>{ confirmExitGame(); }},'Ukončit hru')
+  return el('div',{class:'exit-wrap'},
+    el('button',{class:'exit-btn', onclick:()=>{ confirmExitGame(); }},'Ukončit hru')
   );
 }
 
@@ -258,18 +326,23 @@ function confirmExitGame(){
 function renderGame(s){
   const room = state.room;
   if(room.phase==='finished'){ renderFinished(s, room); return; }
+  // tlačítko pro odchod se přidá až na konec, pod obsah dané fáze
+  renderGameInner(s, room);
+  s.appendChild(exitGameRow());
+}
+
+function renderGameInner(s, room){
 
   const ap = activePlayer(room);
-  s.appendChild(exitGameRow());
   s.appendChild(el('div',{class:'turn-banner'}, 'Na tahu: ', el('b',{},ap.name)));
   s.appendChild(scoreRow(room));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{class:'gap-after-score'}));
 
   const mine = isMyTurnOrLocal(room);
 
   if(room.phase==='idle'){
     const die = el('div',{class:'die'}, el('div',{class:'dot', style:'background:'+diePreviewColor(room)}));
-    const col = el('div',{class:'center-col', style:'margin-top:10px'}, die);
+    const col = el('div',{class:'center-col die-area'}, die);
     if(mine){
       const btn = button('Hodit kostkou','btn-primary', ()=>{
         animateRoll(die, btn);
@@ -354,8 +427,10 @@ function diePreviewColor(room){
 }
 function scoreRow(room){
   const row = el('div',{class:'score-row'});
+  const activeId = activePlayer(room) ? activePlayer(room).id : null;
   room.players.forEach(p=>{
-    row.appendChild(el('div',{class:'score-chip'},
+    const isActive = p.id===activeId;
+    row.appendChild(el('div',{class:'score-chip'+(isActive?' active':'')},
       el('div',{class:'pname'}, p.name + (p.id===state.myPlayerId?' (ty)':'')),
       el('div',{class:'score-dots'},
         ...['red','yellow','blue'].map(c=>dotsFor(p,c))
@@ -364,19 +439,30 @@ function scoreRow(room){
   });
   return row;
 }
+/* Skóre jedné barvy: dva sloty (k výhře jsou potřeba 2 celé karty).
+   Slot je prázdný, poloviční, nebo plný — stav je vidět na první pohled. */
 function dotsFor(p,color){
-  const wrap = el('span',{style:'display:flex;gap:2px;margin-right:6px'});
   const colVar = color==='red'?'var(--red)':color==='yellow'?'var(--yellow)':'var(--blue)';
-  for(let i=0;i<p.full[color];i++) wrap.appendChild(el('span',{class:'mini-dot full', style:'background:'+colVar}));
-  for(let i=0;i<p.halves[color];i++) wrap.appendChild(el('span',{class:'mini-dot half', style:'background:'+colVar}));
-  if(p.full[color]===0 && p.halves[color]===0) wrap.appendChild(el('span',{class:'mini-dot', style:'background:#E4DCC9'}));
+  const full = p.full[color];
+  const half = p.halves[color];
+  const wrap = el('span',{class:'score-color'});
+  for(let i=0;i<2;i++){
+    let cls = 'slot';
+    if(i < full) cls += ' filled';
+    else if(i === full && half > 0) cls += ' halffull';
+    wrap.appendChild(el('span',{class:cls, style:'--c:'+colVar}));
+  }
+  // přebytek nad dvě celé karty (může vzniknout krádeží či výměnou)
+  if(full > 2){
+    wrap.appendChild(el('span',{class:'slot-extra', style:'color:'+colVar}, '+'+(full-2)));
+  }
   return wrap;
 }
 
 function renderQuestionPhase(s, room, mine){
   const card = room.currentCard;
   s.appendChild(qcardEl(card.color, card.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
   if(!mine){
     s.appendChild(el('div',{class:'subtitle', style:'text-align:center'},'Otázku řeší ', el('b',{},activePlayer(room).name)));
     return;
@@ -492,7 +578,7 @@ function renderGuessingPhase(s, room, mine){
 function renderChancePhase(s, room, mine){
   const card = room.currentCard;
   s.appendChild(qcardEl('chance', card.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
   if(!mine){
     s.appendChild(el('div',{class:'subtitle', style:'text-align:center'},'Kartu šance řeší ', el('b',{},activePlayer(room).name)));
     return;
@@ -659,7 +745,7 @@ function renderTradeUI(s, room, ap){
 
 function renderEveryoneRed(s, room, mine){
   s.appendChild(qcardEl('red', room.currentCard.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
   s.appendChild(el('div',{class:'banner-info'},'Tuhle otázku zodpoví všichni hráči postupně.'));
   if(!mine) return;
   s.appendChild(el('div',{style:'height:12px'}));
@@ -670,7 +756,7 @@ function renderRightNeighbor(s, room, mine){
   const nb = room.players.find(p=>p.id===room.currentCard.forId);
   s.appendChild(el('div',{class:'subtitle', style:'text-align:center;margin-bottom:10px'},'Odpovídá: ', el('b',{},nb.name)));
   s.appendChild(qcardEl(room.currentCard.color, room.currentCard.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
   if(!mine) return;
   s.appendChild(el('div',{class:'row'},
     button('Odpověděl/a','btn-primary', ()=>{ advanceTurn(room); saveAndRender(); }),
@@ -690,7 +776,7 @@ function renderRightNeighbor(s, room, mine){
 function renderBlueCompose(s, room, mine){
   const card = room.currentCard;
   s.appendChild(qcardEl('blue', card.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
 
   if(!mine){
     s.appendChild(el('div',{class:'center-col'},
@@ -755,7 +841,7 @@ function renderBlueGuessing(s, room, mine){
   const voted = others.filter(p=> votes[p.id]!==undefined && votes[p.id]!==null);
 
   s.appendChild(qcardEl('blue', card.text));
-  s.appendChild(el('div',{style:'height:18px'}));
+  s.appendChild(el('div',{style:'height:26px'}));
 
   if(mine){
     s.appendChild(el('div',{class:'banner-info'},'Ostatní hádají. Hlasovalo ', el('b',{}, voted.length+' z '+others.length), '.'));
