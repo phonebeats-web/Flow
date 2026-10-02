@@ -48,7 +48,7 @@ function startLocalGame(names){
   Store.roomCode=null;
   const room = {
     code:null, phase:'idle', players, turnIndex:0, direction:1,
-    lastRolledColor:null, currentCard:null, decks:freshDecks(), winnerId:null
+    lastRolledColor:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false
   };
   Store.setRoom(room);
   state.room = room;
