@@ -166,7 +166,22 @@ async function rollDice(preRolled){
 }
 
 /* ============ BOOTSTRAP ============ */
+
+/* Kód místnosti z odkazu (…?kod=ABCDE) — kamarád tak skočí
+   rovnou na připojení s předvyplněným kódem. */
+function codeFromUrl(){
+  try{
+    const m = location.search.match(/[?&]kod=([^&]+)/i);
+    return m ? decodeURIComponent(m[1]).toUpperCase().trim() : null;
+  }catch(e){ return null; }
+}
+
 (async function boot(){
+  const invited = codeFromUrl();
+  if(invited){
+    state.joinCode = invited;
+    state.screen = 'joinRoom';
+  }
   render();
 
   if(typeof FlowNet === 'undefined' || !FlowNet.available()) return;
@@ -175,6 +190,9 @@ async function rollDice(preRolled){
   // ne až po kliknutí. Než uživatel napíše své jméno, je hotové —
   // takže vytvoření i připojení do místnosti je pak výrazně rychlejší.
   FlowNet.ready().catch(e=>console.error('auth warmup failed', e));
+
+  // Pozvánka má přednost před návratem do staré místnosti.
+  if(invited) return;
 
   // pokus o návrat do rozehrané online místnosti po refreshi
   try{
