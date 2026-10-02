@@ -37,6 +37,7 @@ function normalizeRoom(raw){
   room.currentCard = raw.currentCard || null;
   room.winnerId = raw.winnerId || null;
   room.lastRolledColor = raw.lastRolledColor || null;
+  room.finalDone = !!raw.finalDone;         // vítěz už položil závěrečnou otázku
   room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
   room.awardColors = raw.awardColors || {}; // playerId -> barva půlkarty
   return room;
@@ -69,6 +70,7 @@ function roomToFirebase(room){
     winnerId: room.winnerId,
     votes: room.votes || {},
     awardColors: room.awardColors || {},
+    finalDone: !!room.finalDone,
     createdAt: room.createdAt || Date.now()
   };
 }
@@ -164,7 +166,8 @@ const Online = {
       'decks': room.decks,
       'winnerId': room.winnerId,
       'votes': room.votes || {},
-      'awardColors': room.awardColors || {}
+      'awardColors': room.awardColors || {},
+      'finalDone': !!room.finalDone
     };
     room.players.forEach(p=>{
       changes['players/'+p.id+'/halves'] = p.halves;
