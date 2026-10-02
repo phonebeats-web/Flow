@@ -522,6 +522,28 @@ function qcardEl(color, text){
   );
 }
 
+/* Závěrečná karta vítěze — jediná, která se netáhne z balíčku.
+   Nese všechny barvy hry: nahoře západ slunce, dole moře. */
+function finalCardEl(title, note){
+  const sunset = `<svg class="wave-band top" viewBox="0 0 300 86" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 L300,0 L300,30 C250,46 200,18 140,34 C90,47 40,36 0,24 Z" fill="var(--red)"/>
+    <path d="M0,24 C40,36 90,47 140,34 C200,18 250,46 300,30 L300,54 C248,70 198,42 138,58 C88,71 40,60 0,48 Z" fill="var(--orange)"/>
+    <path d="M0,48 C40,60 88,71 138,58 C198,42 248,70 300,54 L300,80 C246,96 196,66 136,82 C86,95 40,84 0,72 Z" fill="var(--yellow)"/>
+  </svg>`;
+  const sea = `<svg class="wave-band bottom" viewBox="0 0 300 86" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 L300,0 L300,34 C248,52 198,22 138,40 C88,54 40,42 0,30 Z" fill="var(--blue)"/>
+    <path d="M0,30 C40,42 88,54 138,40 C198,22 248,52 300,34 L300,86 L0,86 Z" fill="var(--blue-light)"/>
+  </svg>`;
+  return el('div',{class:'qcard qcard-final'},
+    htmlToNode(sunset),
+    htmlToNode(sea),
+    el('div',{class:'qcard-text'},
+      el('div',{}, title),
+      note ? el('div',{class:'qcard-note'}, note) : null
+    )
+  );
+}
+
 function renderGuessingPhase(s, room, mine){
   const others = room.players.filter(p=>p.id!==activePlayer(room).id);
   s.appendChild(el('div',{class:'title-md', style:'text-align:center;margin-bottom:14px'},'Kdo uhodl správně?'));
@@ -955,8 +977,46 @@ function renderBlueReveal(s, room, mine){
 }
 
 /* ---------- FINISHED ---------- */
+/* Po dosažení výhry hra nekončí pohárem, ale poslední otázkou:
+   vítěz dostane právo zeptat se ostatních na cokoliv. Výhra je
+   jistá — otázka je závěr hry, ne podmínka vítězství. */
 function renderFinished(s, room){
   const winner = room.players.find(p=>p.id===room.winnerId);
+  const mine = (Store.mode==='local') || (winner && winner.id===state.myPlayerId);
+
+  // 1. fáze — právo na otázku
+  if(!room.finalDone){
+    s.appendChild(el('div',{class:'center-col', style:'margin-top:26px'},
+      el('div',{class:'win-crown'},'💬'),
+      el('div',{class:'title-lg'}, winner.name, ' získává právo na otázku'),
+    ));
+    s.appendChild(el('div',{style:'height:20px'}));
+    s.appendChild(finalCardEl(
+      'Zeptej se ostatních na cokoliv.',
+      'Odpovídají všichni. Poslední otázka hry je ta, kterou si vymyslíš sám.'
+    ));
+
+    if(!mine){
+      s.appendChild(el('div',{style:'height:20px'}));
+      s.appendChild(el('div',{class:'subtitle waiting-dots', style:'text-align:center'},
+        winner.name, ' vymýšlí otázku', el('span',{},'.'),el('span',{},'.'),el('span',{},'.')));
+      return;
+    }
+
+    s.appendChild(el('div',{class:'spacer'}));
+    s.appendChild(button('Máme odpovězeno','btn-primary', ()=>{
+      room.finalDone = true;
+      saveAndRender();
+    }));
+    s.appendChild(el('div',{class:'exit-wrap'},
+      el('button',{class:'exit-btn', onclick:()=>{
+        room.finalDone = true; saveAndRender();
+      }},'Přeskočit')
+    ));
+    return;
+  }
+
+  // 2. fáze — pohár a konec
   s.appendChild(el('div',{class:'center-col', style:'margin-top:30px'},
     el('div',{class:'win-crown'},'🏆'),
     el('div',{class:'title-lg'}, winner.name, ' vyhrává!'),
