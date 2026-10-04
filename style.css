@@ -389,6 +389,49 @@ button{touch-action:manipulation;}
 .color-dot-btn.c-yellow{background:var(--yellow);}
 .color-dot-btn.c-blue{background:var(--blue);}
 
+/* ---------- Karta přilétá k hráči ---------- */
+.fly-card{
+  position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;
+  background:linear-gradient(170deg, #fff 0 28%, transparent 29%), var(--c);
+  border:2px solid #fff;
+  box-shadow:0 8px 20px rgba(24,40,72,.25), inset 0 -3px 0 rgba(0,0,0,.08);
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:1px;
+  font-family:'Baloo 2',sans-serif;font-weight:800;font-size:15px;color:#fff;line-height:1;
+  will-change:transform,opacity;
+}
+.fly-card.half{width:34px;}
+.score-chip.got-card{animation:got-card .6s cubic-bezier(.2,1.4,.4,1);}
+@keyframes got-card{
+  0%{transform:scale(1);}
+  35%{transform:scale(1.07);box-shadow:0 0 0 3px var(--gc), 0 10px 26px rgba(24,40,72,.18);}
+  100%{transform:scale(1);}
+}
+
+/* ---------- Dialogová okna ve stylu hry ---------- */
+.dialog-overlay{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(24,40,72,.28);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  animation:dlg-fade .18s ease both;
+}
+.dialog{
+  width:100%;max-width:360px;border-radius:30px;padding:24px 22px 18px;text-align:center;
+  background:var(--g-sheen), rgba(255,255,255,.82) !important;
+  box-shadow:inset 0 1.5px 0 #fff, 0 24px 60px rgba(24,40,72,.28), 0 2px 8px rgba(24,40,72,.10) !important;
+  animation:dlg-pop .26s cubic-bezier(.2,1.25,.4,1) both;
+}
+.dialog-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;line-height:1.25;color:var(--navy);}
+.dialog-msg{margin-top:8px;font-size:15px;line-height:1.5;color:var(--navy-soft);}
+.dialog-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.dialog-actions .btn{min-height:50px;}
+.dialog-overlay.closing{animation:dlg-fade-out .17s ease both;}
+.dialog-overlay.closing .dialog{animation:dlg-pop-out .17s ease both;}
+@keyframes dlg-fade{from{opacity:0;}to{opacity:1;}}
+@keyframes dlg-fade-out{from{opacity:1;}to{opacity:0;}}
+@keyframes dlg-pop{from{opacity:0;transform:scale(.88) translateY(10px);}to{opacity:1;transform:none;}}
+@keyframes dlg-pop-out{from{opacity:1;transform:none;}to{opacity:0;transform:scale(.94);}}
+
 /* ---------- Modrá: shodné odpovědi ---------- */
 .card-input.dup{border-color:var(--red);background:rgba(255,236,230,.85);box-shadow:0 0 0 3px rgba(233,80,46,.18);}
 .dup-warn{margin-top:10px;text-align:center;font-size:14px;font-weight:600;color:var(--red-dark);}

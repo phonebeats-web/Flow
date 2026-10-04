@@ -40,6 +40,55 @@ function waiting(...parts){
 }
 function playerById(room, id){ return room.players.find(p=>p.id===id); }
 
+
+/* ---------- DIALOGOVÁ OKNA VE STYLU HRY ----------
+   Nahrazují systémové confirm()/alert(), které vypadají v každém systému
+   jinak. uiConfirm vrací Promise<boolean>, uiAlert Promise (po „OK").
+   Okno je mimo #app, takže ho překreslení hry nezavře. */
+let dialogClose = null;
+function showDialog({title, message, confirm, cancel, danger=false}){
+  return new Promise(resolve=>{
+    if(dialogClose) dialogClose(false);
+    const prevFocus = document.activeElement;
+    let closed = false;
+    const done = (v)=>{
+      if(closed) return; closed = true;
+      dialogClose = null;
+      document.removeEventListener('keydown', onKey, true);
+      overlay.classList.add('closing');
+      setTimeout(()=>overlay.remove(), 170);
+      if(prevFocus && prevFocus.focus && document.body.contains(prevFocus)){ try{ prevFocus.focus({preventScroll:true}); }catch(e){} }
+      resolve(v);
+    };
+    const okBtn = button(confirm || t('dlg_ok'), danger ? 'btn-red' : 'btn-primary', ()=>done(true));
+    const cancelBtn = cancel ? button(cancel, 'btn-glass', ()=>done(false)) : null;
+    const box = el('div',{class:'dialog glass', role: cancel ? 'alertdialog' : 'dialog', 'aria-modal':'true',
+        'aria-labelledby': title ? 'dlg-title' : null, 'aria-describedby': message ? 'dlg-msg' : null},
+      title ? el('div',{class:'dialog-title', id:'dlg-title'}, title) : null,
+      message ? el('div',{class:'dialog-msg', id:'dlg-msg'}, message) : null,
+      el('div',{class:'dialog-actions'}, okBtn, cancelBtn)
+    );
+    const overlay = el('div',{class:'dialog-overlay', onclick:(e)=>{ if(e.target===overlay) done(cancel ? false : true); }}, box);
+    // Esc = zrušit, Tab zůstává uvnitř okna
+    const onKey = (e)=>{
+      if(e.key==='Escape'){ e.preventDefault(); done(cancel ? false : true); }
+      else if(e.key==='Tab'){
+        const f = [...box.querySelectorAll('button')];
+        const i = f.indexOf(document.activeElement);
+        e.preventDefault();
+        f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+      }
+    };
+    document.addEventListener('keydown', onKey, true);
+    dialogClose = done;
+    document.body.appendChild(overlay);
+    // u nevratné akce má fokus bezpečná volba (Zrušit)
+    setTimeout(()=>{ try{ ((danger && cancelBtn) || okBtn).focus({preventScroll:true}); }catch(e){} }, 30);
+  });
+}
+function uiConfirm(opts){ return showDialog(opts); }
+function uiAlert(message, title){ return showDialog({title, message, confirm: t('dlg_ok')}); }
+
 /* ---------- RENDER ---------- */
 /* Klíč „kroku" hry: když se změní, jde o novou obrazovku nebo nový krok
    (jiná fáze, jiný hráč na řadě, předání zařízení, další krok u modré…). */
@@ -94,6 +143,8 @@ function render(){
   };
   (renderers[state.screen]||renderHome)(screen);
 
+  const srcCard = app.querySelector('.qcard');
+  flySourceRect = srcCard ? srcCard.getBoundingClientRect() : null;
   app.replaceChildren(frag);
   // Nový krok hry vždy začíná nahoře — jinak by stránka (hlavně na iPhonu,
   // třeba po zavření klávesnice) mohla zůstat odrolovaná uprostřed.
@@ -111,6 +162,72 @@ function render(){
   fitToScreen();
   scheduleScrollHint();
   playScreenSounds();
+  detectCardGains();
+}
+
+/* ---------- KARTA PŘILÉTÁ K HRÁČI ----------
+   Po každé změně se porovná skóre s předchozím. Kdo získal kartu (celou
+   nebo půlku), tomu k jeho kartičce se skóre přiletí malá karta té barvy —
+   od karty, která byla na stole (jinak od středu obrazovky).
+   Animuje se jen transform/opacity (grafický čip), takže hru nezpomalí. */
+let lastScore = null, lastScoreKey = null, flySourceRect = null;
+function scoreSnapshot(room){
+  const m = {};
+  room.players.forEach(p=>{ m[p.id] = {full:Object.assign({},p.full), halves:Object.assign({},p.halves)}; });
+  return m;
+}
+function detectCardGains(){
+  const r = state.room;
+  if(state.screen!=='game' || !r || !r.players){ lastScore = null; lastScoreKey = null; return; }
+  const key = (r.code||'local') + '|' + r.players.map(p=>p.id).join(',');
+  const now = scoreSnapshot(r);
+  const prev = lastScore;
+  const skip = lastScoreKey!==key || !prev || state.suppressFly;
+  lastScore = now; lastScoreKey = key; state.suppressFly = false;
+  if(skip) return;
+  const gains = [];
+  r.players.forEach(p=>{
+    const a = prev[p.id]; if(!a) return;
+    COLORS.forEach(c=>{
+      const df = p.full[c] - a.full[c], dh = p.halves[c] - a.halves[c];
+      if(df > 0) for(let i=0;i<df;i++) gains.push({pid:p.id, color:c, half:false});
+      else if(dh > 0) gains.push({pid:p.id, color:c, half:true});
+    });
+  });
+  const src = flySourceRect;
+  gains.slice(0,6).forEach((g,i)=> setTimeout(()=>flyCard(g, src), i*150));
+}
+function flyCard(g, src){
+  const chip = document.querySelector('.score-chip[data-pid="'+g.pid+'"]');
+  const target = chip && (chip.querySelector('.score-color[data-color="'+g.color+'"]') || chip);
+  Sound.collect();
+  if(!target) return;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pulse = ()=>{
+    chip.style.setProperty('--gc', colorVar(g.color));
+    chip.classList.remove('got-card'); void chip.offsetWidth; chip.classList.add('got-card');
+  };
+  const tr = target.getBoundingClientRect();
+  const fc = el('div',{class:'fly-card'+(g.half?' half':''), style:'--c:'+colorVar(g.color), 'aria-hidden':'true'}, g.half ? '½' : '');
+  if(reduced || typeof fc.animate!=='function' || !tr.width){ pulse(); return; }
+  const W = 46, H = 34;
+  const sx = src ? src.left + src.width/2 : window.innerWidth/2;
+  const sy = src ? src.top + src.height/2 : window.innerHeight*0.45;
+  const ex = tr.left + tr.width/2, ey = tr.top + tr.height/2;
+  fc.style.left = (sx - W/2)+'px';
+  fc.style.top = (sy - H/2)+'px';
+  document.body.appendChild(fc);
+  const dx = ex - sx, dy = ey - sy;
+  const lift = Math.min(90, Math.abs(dy)*0.35 + 30);   // let obloukem
+  const anim = fc.animate([
+    {transform:'translate(0,0) scale(1.35) rotate(-10deg)', opacity:0},
+    {transform:'translate(0,0) scale(1.3) rotate(-6deg)', opacity:1, offset:0.12},
+    {transform:'translate('+(dx*0.45)+'px,'+(dy*0.45 - lift)+'px) scale(1) rotate(8deg)', opacity:1, offset:0.55},
+    {transform:'translate('+dx+'px,'+dy+'px) scale(.45) rotate(0deg)', opacity:.85}
+  ], {duration:620, easing:'cubic-bezier(.4,.1,.3,1)', fill:'forwards'});
+  const end = ()=>{ fc.remove(); pulse(); };
+  anim.onfinish = end;
+  setTimeout(()=>{ if(fc.isConnected) end(); }, 1200);   // pojistka
 }
 
 /* ---------- ZVUKY PODLE TOHO, CO SE OBJEVILO ----------
@@ -243,7 +360,8 @@ function topBar(){
     left = circleBtn(ICON_CHEVRON, t('bar_back'), ()=>{ state.screen='home'; render(); });
   } else if(sc==='lobby'){
     left = circleBtn(ICON_CHEVRON, t('bar_leave'), ()=>{
-      if(confirm(t('confirm_leave_room'))) leaveOnlineRoom();
+      uiConfirm({title:t('dlg_leave_room_title'), message:t('confirm_leave_room'), confirm:t('bar_leave'), cancel:t('dlg_stay'), danger:true})
+        .then(ok=>{ if(ok) leaveOnlineRoom(); });
     });
   } else if(sc==='game'){
     if(canUndo(room)) left = circleBtn(ICON_CHEVRON, t('bar_undo'), ()=>{ undoStep(); }, 'bar-undo');
@@ -268,9 +386,12 @@ function topBar(){
 /* Potvrzení odchodu z rozehrané hry. */
 function confirmExitGame(){
   const online = Store.mode==='online';
-  if(!confirm(t(online ? 'confirm_exit_online' : 'confirm_exit_local'))) return;
-  if(online){ leaveOnlineRoom(); }
-  else { resetAppState(); render(); }
+  uiConfirm({title:t('dlg_exit_title'), message:t(online ? 'confirm_exit_online' : 'confirm_exit_local'),
+    confirm:t('bar_exit_game'), cancel:t('dlg_continue_game'), danger:true}).then(ok=>{
+    if(!ok) return;
+    if(online){ leaveOnlineRoom(); }
+    else { resetAppState(); render(); }
+  });
 }
 
 /* ---------- NÁPOVĚDA „ROLUJ NÍŽ" ---------- */
@@ -410,7 +531,7 @@ function renderSetupLocal(s){
   s.appendChild(el('div',{class:'spacer'}));
   s.appendChild(button(t('setup_start'),'btn-primary',()=>{
     const names = state.setupNames.map(n=>n.trim()).filter(Boolean);
-    if(names.length<2){ alert(t('setup_min2')); return; }
+    if(names.length<2){ uiAlert(t('setup_min2')); return; }
     startLocalGame(names);
   }));
 }
@@ -426,7 +547,7 @@ function renderSetupHost(s){
   s.appendChild(el('div',{class:'spacer'}));
   s.appendChild(button(state.busy ? t('host_busy') : t('host_btn'),'btn-primary', ()=>{
     const name = state.myName.trim();
-    if(!name){ alert(t('err_name')); return; }
+    if(!name){ uiAlert(t('err_name')); return; }
     hostCreateRoom(name);
   }, state.busy));
 }
@@ -447,7 +568,7 @@ function renderJoinRoom(s){
   s.appendChild(button(state.busy ? t('join_busy') : t('join_btn'),'btn-primary', ()=>{
     const code = state.joinCode.trim();
     const name = state.myName.trim();
-    if(!code||!name){ alert(t('err_code_name')); return; }
+    if(!code||!name){ uiAlert(t('err_code_name')); return; }
     playerJoinRoom(code, name);
   }, state.busy));
 }
@@ -556,7 +677,8 @@ function renderGame(s){
     s.appendChild(el('div',{class:'banner-info glass'}, ...tn('is_offline', b(ap.name))));
     s.appendChild(gap(8));
     s.appendChild(button(t('skip_turn_btn', ap.name),'btn-glass', ()=>{
-      if(confirm(t('skip_turn_confirm', ap.name))) hostSkipTurn();
+      uiConfirm({title:t('skip_turn_confirm', ap.name), message:t('dlg_skip_msg'), confirm:t('dlg_skip'), cancel:t('dlg_cancel')})
+        .then(ok=>{ if(ok) hostSkipTurn(); });
     }));
     s.appendChild(gap(18));
   }
@@ -617,7 +739,8 @@ function renderIdle(s, room, mine){
       const list = el('div',{class:'stack stack-tight', style:'margin-top:12px'});
       room.players.forEach(p=>{
         list.appendChild(button(p.name,'btn-glass btn-sm', ()=>{
-          if(confirm(t('leave_confirm', p.name))) removeLocalPlayer(p.id);
+          uiConfirm({title:t('leave_confirm', p.name), message:t('leave_sub'), confirm:t('dlg_leave_game'), cancel:t('dlg_back'), danger:true})
+            .then(ok=>{ if(ok) removeLocalPlayer(p.id); });
         }));
       });
       box.appendChild(list);
@@ -729,7 +852,7 @@ function scoreRow(room){
   const activeId = activePlayer(room) ? activePlayer(room).id : null;
   room.players.forEach(p=>{
     const isActive = p.id===activeId;
-    row.appendChild(el('div',{class:'score-chip glass'+(isActive?' active':'')+(p.online===false && Store.mode==='online'?' offline':'')},
+    row.appendChild(el('div',{class:'score-chip glass'+(isActive?' active':'')+(p.online===false && Store.mode==='online'?' offline':''), 'data-pid':p.id},
       el('div',{class:'pname'}, p.name + (p.id===state.myPlayerId ? ' ('+t('you')+')' : '')),
       el('div',{class:'score-dots'}, ...COLORS.map(c=>dotsFor(p,c)))
     ));
@@ -744,7 +867,7 @@ function dotsFor(p,color){
   const full = p.full[color];
   const half = p.halves[color] > 0;
   const slots = Math.max(2, full + (half ? 1 : 0));
-  const wrap = el('span',{class:'score-color', title: colorName(color)+': '+full+(half?' + ½':'')});
+  const wrap = el('span',{class:'score-color', 'data-color':color, title: colorName(color)+': '+full+(half?' + ½':'')});
   for(let i=0;i<slots;i++){
     let cls = 'slot';
     if(i < full) cls += ' filled';
@@ -942,9 +1065,9 @@ function renderChancePhase(s, room, mine){
     s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:10px'}, t('ch_save_hint')));
     s.appendChild(button(t('ch_save_btn'),'btn-primary', ()=>{
       const c=pickDieColor();
-      if(c!=='red'){ ap.full={red:0,blue:0,yellow:0}; ap.halves={red:0,blue:0,yellow:0}; alert(t('ch_save_fail', colorName(c))); }
-      else alert(t('ch_save_ok'));
-      next();
+      const lost = c!=='red';
+      if(lost){ ap.full={red:0,blue:0,yellow:0}; ap.halves={red:0,blue:0,yellow:0}; }
+      uiAlert(lost ? t('ch_save_fail', colorName(c)) : t('ch_save_ok'), t('ch_save_title')).then(()=>next());
     }));
   }
   else if(key==='go_again'){
@@ -1157,7 +1280,7 @@ function renderBlueCompose(s, room, mine){
     s.appendChild(warn);
     s.appendChild(gap(18));
     const nextBtn = button(t('blue_next'),'btn-blue', ()=>{
-        if(keys.some(k=>!(bc[k]||'').trim())){ alert(t('blue_fill_all')); return; }
+        if(keys.some(k=>!(bc[k]||'').trim())){ uiAlert(t('blue_fill_all')); return; }
         if(duplicateAnswerIdx(keys.map(k=>bc[k])).size){ refreshDup(); return; }
         bc.step = 2;
         sendComposeProgress(room, bc);

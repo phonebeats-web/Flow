@@ -2,8 +2,9 @@
    ZVUKY — vytvářené přímo v prohlížeči (Web Audio API).
    Žádné zvukové soubory: nic se nestahuje, hra zůstává rychlá.
      Sound.click()      krátké ťuknutí při stisku tlačítka
-     Sound.diceRoll(s)  chrastění kostky po dobu s sekund
-     Sound.diceLand()   dopad kostky
+     Sound.diceRoll(s)  kostky odskakují po stole (dřevo o dřevo) s sekund
+     Sound.diceLand()   ťuknutí dopadu kostky
+     Sound.collect()    karta přilétá k hráči
      Sound.flip()       otočení karty
      Sound.fanfare()    vítězná fanfára
    Zapnutí/vypnutí se pamatuje v prohlížeči (Sound.setEnabled).
@@ -74,6 +75,17 @@ const Sound = (function(){
     src.start(at, Math.random()*0.5); src.stop(at+dur+0.02);
   }
 
+  /* Dřevěné „tuk": ostrý náraz (krátký šum s horní propustí) a několik
+     rychle doznívajících tónů s nesouměrnými poměry, jak rezonuje dřevo. */
+  function woodKnock(at, f, vol=1, decay=0.06){
+    burst(at, 0.012, {freq:3800, q:0.7, vol:0.32*vol, type:'highpass'});
+    burst(at, 0.03, {freq:f*1.6, q:6, vol:0.30*vol});
+    const partials = [[1, 0.42, 1], [2.32, 0.20, 0.62], [4.07, 0.09, 0.38]];
+    partials.forEach(([m, g, d])=>{
+      tone(f*m, at, decay*d, {type:'sine', vol:g*vol, attack:0.0015, glideTo:f*m*0.97});
+    });
+  }
+
   function play(fn){
     const c = ensure();
     if(!c) return;
@@ -97,24 +109,34 @@ const Sound = (function(){
       });
     },
 
+    /* Kostka: dřevo o dřevo. Každý náraz = krátký „tuk" (viz woodKnock).
+       Dvě kostky odskakují nezávisle — odskoky slábnou a zrychlují,
+       mezi nimi tiché přikutálení. */
     diceRoll(seconds=1.1){
       play(t=>{
-        // nepravidelné „cvaknutí" kostek o stůl — zpočátku hustě, pak řidčeji
-        let x = 0;
-        while(x < seconds){
-          const slow = x / seconds;
-          burst(t+x, 0.035, {freq:2600 + Math.random()*1800, q:3, vol:0.34 + Math.random()*0.14});
-          if(Math.random() < 0.45) tone(170 + Math.random()*90, t+x, 0.03, {type:'triangle', vol:0.12});
-          x += 0.045 + Math.random()*0.05 + slow*0.07;
+        for(let die=0; die<2; die++){
+          let x = die*0.035 + Math.random()*0.03;
+          let gap = 0.13 + Math.random()*0.04;
+          let vol = 0.48;
+          const pitch = die ? 1.08 : 0.94;            // každá kostka zní trochu jinak
+          while(x < seconds - 0.12){
+            woodKnock(t+x, (620 + Math.random()*260)*pitch, vol, 0.05 + Math.random()*0.02);
+            // tiché přikutálení mezi odskoky
+            if(Math.random() < 0.6) woodKnock(t+x+gap*0.45, (900 + Math.random()*300)*pitch, vol*0.22, 0.025);
+            x += gap;
+            gap = Math.max(0.045, gap*0.82 + (Math.random()-0.5)*0.02);
+            vol = Math.max(0.16, vol*0.86);
+          }
         }
       });
     },
 
+    /* Dopad kostky: zřetelné ťuknutí + krátké dosednutí */
     diceLand(){
       play(t=>{
-        tone(150, t, 0.11, {type:'triangle', vol:0.5, attack:0.003, glideTo:90});
-        burst(t, 0.06, {freq:1100, q:1.2, vol:0.45});
-        burst(t+0.07, 0.03, {freq:2400, q:3, vol:0.16});   // malé dokutálení
+        woodKnock(t, 560, 1.35, 0.08);
+        woodKnock(t+0.045, 760, 0.38, 0.035);
+        woodKnock(t+0.075, 820, 0.16, 0.025);
       });
     },
 
@@ -124,6 +146,21 @@ const Sound = (function(){
         burst(t, 0.16, {freq:700, q:0.9, vol:0.34, sweepTo:3800});
         burst(t+0.15, 0.05, {freq:1800, q:1.5, vol:0.24});
         tone(320, t+0.15, 0.06, {type:'sine', vol:0.12, glideTo:220});
+      });
+    },
+
+    /* Karta přilétá k hráči: krátký vzdušný švih a měkké dosednutí.
+       Dosednutí je načasované na konec animace (cca 0,6 s). */
+    collect(delay=0){
+      play(t=>{
+        t += delay;
+        burst(t, 0.42, {freq:500, q:1.1, vol:0.10, sweepTo:2600});
+        burst(t+0.2, 0.3, {freq:2600, q:1.4, vol:0.06, sweepTo:900});
+        const land = t + 0.58;
+        tone(540, land, 0.10, {type:'sine', vol:0.16, attack:0.003, glideTo:400});
+        burst(land, 0.04, {freq:1600, q:1.2, vol:0.12});
+        tone(1320, land+0.03, 0.16, {type:'sine', vol:0.045});
+        tone(1760, land+0.08, 0.18, {type:'sine', vol:0.03});
       });
     },
 

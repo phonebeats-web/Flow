@@ -96,6 +96,7 @@ async function undoStep(){
   }
   clearTransientUI();
   state.room = prev;
+  state.suppressFly = true;   // krok zpět není zisk karty — bez animace
   render();
   if(Store.mode==='online'){
     try{ await Online.pushState(prev); }
@@ -188,7 +189,7 @@ function soloStep(delta){
 /* ============ ONLINE ENTRY POINTS ============ */
 async function hostCreateRoom(name){
   if(!FlowNet.available()){
-    alert(t('err_offline'));
+    uiAlert(t('err_offline'));
     return;
   }
   state.busy = true; render();
@@ -197,7 +198,7 @@ async function hostCreateRoom(name){
     // obrazovku i state nastaví realtime listener (Online.startSync)
   }catch(e){
     console.error(e);
-    alert(t('err_create'));
+    uiAlert(t('err_create'));
     state.screen='home';
   }finally{
     state.busy = false; render();
@@ -206,19 +207,19 @@ async function hostCreateRoom(name){
 
 async function playerJoinRoom(code, name){
   if(!FlowNet.available()){
-    alert(t('err_offline'));
+    uiAlert(t('err_offline'));
     return;
   }
   state.busy = true; render();
   try{
     const res = await Online.joinRoom(code, name);
     if(!res.ok){
-      alert(t('err_notfound'));
+      uiAlert(t('err_notfound'));
       state.screen='joinRoom';
     }
   }catch(e){
     console.error(e);
-    alert(t('err_join'));
+    uiAlert(t('err_join'));
     state.screen='joinRoom';
   }finally{
     state.busy = false; render();
@@ -227,7 +228,7 @@ async function playerJoinRoom(code, name){
 
 async function hostStartGame(){
   const room = state.room;
-  if(room.players.length<2){ alert(t('err_min2')); return; }
+  if(room.players.length<2){ uiAlert(t('err_min2')); return; }
   room.phase='idle';
   await Online.pushState(room);
 }

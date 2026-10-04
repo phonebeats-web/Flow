@@ -151,7 +151,7 @@ const Online = {
         // místnost zmizela (host ji ukončil)
         FlowNet.stopListening();
         Online.forgetSession();
-        alert(t('room_ended'));
+        uiAlert(t('room_ended'));
         resetAppState();
         render();
         return;

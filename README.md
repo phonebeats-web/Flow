@@ -34,14 +34,19 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 
 ## Zvuky
 
-- Házení kostkou (chrastění + dopad každé kostky), otočení karty (nová karta na stole,
+- Házení kostkou (dřevo o dřevo — kostky odskakují, pak ťuknutí dopadu), otočení karty (nová karta na stole,
   odhalení pravdivé odpovědi u modré, další otázka v sólo hře), ťuknutí při stisku
-  tlačítek a vítězná fanfára na konci hry.
+  tlačítek, přiletění karty k hráči a vítězná fanfára na konci hry.
 - Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
 - Tlačítko s reproduktorem (na úvodu vlevo nahoře, ve hře v liště) zvuky vypne/zapne;
   volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
 - Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
   i přepínač tichého režimu.
+
+- Když hráč získá kartu (celou i půlku), přiletí k jeho skóre malá karta té barvy
+  a jeho kartička se krátce rozzáří (animace jen transform/opacity — nezpomaluje).
+- Všechna potvrzovací a informační okna jsou vlastní, ve stylu hry (žádná
+  systémová okna prohlížeče); zavírají se i klávesou Esc nebo klepnutím vedle.
 
 ## Jazyky (čeština / angličtina)
 
@@ -76,6 +81,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - **Červená** (hluboké otázky): odpovídá jen ten, kdo kartu vytáhl. Ostatní se
   mohou doptat. Odpoví → celá červená karta, neodpoví → ztrácí červenou.
 - **Modrá** (hádání): hráč napíše 3 odpovědi a v dalším kroku označí pravdivou.
+  Odpovědi se nesmí opakovat (porovnává se bez ohledu na velikost písmen, mezery,
+  diakritiku a interpunkci) — shodné se zvýrazní a hra nepustí dál.
   Na jednom zařízení pak zařízení koluje — každý hádá zvlášť (předchozí volby
   nevidí) — a vrací se k autorovi, který vyhodnotí. Online hádají všichni najednou.
   Kdo uhodne, bere půl karty barvy dle výběru, autor bere celou modrou.
