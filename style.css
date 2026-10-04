@@ -389,6 +389,11 @@ button{touch-action:manipulation;}
 .color-dot-btn.c-yellow{background:var(--yellow);}
 .color-dot-btn.c-blue{background:var(--blue);}
 
+/* ---------- Modrá: shodné odpovědi ---------- */
+.card-input.dup{border-color:var(--red);background:rgba(255,236,230,.85);box-shadow:0 0 0 3px rgba(233,80,46,.18);}
+.dup-warn{margin-top:10px;text-align:center;font-size:14px;font-weight:600;color:var(--red-dark);}
+.dup-warn[hidden]{display:none;}
+
 /* ---------- Modrá online: průběh psaní a tipy ---------- */
 .compose-steps{display:flex;gap:6px;align-items:center;}
 .cstep{

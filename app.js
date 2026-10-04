@@ -387,6 +387,7 @@ async function roundFinish(){
 /* Hráč na tahu odeslal 3 možnosti a označil pravdivou. */
 async function blueSubmit(options, correct){
   const room = state.room;
+  if(typeof duplicateAnswerIdx==='function' && duplicateAnswerIdx(options).size) return;
   room.votes = {};
   room.awardColors = {};
   if(Store.mode==='local'){

@@ -1137,22 +1137,35 @@ function renderBlueCompose(s, room, mine){
     ));
     s.appendChild(gap(14));
     const list = el('div',{class:'stack stack-tight'});
+    const inputs = [];
+    // Kontrola při psaní: shodné odpovědi se zvýrazní a „Dále" se zablokuje.
+    // Nepřekresluje se celá obrazovka, ať se při psaní nic neruší.
+    const refreshDup = ()=>{
+      const dup = duplicateAnswerIdx(keys.map(k=>bc[k]));
+      inputs.forEach((inp,i)=>inp.classList.toggle('dup', dup.has(i)));
+      warn.hidden = dup.size===0;
+      nextBtn.disabled = dup.size>0;
+    };
     keys.forEach((k,i)=>{
-      list.appendChild(el('div',{class:'row'},
-        el('span',{class:'opt-num'}, String(i+1)),
-        el('input',{class:'card-input', 'data-fk':'blue-'+k, placeholder:t('blue_ph', i+1), value:bc[k], maxlength:'140',
-          oninput:(e)=>{ bc[k]=e.target.value; sendComposeProgress(room, bc); }})
-      ));
+      const inp = el('input',{class:'card-input', 'data-fk':'blue-'+k, placeholder:t('blue_ph', i+1), value:bc[k], maxlength:'140',
+        oninput:(e)=>{ bc[k]=e.target.value; sendComposeProgress(room, bc); refreshDup(); }});
+      inputs.push(inp);
+      list.appendChild(el('div',{class:'row'}, el('span',{class:'opt-num'}, String(i+1)), inp));
     });
+    const warn = el('div',{class:'dup-warn', role:'alert'}, t('blue_dup'));
     s.appendChild(list);
+    s.appendChild(warn);
     s.appendChild(gap(18));
-    s.appendChild(el('div',{class:'stack stack-tight'},
-      button(t('blue_next'),'btn-blue', ()=>{
+    const nextBtn = button(t('blue_next'),'btn-blue', ()=>{
         if(keys.some(k=>!(bc[k]||'').trim())){ alert(t('blue_fill_all')); return; }
+        if(duplicateAnswerIdx(keys.map(k=>bc[k])).size){ refreshDup(); return; }
         bc.step = 2;
         sendComposeProgress(room, bc);
         render();
-      }),
+      });
+    refreshDup();
+    s.appendChild(el('div',{class:'stack stack-tight'},
+      nextBtn,
       button(t('not_answered_loses'),'btn-glass', ()=>{
         loseColor(ap, 'blue');
         state.blueCompose = freshBlueCompose();
@@ -1244,6 +1257,19 @@ function renderBlueWaiting(s, room, ap){
   }
   box.appendChild(el('div',{class:'subtitle', style:'margin-top:8px;font-size:13px'}, t('tip_note')));
   s.appendChild(box);
+}
+
+/* Indexy odpovědí, které jsou stejné jako jiná odpověď. Porovnává se bez
+   ohledu na velikost písmen, mezery, diakritiku a interpunkci — „Pes",
+   „pes." i „PES" jsou pro hádajícího totéž. Prázdné se nepočítají. */
+function duplicateAnswerIdx(values){
+  const norm = values.map(v=>normTip(v) || String(v||'').trim().toLowerCase());
+  const dup = new Set();
+  norm.forEach((a,i)=>{
+    if(!a) return;
+    norm.forEach((c,j)=>{ if(i!==j && a===c){ dup.add(i); dup.add(j); } });
+  });
+  return dup;
 }
 
 /* Trefil se tip? Porovnání bez diakritiky, velikosti písmen a interpunkce;
