@@ -110,7 +110,40 @@ function render(){
   }
   fitToScreen();
   scheduleScrollHint();
+  playScreenSounds();
 }
+
+/* ---------- ZVUKY PODLE TOHO, CO SE OBJEVILO ----------
+   Nová karta na stole -> zvuk otočení karty; konec hry -> fanfára.
+   Online to slyší všichni hráči, protože se to řídí stavem hry. */
+let lastCardSoundKey = null, lastFanfareKey = null;
+function cardSoundKey(){
+  if(state.screen==='solo' && state.solo){
+    const c = state.solo.history[state.solo.pos];
+    return c ? 'solo|'+state.solo.pos+'|'+c.color+c.idx : null;
+  }
+  const r = state.room;
+  if(state.screen!=='game' || !r || !r.currentCard) return null;
+  const c = r.currentCard;
+  // u modré se karta „otočí" i při odhalení pravdivé odpovědi
+  return [r.turnIndex, c.type, c.color||'', c.idx, r.phase==='blue-reveal' ? 'R' : ''].join('|');
+}
+function playScreenSounds(){
+  const r = state.room;
+  const ck = cardSoundKey();
+  if(ck && ck!==lastCardSoundKey) Sound.flip();
+  lastCardSoundKey = ck;
+  const fk = (state.screen==='game' && r && r.phase==='finished') ? 'win|'+r.winnerId : null;
+  if(fk && fk!==lastFanfareKey) Sound.fanfare();
+  lastFanfareKey = fk;
+}
+
+/* Ťuknutí při stisku tlačítek (kromě kostky a zvuku, ty mají vlastní). */
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest && e.target.closest('button');
+  if(!btn || btn.disabled || btn.classList.contains('bar-sound')) return;
+  Sound.click();
+}, true);
 
 /* ---------- PŘIZPŮSOBENÍ OBRAZOVCE ----------
    Když se obsah nevejde na displej, postupně se zhušťuje (menší karta,
@@ -185,6 +218,17 @@ function langSwitch(extraCls=''){
    Informace o tahu je přímo v liště, takže ji nic nepřekrývá. */
 const ICON_CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12 15 19.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.8 9.6l4.8 4.8M20.6 9.6l-4.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+/* Tlačítko zvuku (piktogram reproduktoru) — vypnutí platí pro toto zařízení. */
+function soundBtn(extraCls=''){
+  const on = Sound.isEnabled();
+  return circleBtn(on ? ICON_SOUND_ON : ICON_SOUND_OFF, t(on ? 'sound_mute' : 'sound_unmute'), ()=>{
+    Sound.setEnabled(!Sound.isEnabled());
+    render();
+    if(Sound.isEnabled()) Sound.click();
+  }, 'bar-sound '+(on?'':'off ')+extraCls);
+}
 function circleBtn(iconSvg, label, onClick, cls=''){
   return el('button',{class:'glass-circle glass '+cls, onclick:onClick, 'aria-label':label, title:label, html:iconSvg});
 }
@@ -215,7 +259,7 @@ function topBar(){
     right.push(circleBtn(ICON_CLOSE, t('bar_exit'), ()=>{ resetAppState(); render(); }, 'bar-exit'));
   }
   return el('div',{class:'topbar'},
-    el('div',{class:'bar-side bar-left'}, left || el('span',{class:'bar-placeholder'})),
+    el('div',{class:'bar-side bar-left'}, left, soundBtn()),
     el('div',{class:'bar-center'}, title || miniLogo()),
     el('div',{class:'bar-side bar-right'}, langSwitch(), ...right)
   );
@@ -291,6 +335,7 @@ function homeHero(){
   </svg>`;
   return el('div',{class:'hero'},
     langSwitch('lang-hero'),
+    soundBtn('sound-hero'),
     htmlToNode(`<div class="hero-band">${sunset}</div>`),
     htmlToNode(`<div class="hero-middle">
         ${miniCard('var(--red)', -10)}
@@ -639,6 +684,7 @@ function animateRoll(dice, btnEl){
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if(btnEl){ btnEl.disabled = true; btnEl.textContent = t('rolling'); }
+  Sound.diceRoll(reduced ? 0.3 : 1.1);
   dice.forEach(d=>{ d.classList.remove('landed'); if(!reduced) d.classList.add('rolling'); });
   let i = 0;
   const spinning = [true, true];
@@ -652,6 +698,7 @@ function animateRoll(dice, btnEl){
     dice[k].classList.remove('rolling');
     dice[k].classList.add('landed');
     setDot(dice[k], results[k]);
+    Sound.diceLand();
   };
   setTimeout(()=>land(0), reduced ? 150 : 700);
   setTimeout(()=>{

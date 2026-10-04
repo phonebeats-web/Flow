@@ -22,6 +22,7 @@ cs: {
 
   bar_back:'Zpět', bar_leave:'Opustit', bar_exit_game:'Ukončit hru', bar_exit:'Ukončit',
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
+  sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
   confirm_leave_room:'Opravdu chcete opustit místnost?',
   confirm_exit_online:'Opravdu chcete opustit rozehranou hru? Vrátíte se do hlavní nabídky a z místnosti odejdete.',
   confirm_exit_local:'Opravdu chcete ukončit rozehranou hru? Průběh se ztratí a vrátíte se do hlavní nabídky.',
@@ -157,6 +158,7 @@ en: {
 
   bar_back:'Back', bar_leave:'Leave', bar_exit_game:'Exit game', bar_exit:'Exit',
   bar_undo:'Undo', bar_undo_short:'Undo',
+  sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
   confirm_leave_room:'Do you really want to leave the room?',
   confirm_exit_online:'Do you really want to leave this game? You will return to the main menu and leave the room.',
   confirm_exit_local:'Do you really want to end this game? Your progress will be lost and you will return to the main menu.',

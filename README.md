@@ -11,6 +11,7 @@ style.css             vzhled
 data.js               karty česky: 101 červených, 101 modrých, 101 žlutých, 23 šancí
 data_en.js            tytéž karty anglicky (stejné pořadí)
 i18n.js               texty rozhraní CZ/EN, volba jazyka, texty karet
+sound.js              zvuky (kostka, karta, klik, fanfára) — vytvářené v prohlížeči, bez souborů
 engine.js             ČISTÁ herní logika — bez DOM, bez Firebase, běží i offline
 firebase.js           JEDINÉ místo, které zná Firebase API
 online.js             online režim: místnosti, realtime sync, reconnect
@@ -30,6 +31,17 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - Obrazovka se přizpůsobí displeji: když se obsah nevejde, hra ho automaticky
   zhustí (menší karta, mezery, kostky, tlačítka — úrovně `fit-1` a `fit-2`).
   Šipka „Další možnosti níže" se ukáže jen tam, kde ani to nestačí.
+
+## Zvuky
+
+- Házení kostkou (chrastění + dopad každé kostky), otočení karty (nová karta na stole,
+  odhalení pravdivé odpovědi u modré, další otázka v sólo hře), ťuknutí při stisku
+  tlačítek a vítězná fanfára na konci hry.
+- Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
+- Tlačítko s reproduktorem (na úvodu vlevo nahoře, ve hře v liště) zvuky vypne/zapne;
+  volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
+- Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
+  i přepínač tichého režimu.
 
 ## Jazyky (čeština / angličtina)
 
