@@ -41,6 +41,25 @@ function waiting(...parts){
 function playerById(room, id){ return room.players.find(p=>p.id===id); }
 
 /* ---------- RENDER ---------- */
+/* Klíč „kroku" hry: když se změní, jde o novou obrazovku nebo nový krok
+   (jiná fáze, jiný hráč na řadě, předání zařízení, další krok u modré…). */
+function viewKey(){
+  const r = state.room;
+  const parts = [state.screen];
+  if(r){
+    parts.push(r.phase, r.turnIndex, r.finalDone ? 'F' : '',
+      r.currentCard ? (r.currentCard.type+r.currentCard.idx) : '',
+      r.round ? r.round.current : '', r.blueTurn ? r.blueTurn.current : '');
+  }
+  parts.push(state.handoff||'', state.blueCompose ? state.blueCompose.step : '', state.solo ? state.solo.pos : '');
+  return parts.join('|');
+}
+function scrollToTop(){
+  if(window.scrollY === 0 && document.documentElement.scrollTop === 0) return;
+  try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
+  catch(e){ window.scrollTo(0,0); }
+}
+
 const raf = (typeof requestAnimationFrame==='function') ? requestAnimationFrame : (f=>setTimeout(f,16));
 let lastViewKey = null;
 
@@ -54,9 +73,8 @@ function render(){
 
   // Animace vstupu jen při změně obrazovky / fáze, ne při každém překreslení.
   const room = state.room;
-  const viewKey = state.screen + '|' + (room ? room.phase+'|'+room.turnIndex : '') + '|' + (state.solo ? state.solo.pos : '');
-  const animate = viewKey !== lastViewKey;
-  lastViewKey = viewKey;
+  const animate = viewKey() !== lastViewKey;
+  lastViewKey = viewKey();
 
   const frag = document.createDocumentFragment();
   const isHome = state.screen==='home';
@@ -77,6 +95,9 @@ function render(){
   (renderers[state.screen]||renderHome)(screen);
 
   app.replaceChildren(frag);
+  // Nový krok hry vždy začíná nahoře — jinak by stránka (hlavně na iPhonu,
+  // třeba po zavření klávesnice) mohla zůstat odrolovaná uprostřed.
+  if(animate) scrollToTop();
 
   if(focusKey){
     const again = app.querySelector('[data-fk="'+focusKey+'"]');
@@ -225,6 +246,19 @@ function ensureScrollHint(){
   window.addEventListener('scroll', scheduleScrollHint, {passive:true});
   window.addEventListener('resize', scheduleScrollHint, {passive:true});
 }
+/* Kolik pixelů skutečného obsahu je schované pod spodním okrajem displeje.
+   Prázdné odsazení a mezery se nepočítají — šipka se tak neukáže, když
+   pod ní už nic není. */
+function hiddenContentBelow(){
+  const sc = document.querySelector('#app .screen');
+  if(!sc) return 0;
+  let el = sc.lastElementChild;
+  while(el && (el.classList.contains('gap') || el.classList.contains('spacer') || el.offsetHeight===0)){
+    el = el.previousElementSibling;
+  }
+  if(!el) return 0;
+  return el.getBoundingClientRect().bottom - window.innerHeight;
+}
 function scheduleScrollHint(){
   ensureScrollHint();
   hintLabel.textContent = t('scroll_more');
@@ -233,9 +267,7 @@ function scheduleScrollHint(){
   hintQueued = true;
   raf(()=>{
     hintQueued = false;
-    const doc = document.documentElement;
-    const remaining = doc.scrollHeight - (window.scrollY + window.innerHeight);
-    hintEl.classList.toggle('show', remaining > 24);
+    hintEl.classList.toggle('show', hiddenContentBelow() > 16);
   });
 }
 
