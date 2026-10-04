@@ -2,8 +2,8 @@
    ZVUKY — vytvářené přímo v prohlížeči (Web Audio API).
    Žádné zvukové soubory: nic se nestahuje, hra zůstává rychlá.
      Sound.click()      krátké ťuknutí při stisku tlačítka
-     Sound.diceRoll(s)  kostky odskakují po stole (dřevo o dřevo) s sekund
-     Sound.diceLand()   ťuknutí dopadu kostky
+     Sound.diceRoll(s)  tichý podkres hodu — kostky párkrát odskočí po stole
+     Sound.diceLand()   jemné ťuknutí dopadu kostky
      Sound.collect()    karta přilétá k hráči
      Sound.flip()       otočení karty
      Sound.fanfare()    vítězná fanfára
@@ -46,7 +46,7 @@ const Sound = (function(){
   }
 
   /* tón s obálkou (rychlý náběh, exponenciální doznění) */
-  function tone(freq, at, dur, {type='sine', vol=0.2, attack=0.005, glideTo=null}={}){
+  function tone(freq, at, dur, {type='sine', vol=0.2, attack=0.005, glideTo=null, dest=null}={}){
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(freq, at);
@@ -54,12 +54,12 @@ const Sound = (function(){
     g.gain.setValueAtTime(0.0001, at);
     g.gain.exponentialRampToValueAtTime(vol, at+attack);
     g.gain.exponentialRampToValueAtTime(0.0001, at+dur);
-    o.connect(g); g.connect(master);
+    o.connect(g); g.connect(dest || master);
     o.start(at); o.stop(at+dur+0.02);
   }
 
   /* šum přes filtr (chrastění, šustění) */
-  function burst(at, dur, {freq=2000, q=1, vol=0.2, sweepTo=null, type='bandpass'}={}){
+  function burst(at, dur, {freq=2000, q=1, vol=0.2, sweepTo=null, type='bandpass', dest=null}={}){
     const src = ctx.createBufferSource();
     src.buffer = noise();
     src.playbackRate.value = 0.8 + Math.random()*0.4;
@@ -71,19 +71,24 @@ const Sound = (function(){
     g.gain.setValueAtTime(0.0001, at);
     g.gain.exponentialRampToValueAtTime(vol, at+0.004);
     g.gain.exponentialRampToValueAtTime(0.0001, at+dur);
-    src.connect(f); f.connect(g); g.connect(master);
+    src.connect(f); f.connect(g); g.connect(dest || master);
     src.start(at, Math.random()*0.5); src.stop(at+dur+0.02);
   }
 
-  /* Dřevěné „tuk": ostrý náraz (krátký šum s horní propustí) a několik
-     rychle doznívajících tónů s nesouměrnými poměry, jak rezonuje dřevo. */
-  function woodKnock(at, f, vol=1, decay=0.06){
-    burst(at, 0.012, {freq:3800, q:0.7, vol:0.32*vol, type:'highpass'});
-    burst(at, 0.03, {freq:f*1.6, q:6, vol:0.30*vol});
-    const partials = [[1, 0.42, 1], [2.32, 0.20, 0.62], [4.07, 0.09, 0.38]];
-    partials.forEach(([m, g, d])=>{
-      tone(f*m, at, decay*d, {type:'sine', vol:g*vol, attack:0.0015, glideTo:f*m*0.97});
-    });
+  /* Tlumená cesta pro kostky: filtr ubere ostré výšky (zní to jako kostka
+     na stole, ne jako klapka) a celé je to potichu — jen podkres. */
+  function diceBus(){
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 2600; lp.Q.value = 0.4;
+    const g = ctx.createGain(); g.gain.value = 0.55;
+    lp.connect(g); g.connect(master);
+    return lp;
+  }
+  /* Měkké „tuk" kostky o stůl: krátký náraz + dva rychle doznívající tóny. */
+  function softKnock(at, f, vol, decay, dest){
+    burst(at, 0.022, {freq:f*1.5, q:2.2, vol:0.22*vol, dest});
+    tone(f, at, decay, {type:'sine', vol:0.30*vol, attack:0.003, glideTo:f*0.96, dest});
+    tone(f*2.4, at, decay*0.55, {type:'sine', vol:0.08*vol, attack:0.003, dest});
   }
 
   function play(fn){
@@ -109,34 +114,34 @@ const Sound = (function(){
       });
     },
 
-    /* Kostka: dřevo o dřevo. Každý náraz = krátký „tuk" (viz woodKnock).
-       Dvě kostky odskakují nezávisle — odskoky slábnou a zrychlují,
-       mezi nimi tiché přikutálení. */
+    /* Kostka: tichý podkres. Každá kostka párkrát odskočí (odskoky slábnou
+       a zrychlují), pod tím slabé šustění kutálení. */
     diceRoll(seconds=1.1){
       play(t=>{
+        const bus = diceBus();
+        // šustění kutálení po stole
+        burst(t, seconds, {freq:700, q:0.6, vol:0.035, type:'lowpass', dest:bus});
         for(let die=0; die<2; die++){
-          let x = die*0.035 + Math.random()*0.03;
-          let gap = 0.13 + Math.random()*0.04;
-          let vol = 0.48;
-          const pitch = die ? 1.08 : 0.94;            // každá kostka zní trochu jinak
-          while(x < seconds - 0.12){
-            woodKnock(t+x, (620 + Math.random()*260)*pitch, vol, 0.05 + Math.random()*0.02);
-            // tiché přikutálení mezi odskoky
-            if(Math.random() < 0.6) woodKnock(t+x+gap*0.45, (900 + Math.random()*300)*pitch, vol*0.22, 0.025);
+          let x = 0.05 + die*0.06 + Math.random()*0.04;
+          let gap = 0.19 + Math.random()*0.05;
+          let vol = 0.62;
+          const pitch = die ? 1.1 : 0.92;
+          for(let n=0; n<7 && x < seconds-0.1; n++){
+            softKnock(t+x, (360 + Math.random()*120)*pitch, vol, 0.07, bus);
             x += gap;
-            gap = Math.max(0.045, gap*0.82 + (Math.random()-0.5)*0.02);
-            vol = Math.max(0.16, vol*0.86);
+            gap = Math.max(0.06, gap*0.74 + (Math.random()-0.5)*0.02);
+            vol *= 0.72;
           }
         }
       });
     },
 
-    /* Dopad kostky: zřetelné ťuknutí + krátké dosednutí */
+    /* Dopad: jemné, ale zřetelné ťuknutí a krátké dosednutí */
     diceLand(){
       play(t=>{
-        woodKnock(t, 560, 1.35, 0.08);
-        woodKnock(t+0.045, 760, 0.38, 0.035);
-        woodKnock(t+0.075, 820, 0.16, 0.025);
+        const bus = diceBus();
+        softKnock(t, 330, 1.9, 0.09, bus);
+        softKnock(t+0.05, 420, 0.5, 0.05, bus);
       });
     },
 

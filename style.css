@@ -97,7 +97,7 @@ button{touch-action:manipulation;}
   -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);
   mask-image:linear-gradient(180deg,#000 55%,transparent);
 }
-.bar-side{display:flex;align-items:center;gap:8px;flex:0 0 118px;}
+.bar-side{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:44px;}
 .bar-right{justify-content:flex-end;}
 .bar-center{flex:1 1 auto;min-width:0;display:flex;justify-content:center;}
 .bar-placeholder{display:inline-block;width:44px;height:44px;}
@@ -110,12 +110,26 @@ button{touch-action:manipulation;}
 .glass-circle:active{transform:scale(.9);}
 .bar-exit{color:var(--red-dark);}
 .bar-left{justify-content:flex-start;}
-.bar-sound svg{width:21px;height:21px;}
-.bar-sound.off{color:var(--navy-soft);opacity:.72;}
-/* úvodní obrazovka: zvuk vlevo nahoře, zrcadlově k přepínači jazyka */
-.sound-hero{
-  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);left:14px;z-index:5;
-  width:40px;height:40px;
+
+/* ---------- Bublina nastavení: zvuk | jazyk ---------- */
+.settings-pill{
+  display:inline-flex;align-items:center;gap:2px;padding:3px 3px 3px 4px;border-radius:999px;flex-shrink:0;
+  background:var(--g-sheen), rgba(255,255,255,.58) !important;
+}
+.pill-sound{
+  width:32px;height:32px;padding:0;border:0;border-radius:50%;cursor:pointer;background:transparent;
+  display:inline-flex;align-items:center;justify-content:center;color:var(--navy);
+  transition:transform .12s ease, opacity .15s ease;
+}
+.pill-sound svg{width:20px;height:20px;display:block;}
+.pill-sound.off{color:var(--navy-soft);opacity:.6;}
+.pill-sound:active{transform:scale(.88);}
+.pill-divider{width:1px;height:20px;background:rgba(24,40,72,.14);margin:0 3px;}
+.lang-switch.in-pill{padding:0;background:none !important;border:0;box-shadow:none;}
+.lang-switch.in-pill .lang-thumb{top:0;left:0;}
+/* úvodní obrazovka: bublina vpravo nahoře, o kousek výraznější */
+.settings-hero{
+  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;
   background:var(--g-sheen), rgba(255,255,255,.72) !important;
   box-shadow:inset 0 1.5px 0 #fff, 0 6px 18px rgba(24,40,72,.18), 0 0 0 .5px rgba(24,40,72,.06) !important;
 }
@@ -163,9 +177,12 @@ button{touch-action:manipulation;}
 .hero{position:relative;}
 .lang-hero{position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;}
 @media (max-width:360px){
-  .bar-side{flex-basis:106px;gap:6px;}
+  .bar-side{gap:6px;min-width:40px;}
   .topbar{gap:6px;padding-left:10px;padding-right:10px;}
   .lang-btn,.lang-thumb{width:28px;height:28px;}
+  .pill-sound{width:28px;height:28px;}
+  .pill-sound svg{width:18px;height:18px;}
+  .pill-divider{margin:0 2px;}
   .lang-switch[data-active="en"] .lang-thumb{transform:translateX(30px);}
   .lang-btn svg{width:19px;height:13px;}
   .glass-circle{width:40px;height:40px;}

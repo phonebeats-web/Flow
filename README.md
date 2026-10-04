@@ -34,11 +34,11 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 
 ## Zvuky
 
-- Házení kostkou (dřevo o dřevo — kostky odskakují, pak ťuknutí dopadu), otočení karty (nová karta na stole,
+- Házení kostkou (tichý podkres — kostky párkrát odskočí po stole, pak jemné ťuknutí dopadu), otočení karty (nová karta na stole,
   odhalení pravdivé odpovědi u modré, další otázka v sólo hře), ťuknutí při stisku
   tlačítek, přiletění karty k hráči a vítězná fanfára na konci hry.
 - Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
-- Tlačítko s reproduktorem (na úvodu vlevo nahoře, ve hře v liště) zvuky vypne/zapne;
+- Reproduktor ve skleněné bublině vpravo nahoře (vedle vlajek) zvuky vypne/zapne;
   volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
 - Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
   i přepínač tichého režimu.
@@ -61,6 +61,12 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   druhu karty — pro změnu textu karty šance uprav tam.
 - Nový text přidáš do obou částí slovníku v `i18n.js`; nové otázky na stejné místo
   v `data.js` i `data_en.js`.
+
+## Jména hráčů
+
+- Jména se nesmí opakovat (porovnává se bez ohledu na velikost písmen, mezery a
+  diakritiku): na jednom zařízení se shodná jména zvýrazní a „Začít hru" se zablokuje,
+  online se nelze připojit se jménem, které už v místnosti někdo má.
 
 ## Režimy
 

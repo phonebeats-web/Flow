@@ -42,7 +42,7 @@ cs: {
   r6_t:'Vyhrává', r6_x:'Kdo má 2 celé karty od každé barvy. Dvě půlky dají jednu celou. Kdo má na začátku tahu 3 karty jedné barvy, může 2 z nich směnit za 1 jinou.',
 
   setup_title:'Kdo hraje?', setup_sub:'Zadejte jména hráčů, kteří si budou hru podávat.',
-  setup_ph:'Jméno hráče {0}', setup_remove:'Odebrat hráče', setup_add:'+ Přidat hráče', setup_start:'Začít hru',
+  setup_ph:'Jméno hráče {0}', setup_dup:'Jména se nesmí opakovat — každý hráč musí mít jiné jméno.', setup_remove:'Odebrat hráče', setup_add:'+ Přidat hráče', setup_start:'Začít hru',
   setup_min2:'Zadejte alespoň 2 jména. Pro hru o samotě zvolte na úvodní obrazovce „Hrát sám".',
   host_title:'Vytvořit místnost', host_sub:'Zadejte své jméno, ostatní se pak připojí kódem.',
   your_name:'Vaše jméno', host_btn:'Vytvořit', host_busy:'Vytvářím…', err_name:'Zadejte jméno.',
@@ -56,6 +56,7 @@ cs: {
   err_offline:'Online režim vyžaduje připojení k internetu.',
   err_create:'Nepodařilo se vytvořit místnost. Zkontroluj připojení k internetu.',
   err_notfound:'Místnost s tímto kódem nebyla nalezena.',
+  err_name_taken:'Toto jméno už v místnosti někdo má. Zvolte prosím jiné.',
   err_join:'Připojení se nezdařilo. Zkontroluj kód a připojení k internetu.',
   err_min2:'Jsou potřeba alespoň 2 hráči.',
   room_ended:'Místnost byla ukončena.',
@@ -181,7 +182,7 @@ en: {
   r6_t:'How to win', r6_x:'Collect 2 whole cards of each colour. Two halves make one whole card. If you have 3 cards of one colour at the start of your turn, you can swap 2 of them for 1 of another colour.',
 
   setup_title:'Who\'s playing?', setup_sub:'Enter the names of the players who will pass the device around.',
-  setup_ph:'Player {0}', setup_remove:'Remove player', setup_add:'+ Add player', setup_start:'Start game',
+  setup_ph:'Player {0}', setup_dup:'Names can\'t repeat — each player needs a different name.', setup_remove:'Remove player', setup_add:'+ Add player', setup_start:'Start game',
   setup_min2:'Enter at least 2 names. To play alone, choose "Play solo" on the home screen.',
   host_title:'Create a room', host_sub:'Enter your name — the others will join with a code.',
   your_name:'Your name', host_btn:'Create', host_busy:'Creating…', err_name:'Please enter your name.',
@@ -195,6 +196,7 @@ en: {
   err_offline:'Online mode requires an internet connection.',
   err_create:'Couldn\'t create the room. Please check your internet connection.',
   err_notfound:'No room was found with this code.',
+  err_name_taken:'Someone in the room already has this name. Please choose another one.',
   err_join:'Couldn\'t join. Please check the code and your internet connection.',
   err_min2:'At least 2 players are needed.',
   room_ended:'The room has been closed.',

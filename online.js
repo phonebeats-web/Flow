@@ -128,7 +128,7 @@ const Online = {
       name: p.name, halves: p.halves, full: p.full,
       skipNext: false, joinedAt: p.joinedAt, online: true
     });
-    if(!res.ok) return { ok:false, reason:'not-found' };
+    if(!res.ok) return { ok:false, reason: res.reason || 'not-found' };
     const raw = { phase: res.phase };
     state.myPlayerId = myUid;
     Online.rememberSession(code, name);

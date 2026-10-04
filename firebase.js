@@ -26,6 +26,10 @@ const FIREBASE_CONFIG = {
   appId: "1:193254763635:web:818091265b5fca7ec38e06"
 };
 
+/* Porovnání jmen (bez velikosti písmen, mezer a diakritiky). Herní logiku
+   sem nedáváme — funkci dodá UI vrstva, pokud existuje. */
+const isNameTaken = (a,b)=> typeof duplicateAnswerIdx==='function' && duplicateAnswerIdx([a,b]).size>0;
+
 const FlowNet = (function(){
   let app = null;
   let db = null;
@@ -101,8 +105,16 @@ const FlowNet = (function(){
   async function joinRoomFast(code, player){
     await ready();
     const roomRef = db.ref('rooms/'+code);
-    const snap = await roomRef.child('phase').once('value');
+    const [snap, playersSnap] = await Promise.all([
+      roomRef.child('phase').once('value'),
+      roomRef.child('players').once('value')
+    ]);
     if(!snap.exists()) return { ok:false, uid:myUid };
+    // Stejné jméno jako jiný hráč v místnosti? (návrat téhož hráče je v pořádku)
+    const others = playersSnap.val() || {};
+    if(isNameTaken && Object.keys(others).some(id=> id!==myUid && others[id] && isNameTaken(others[id].name, player.name))){
+      return { ok:false, uid:myUid, reason:'name-taken' };
+    }
     const res = await roomRef.child('players/'+myUid).transaction(current=>{
       if(current) return current;   // už tam jsem (reconnect) -> neměnit
       return player;

@@ -308,7 +308,7 @@ let langSwitchTimer = null;
 function langSwitch(extraCls=''){
   /* Přepínač jako v iOS: obě vlajky v jedné skleněné bublině,
      aktivní jazyk má pod sebou světlou „kapku", která se při přepnutí posune. */
-  const sw = el('div',{class:'lang-switch glass '+extraCls, role:'group', 'aria-label':t('lang_label'), 'data-active':LANG},
+  const sw = el('div',{class:'lang-switch '+(extraCls==='in-pill' ? '' : 'glass ')+extraCls, role:'group', 'aria-label':t('lang_label'), 'data-active':LANG},
     el('span',{class:'lang-thumb','aria-hidden':'true'}),
     ...['cs','en'].map(l=>el('button',{
       class:'lang-btn'+(LANG===l?' active':''),
@@ -338,13 +338,24 @@ const ICON_CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.
 const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.8 9.6l4.8 4.8M20.6 9.6l-4.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 /* Tlačítko zvuku (piktogram reproduktoru) — vypnutí platí pro toto zařízení. */
-function soundBtn(extraCls=''){
+function soundBtn(){
   const on = Sound.isEnabled();
-  return circleBtn(on ? ICON_SOUND_ON : ICON_SOUND_OFF, t(on ? 'sound_mute' : 'sound_unmute'), ()=>{
-    Sound.setEnabled(!Sound.isEnabled());
-    render();
-    if(Sound.isEnabled()) Sound.click();
-  }, 'bar-sound '+(on?'':'off ')+extraCls);
+  const label = t(on ? 'sound_mute' : 'sound_unmute');
+  return el('button',{class:'pill-sound bar-sound'+(on?'':' off'), 'aria-label':label, title:label,
+    'aria-pressed': on ? 'false' : 'true', html: on ? ICON_SOUND_ON : ICON_SOUND_OFF,
+    onclick:()=>{
+      Sound.setEnabled(!Sound.isEnabled());
+      render();
+      if(Sound.isEnabled()) Sound.click();
+    }});
+}
+/* Skleněná bublina „nastavení": zvuk | čeština / angličtina */
+function settingsPill(extraCls=''){
+  return el('div',{class:'settings-pill glass '+extraCls},
+    soundBtn(),
+    el('span',{class:'pill-divider','aria-hidden':'true'}),
+    langSwitch('in-pill')
+  );
 }
 function circleBtn(iconSvg, label, onClick, cls=''){
   return el('button',{class:'glass-circle glass '+cls, onclick:onClick, 'aria-label':label, title:label, html:iconSvg});
@@ -377,9 +388,9 @@ function topBar(){
     right.push(circleBtn(ICON_CLOSE, t('bar_exit'), ()=>{ resetAppState(); render(); }, 'bar-exit'));
   }
   return el('div',{class:'topbar'},
-    el('div',{class:'bar-side bar-left'}, left, soundBtn()),
+    el('div',{class:'bar-side bar-left'}, left),
     el('div',{class:'bar-center'}, title || miniLogo()),
-    el('div',{class:'bar-side bar-right'}, langSwitch(), ...right)
+    el('div',{class:'bar-side bar-right'}, settingsPill(), ...right)
   );
 }
 
@@ -455,8 +466,7 @@ function homeHero(){
     <path d="M1,16 C20,4 42,22 63,12 L63,1 L1,1 Z" fill="#FFFFFF" opacity=".93"/>
   </svg>`;
   return el('div',{class:'hero'},
-    langSwitch('lang-hero'),
-    soundBtn('sound-hero'),
+    settingsPill('settings-hero'),
     htmlToNode(`<div class="hero-band">${sunset}</div>`),
     htmlToNode(`<div class="hero-middle">
         ${miniCard('var(--red)', -10)}
@@ -516,24 +526,39 @@ function renderSetupLocal(s){
   s.appendChild(el('div',{class:'subtitle'}, t('setup_sub')));
   s.appendChild(gap(16));
   const list = el('div',{class:'stack'});
+  const inputs = [];
+  // Stejná jména (např. dvakrát Lucka) se zvýrazní a „Začít hru" se zablokuje.
+  const refreshDup = ()=>{
+    const dup = duplicateAnswerIdx(state.setupNames);
+    inputs.forEach((inp,i)=>inp.classList.toggle('dup', dup.has(i)));
+    warn.hidden = dup.size===0;
+    startBtn.disabled = dup.size>0;
+  };
   state.setupNames.forEach((name,i)=>{
     const row = el('div',{class:'row'});
-    row.appendChild(el('input',{class:'card-input', 'data-fk':'setup-'+i, placeholder:t('setup_ph', i+1), value:name, maxlength:'24',
-      oninput:(e)=>{state.setupNames[i]=e.target.value;}}));
+    const inp = el('input',{class:'card-input', 'data-fk':'setup-'+i, placeholder:t('setup_ph', i+1), value:name, maxlength:'24',
+      oninput:(e)=>{ state.setupNames[i]=e.target.value; refreshDup(); }});
+    inputs.push(inp);
+    row.appendChild(inp);
     if(state.setupNames.length>2){
       row.appendChild(el('button',{class:'remove-btn', 'aria-label':t('setup_remove'), onclick:()=>{state.setupNames.splice(i,1); render();}},'✕'));
     }
     list.appendChild(row);
   });
+  const warn = el('div',{class:'dup-warn', role:'alert'}, t('setup_dup'));
   s.appendChild(list);
+  s.appendChild(warn);
   s.appendChild(gap(10));
   s.appendChild(button(t('setup_add'),'btn-ghost',()=>{state.setupNames.push(''); render();}));
   s.appendChild(el('div',{class:'spacer'}));
-  s.appendChild(button(t('setup_start'),'btn-primary',()=>{
+  const startBtn = button(t('setup_start'),'btn-primary',()=>{
     const names = state.setupNames.map(n=>n.trim()).filter(Boolean);
+    if(duplicateAnswerIdx(names).size){ refreshDup(); return; }
     if(names.length<2){ uiAlert(t('setup_min2')); return; }
     startLocalGame(names);
-  }));
+  });
+  s.appendChild(startBtn);
+  refreshDup();
 }
 
 /* ---------- ONLINE HOST SETUP ---------- */
