@@ -10,8 +10,8 @@
    Zapnutí/vypnutí se pamatuje v prohlížeči (Sound.setEnabled).
    Prohlížeče dovolí zvuk až po prvním dotyku/kliknutí — proto se
    zvukový systém „odemyká" při první interakci.
-   Zvuk je záměrně měkký: vše jde přes teplý filtr (bez ostrých výšek),
-   s jemným dozvukem místnosti a pomalejším náběhem tónů.
+   Zvuk je měkký (teplý filtr bez ostrých výšek), ale okamžitý: žádný dozvuk
+   ani kompresor, výstup se drží vzhůru, aby první zvuk nepřišel pozdě.
    ============================================================ */
 const Sound = (function(){
   const KEY = 'flou_sound';
@@ -19,20 +19,7 @@ const Sound = (function(){
   try{ enabled = localStorage.getItem(KEY) !== 'off'; }catch(e){}
   let ctx = null, master = null, noiseBuf = null;
 
-  /* Krátký „dozvuk místnosti" — vygenerovaná odezva (bez souboru).
-     Díky němu zvuky nepůsobí suše a tvrdě. */
-  function roomImpulse(){
-    const len = Math.floor(ctx.sampleRate * 0.9);
-    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
-    for(let ch=0; ch<2; ch++){
-      const d = ir.getChannelData(ch);
-      for(let i=0;i<len;i++){
-        const x = i/len;
-        d[i] = (Math.random()*2-1) * Math.pow(1-x, 3.2) * (i < 60 ? i/60 : 1);
-      }
-    }
-    return ir;
-  }
+  let keepAlive = null;
 
   function ensure(){
     if(!enabled) return null;
@@ -40,28 +27,44 @@ const Sound = (function(){
       const AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return null;
       try{
-        ctx = new AC();
+        // „interactive" = co nejmenší zpoždění výstupu
+        try{ ctx = new AC({latencyHint:'interactive'}); }catch(e){ ctx = new AC(); }
         master = ctx.createGain();
         master.gain.value = 0.5;
-        // teplý filtr: ořízne ostré výšky
+        // měkkost: teplý filtr a ztišení nejvyšších pásem (bez dozvuku a kompresoru —
+        // ty na telefonu přidávaly zpoždění)
         const warm = ctx.createBiquadFilter();
         warm.type = 'lowpass'; warm.frequency.value = 3000; warm.Q.value = 0.5;
-        // jemné zklidnění nejvyšších pásem
         const shelf = ctx.createBiquadFilter();
         shelf.type = 'highshelf'; shelf.frequency.value = 2200; shelf.gain.value = -6;
-        const comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.01; comp.release.value = 0.2;
-        master.connect(warm); warm.connect(shelf); shelf.connect(comp); comp.connect(ctx.destination);
-        // dozvuk (malá místnost), jen lehce přimíchaný
-        try{
-          const rev = ctx.createConvolver(); rev.buffer = roomImpulse();
-          const wet = ctx.createGain(); wet.gain.value = 0.16;
-          shelf.connect(rev); rev.connect(wet); wet.connect(comp);
-        }catch(e){}
+        master.connect(warm); warm.connect(shelf); shelf.connect(ctx.destination);
+        noise();   // šum připravit hned, ne až při prvním zvuku
       }catch(e){ ctx = null; return null; }
     }
-    if(ctx.state === 'suspended'){ try{ const pr = ctx.resume(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){} }
+    // obnovit i po „přerušení" (iPhone po zamknutí / přepnutí aplikace)
+    if(ctx.state !== 'running' && ctx.state !== 'closed'){
+      try{ const pr = ctx.resume(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){}
+    }
+    startKeepAlive();
     return ctx;
+  }
+
+  /* Neslyšitelný signál, který drží zvukový výstup vzhůru — telefony ho
+     jinak po chvíli ticha uspí a první další zvuk by přišel se zpožděním. */
+  function startKeepAlive(){
+    if(keepAlive || !ctx) return;
+    try{
+      const src = ctx.createConstantSource ? ctx.createConstantSource() : ctx.createOscillator();
+      const g = ctx.createGain(); g.gain.value = 0.00001;
+      src.connect(g); g.connect(ctx.destination);
+      src.start();
+      keepAlive = src;
+    }catch(e){}
+  }
+  function stopKeepAlive(){
+    if(!keepAlive) return;
+    try{ keepAlive.stop(); keepAlive.disconnect(); }catch(e){}
+    keepAlive = null;
   }
 
   function noise(){
@@ -80,7 +83,7 @@ const Sound = (function(){
   }
 
   /* měkký tón: plynulý náběh a doznění (žádné lusknutí) */
-  function tone(freq, at, dur, {type='sine', vol=0.2, attack=0.012, glideTo=null, dest=null}={}){
+  function tone(freq, at, dur, {type='sine', vol=0.2, attack=0.008, glideTo=null, dest=null}={}){
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(freq, at);
@@ -100,7 +103,7 @@ const Sound = (function(){
   }
 
   /* šum přes filtr (šustění, kutálení) — vždy s měkkým náběhem */
-  function burst(at, dur, {freq=1200, q=0.8, vol=0.2, sweepTo=null, type='bandpass', attack=0.012, dest=null}={}){
+  function burst(at, dur, {freq=1200, q=0.8, vol=0.2, sweepTo=null, type='bandpass', attack=0.006, dest=null}={}){
     const src = ctx.createBufferSource();
     src.buffer = noise();
     src.playbackRate.value = 0.85 + Math.random()*0.3;
@@ -134,7 +137,7 @@ const Sound = (function(){
   function play(fn){
     const c = ensure();
     if(!c) return;
-    try{ fn(c.currentTime + 0.01); }catch(e){ /* zvuk nesmí nikdy shodit hru */ }
+    try{ fn(c.currentTime + 0.003); }catch(e){ /* zvuk nesmí nikdy shodit hru */ }
   }
 
   return {
@@ -142,7 +145,7 @@ const Sound = (function(){
     setEnabled(v){
       enabled = !!v;
       try{ localStorage.setItem(KEY, enabled ? 'on' : 'off'); }catch(e){}
-      if(!enabled && ctx && ctx.state==='running'){ try{ const pr = ctx.suspend(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){} }
+      if(!enabled){ stopKeepAlive(); if(ctx && ctx.state==='running'){ try{ const pr = ctx.suspend(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){} } }
       if(enabled) ensure();
     },
     unlock(){ if(enabled) ensure(); },
@@ -150,8 +153,8 @@ const Sound = (function(){
     /* klik: tiché dřevěné „tok", žádné pípnutí */
     click(){
       play(t=>{
-        tone(720, t, 0.07, {type:'sine', vol:0.105, attack:0.006, glideTo:560});
-        tone(1440, t, 0.03, {type:'sine', vol:0.015, attack:0.006});
+        tone(720, t, 0.07, {type:'sine', vol:0.055, attack:0.004, glideTo:560});
+        tone(1440, t, 0.03, {type:'sine', vol:0.008, attack:0.004});
       });
     },
 
@@ -159,7 +162,7 @@ const Sound = (function(){
     diceRoll(seconds=1.1){
       play(t=>{
         const bus = diceBus();
-        burst(t, seconds, {freq:500, q:0.5, vol:0.05, type:'lowpass', attack:0.15, dest:bus});
+        burst(t, seconds, {freq:500, q:0.5, vol:0.05, type:'lowpass', attack:0.05, dest:bus});
         for(let die=0; die<2; die++){
           let x = 0.05 + die*0.06 + Math.random()*0.04;
           let gap = 0.19 + Math.random()*0.05;
@@ -179,15 +182,15 @@ const Sound = (function(){
     diceLand(){
       play(t=>{
         const bus = diceBus();
-        softKnock(t, 300, 1.9, 0.1, bus);
-        softKnock(t+0.05, 380, 0.5, 0.06, bus);
+        softKnock(t, 300, 0.95, 0.1, bus);
+        softKnock(t+0.05, 380, 0.26, 0.06, bus);
       });
     },
 
     /* otočení karty: měkké „fff" papíru a tiché dosednutí */
     flip(){
       play(t=>{
-        burst(t, 0.2, {freq:500, q:0.7, vol:0.16, sweepTo:1800, attack:0.05});
+        burst(t, 0.2, {freq:520, q:0.7, vol:0.16, sweepTo:1800, attack:0.015});
         tone(260, t+0.17, 0.12, {type:'sine', vol:0.10, attack:0.01, glideTo:200});
       });
     },
@@ -196,7 +199,7 @@ const Sound = (function(){
     collect(delay=0){
       play(t=>{
         t += delay;
-        burst(t, 0.5, {freq:400, q:0.7, vol:0.07, sweepTo:1400, attack:0.18});
+        burst(t, 0.5, {freq:420, q:0.7, vol:0.07, sweepTo:1400, attack:0.05});
         const land = t + 0.58;
         tone(440, land, 0.12, {type:'sine', vol:0.11, attack:0.01, glideTo:360});
         bell(659.25, land+0.02, 0.55, 0.065);

@@ -533,6 +533,84 @@ button{touch-action:manipulation;}
 /* písmena A u posuvníku přesně na střed */
 .ts-a{display:inline-flex;align-items:center;justify-content:center;padding:0;}
 
+
+/* ---------- Nastavení jako ovládací centrum (iOS) ----------
+   Dlaždice s velkým zaoblením nad rozostřenou hrou. Pevné velikosti
+   písma, aby se ovládání nerozpadlo při velkém písmu ve hře. */
+.cc-overlay{
+  position:fixed;inset:0;z-index:95;
+  background:rgba(24,40,72,.16);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+  animation:cc-fade .22s ease both;
+}
+.cc-overlay.closing{animation:cc-fade-out .2s ease both;}
+.cc-wrap{position:absolute;right:12px;width:min(344px, calc(100vw - 24px));display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+.cc{display:grid;width:100%;grid-template-columns:1fr 104px;grid-template-rows:84px 84px;gap:12px;}
+.cc-tile{
+  position:relative;border-radius:30px;overflow:hidden;
+  background:linear-gradient(160deg, rgba(255,255,255,.62), rgba(255,255,255,.40));
+  -webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);
+  border:1px solid rgba(255,255,255,.75);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.9), 0 10px 30px rgba(24,40,72,.16);
+  color:var(--navy);
+  animation:cc-pop .34s cubic-bezier(.2,1.25,.4,1) both;
+}
+.cc-tile:nth-child(2){animation-delay:.03s;}
+.cc-tile:nth-child(3){animation-delay:.06s;}
+.cc-wide{display:flex;align-items:center;gap:12px;padding:0 16px 0 14px;text-align:left;}
+button.cc-tile{cursor:pointer;font:inherit;}
+button.cc-tile:active{transform:scale(.97);}
+.cc-sound{grid-column:1;grid-row:1;}
+.cc-lang{grid-column:1;grid-row:2;justify-content:space-between;}
+.cc-circle{
+  flex-shrink:0;width:48px;height:48px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(24,40,72,.10);color:var(--navy);
+  transition:background-color .22s ease, color .22s ease, box-shadow .22s ease;
+}
+.cc-circle svg{width:24px;height:24px;display:block;}
+.cc-sound.on .cc-circle{background:var(--blue-dark);color:#fff;box-shadow:0 4px 12px rgba(46,151,179,.35);}
+.cc-text{display:flex;flex-direction:column;min-width:0;line-height:1.2;}
+.cc-name{font-size:15px;font-weight:700;color:var(--navy);display:inline-flex;align-items:center;gap:5px;}
+.cc-state{font-size:13px;font-weight:500;color:var(--navy-soft);margin-top:2px;}
+.cc-mini-ico{display:inline-flex;}
+.cc-mini-ico svg{width:15px;height:15px;display:block;color:var(--navy-soft);}
+.cc-flags{display:flex;gap:8px;flex-shrink:0;}
+.cc-flag{
+  width:40px;height:40px;border-radius:50%;padding:0;border:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(24,40,72,.08);opacity:.55;filter:saturate(.5);
+  transition:opacity .2s ease, filter .2s ease, background-color .2s ease, box-shadow .2s ease, transform .12s ease;
+}
+.cc-flag svg{width:24px;height:16px;border-radius:3px;display:block;box-shadow:0 0 0 1px rgba(24,40,72,.15);}
+.cc-flag.active{opacity:1;filter:none;background:#fff;box-shadow:0 3px 10px rgba(24,40,72,.18);}
+.cc-flag:active{transform:scale(.9);}
+/* svislý posuvník přes celou dlaždici */
+.cc-slider{grid-column:2;grid-row:1 / span 2;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;}
+.cc-fill{
+  position:absolute;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg, #fff, rgba(255,255,255,.92));
+  box-shadow:0 -1px 0 rgba(24,40,72,.06);
+  transition:height .18s cubic-bezier(.3,1.2,.5,1);
+}
+.cc-slider.active .cc-fill{transition:height .06s linear;}
+.cc-slider-icon{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;color:var(--navy);pointer-events:none;}
+.cc-slider-icon svg{width:28px;height:28px;display:block;}
+.cc-pct{position:absolute;left:0;right:0;top:14px;text-align:center;font-size:13px;font-weight:700;color:var(--navy-soft);pointer-events:none;z-index:1;}
+.cc-slider:focus-visible,.cc-tile:focus-visible{outline:3px solid rgba(46,151,179,.6);outline-offset:2px;}
+.cc-done{
+  border:1px solid rgba(255,255,255,.75);border-radius:999px;padding:9px 20px;cursor:pointer;
+  background:linear-gradient(160deg, rgba(255,255,255,.7), rgba(255,255,255,.5));
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 #fff, 0 6px 18px rgba(24,40,72,.14);
+  font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;color:var(--navy);
+  animation:cc-pop .34s .09s cubic-bezier(.2,1.25,.4,1) both;
+}
+@keyframes cc-fade{from{opacity:0;}to{opacity:1;}}
+@keyframes cc-fade-out{from{opacity:1;}to{opacity:0;}}
+@keyframes cc-pop{from{opacity:0;transform:scale(.9) translateY(-8px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){ .cc-overlay,.cc-tile,.cc-done{animation:none;} }
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;

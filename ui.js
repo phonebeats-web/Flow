@@ -363,72 +363,105 @@ function setTextSize(i){
    Jazyk, zvuky a velikost písma jsou v jednom skleněném panelu, aby
    lišta zůstala čistá. Panel je mimo #app — překreslení hry ho nezavře. */
 const ICON_SETTINGS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h8.6M17.4 7H20M4 17h2.6M11.4 17H20"/></g><circle cx="15" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-let setClose = null;
+let setClose = null, doneBtnRef = null;
+const CC_ICONS = {
+  soundOn:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9.6h2.6L12 6v12l-4.4-3.6H5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.2 6.8a7.4 7.4 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  soundOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9.6h2.6L12 6v12l-4.4-3.6H5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M16 10l4 4M20 10l-4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  globe:    '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/></g></svg>',
+  // „AA" pro velikost písma — geometricky vycentrované
+  textSize: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 19 6.1 10.5 9.6 19M3.9 16h4.4"/><path d="M10.4 19 15.6 5 20.8 19M12.3 14.4h6.6"/></g></svg>'
+};
+/* Nastavení jako ovládací centrum v iOS: dlaždice v mřížce nad rozostřenou hrou. */
 function openSettings(anchor){
   if(setClose){ setClose(); return; }
   const prevFocus = document.activeElement;
-  const pop = el('div',{class:'set-pop glass', role:'dialog'});
-  let pctEl = null, rangeEl = null;
+  const n = TEXT_SIZES.length;
+  const grid = el('div',{class:'cc', role:'dialog', 'aria-modal':'true'});
+
+  // --- svislý posuvník velikosti písma (jako jas / hlasitost) ---
+  const fillEl = el('div',{class:'cc-fill'});
+  const pctEl = el('div',{class:'cc-pct'});
+  const slider = el('div',{class:'cc-tile cc-slider', role:'slider', tabindex:'0',
+      'aria-valuemin':'0', 'aria-valuemax':String(n-1)},
+    pctEl, fillEl, el('div',{class:'cc-slider-icon', html:CC_ICONS.textSize}));
   const updSize = ()=>{
-    if(!rangeEl) return;
-    rangeEl.value = String(textSizeIdx);
-    rangeEl.style.setProperty('--p', (textSizeIdx/(TEXT_SIZES.length-1)*100)+'%');
-    pctEl.textContent = Math.round(TEXT_SIZES[textSizeIdx]*100)+' %';
+    const frac = (textSizeIdx+1)/n;
+    fillEl.style.height = (frac*100)+'%';
+    const pct = Math.round(TEXT_SIZES[textSizeIdx]*100)+' %';
+    pctEl.textContent = pct;
+    slider.setAttribute('aria-valuenow', String(textSizeIdx));
+    slider.setAttribute('aria-valuetext', pct);
+    slider.setAttribute('aria-label', t('text_size'));
   };
-  // obsah se po změně jazyka / zvuku sestaví znovu (kvůli textům)
-  const fill = ()=>{
-    pop.setAttribute('aria-label', t('settings'));
-    const on = Sound.isEnabled();
-    rangeEl = el('input',{type:'range', class:'ts-range', min:'0', max:String(TEXT_SIZES.length-1), step:'1',
-      value:String(textSizeIdx), 'aria-label':t('text_size'),
-      oninput:(e)=>{ setTextSize(parseInt(e.target.value,10)); updSize(); }});
-    pctEl = el('span',{class:'ts-pct'});
-    pop.replaceChildren(
-      el('div',{class:'set-title'}, t('settings')),
-      el('div',{class:'set-sec'},
-        el('div',{class:'set-label'}, t('lang_label')),
-        el('div',{class:'seg', role:'group', 'aria-label':t('lang_label')},
-          ...['cs','en'].map(l=>el('button',{class:'seg-btn'+(LANG===l?' active':''), 'aria-pressed':LANG===l?'true':'false',
-            onclick:()=>{ if(LANG!==l){ setLang(l); render(); fill(); } }},
-            el('span',{class:'seg-flag', html:FLAG_SVG[l]}), l==='cs' ? 'Čeština' : 'English'))
-        )
-      ),
-      el('div',{class:'set-sec set-row'},
-        el('div',{class:'set-label', id:'set-sound-l'}, t('sound_title')),
-        el('button',{class:'ios-switch bar-sound'+(on?' on':''), role:'switch', 'aria-checked':on?'true':'false', 'aria-labelledby':'set-sound-l',
-          onclick:()=>{ Sound.setEnabled(!Sound.isEnabled()); if(Sound.isEnabled()) Sound.click(); fill(); }},
-          el('span',{class:'ios-knob'}))
-      ),
-      el('div',{class:'set-sec'},
-        el('div',{class:'set-label-row'}, el('span',{class:'set-label'}, t('text_size')), pctEl),
-        el('div',{class:'ts-row'},
-          el('button',{class:'ts-a ts-small', 'aria-label':t('text_smaller'), onclick:()=>{ setTextSize(textSizeIdx-1); updSize(); }}, 'A'),
-          el('div',{class:'ts-track'}, el('div',{class:'ts-ticks','aria-hidden':'true'}, ...TEXT_SIZES.map(()=>el('span',{}))), rangeEl),
-          el('button',{class:'ts-a ts-large', 'aria-label':t('text_larger'), onclick:()=>{ setTextSize(textSizeIdx+1); updSize(); }}, 'A')
-        )
-      ),
-      button(t('done'),'btn-glass btn-sm', ()=>close())
-    );
+  const setFromY = (clientY)=>{
+    const r = slider.getBoundingClientRect();
+    const frac = 1 - (clientY - r.top) / r.height;            // 0 dole … 1 nahoře
+    const idx = Math.round(Math.max(0, Math.min(1, frac)) * n - 0.5);
+    setTextSize(Math.max(0, Math.min(n-1, idx)));
     updSize();
   };
-  const catcher = el('div',{class:'ts-catcher', onclick:()=>close()});
+  let dragging = false;
+  slider.addEventListener('pointerdown', (e)=>{ dragging = true; slider.classList.add('active'); try{ slider.setPointerCapture(e.pointerId); }catch(_){} setFromY(e.clientY); e.preventDefault(); });
+  slider.addEventListener('pointermove', (e)=>{ if(dragging) setFromY(e.clientY); });
+  const endDrag = ()=>{ dragging = false; slider.classList.remove('active'); };
+  slider.addEventListener('pointerup', endDrag);
+  slider.addEventListener('pointercancel', endDrag);
+  slider.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowUp' || e.key==='ArrowRight'){ setTextSize(textSizeIdx+1); updSize(); e.preventDefault(); }
+    if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ setTextSize(textSizeIdx-1); updSize(); e.preventDefault(); }
+  });
+
+  // --- dlaždice zvuků a jazyka (sestaví se znovu po změně) ---
+  const soundTile = el('button',{class:'cc-tile cc-wide cc-sound bar-sound'});
+  const langTile = el('div',{class:'cc-tile cc-wide cc-lang', role:'group'});
+  const fill = ()=>{
+    const on = Sound.isEnabled();
+    grid.setAttribute('aria-label', t('settings'));
+    soundTile.className = 'cc-tile cc-wide cc-sound bar-sound'+(on?' on':'');
+    soundTile.setAttribute('aria-pressed', on ? 'true' : 'false');
+    soundTile.replaceChildren(
+      el('span',{class:'cc-circle', html: on ? CC_ICONS.soundOn : CC_ICONS.soundOff}),
+      el('span',{class:'cc-text'},
+        el('span',{class:'cc-name'}, t('sound_title')),
+        el('span',{class:'cc-state'}, t(on ? 'state_on' : 'state_off')))
+    );
+    if(typeof doneBtnRef!=='undefined' && doneBtnRef) doneBtnRef.textContent = t('done');
+    langTile.setAttribute('aria-label', t('lang_label'));
+    langTile.replaceChildren(
+      el('span',{class:'cc-text'},
+        el('span',{class:'cc-name cc-name-icon'}, el('span',{class:'cc-mini-ico', html:CC_ICONS.globe}), t('lang_label')),
+        el('span',{class:'cc-state'}, LANG==='cs' ? 'Čeština' : 'English')),
+      el('span',{class:'cc-flags'},
+        ...['cs','en'].map(l=>el('button',{class:'cc-flag'+(LANG===l?' active':''), 'aria-pressed':LANG===l?'true':'false',
+          'aria-label': l==='cs' ? 'Čeština' : 'English', title: l==='cs' ? 'Čeština' : 'English', html: FLAG_SVG[l],
+          onclick:()=>{ if(LANG!==l){ setLang(l); render(); fill(); updSize(); } }})))
+    );
+  };
+  soundTile.addEventListener('click', ()=>{ Sound.setEnabled(!Sound.isEnabled()); if(Sound.isEnabled()) Sound.click(); fill(); });
+
+  const doneBtn = el('button',{class:'cc-done', onclick:()=>close()});
+  doneBtnRef = doneBtn;
+  grid.append(soundTile, slider, langTile);
+  const wrap = el('div',{class:'cc-wrap'}, grid, doneBtn);
+  const overlay = el('div',{class:'cc-overlay', onclick:(e)=>{ if(e.target===overlay) close(); }}, wrap);
+
   const onKey = (e)=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } };
   const close = ()=>{
     if(!setClose) return;
     setClose = null;
     document.removeEventListener('keydown', onKey, true);
-    pop.classList.add('closing');
-    setTimeout(()=>{ pop.remove(); catcher.remove(); }, 160);
+    overlay.classList.add('closing');
+    setTimeout(()=>overlay.remove(), 200);
     if(prevFocus && prevFocus.focus && document.body.contains(prevFocus)){ try{ prevFocus.focus({preventScroll:true}); }catch(e){} }
   };
   const r = anchor.getBoundingClientRect();
-  pop.style.top = Math.round(r.bottom + 10)+'px';
-  fill();
-  document.body.appendChild(catcher);
-  document.body.appendChild(pop);
+  wrap.style.top = Math.round(r.bottom + 12)+'px';
+  fill(); updSize();
+  doneBtn.textContent = t('done');
+  document.body.appendChild(overlay);
   document.addEventListener('keydown', onKey, true);
   setClose = close;
-  setTimeout(()=>{ const f = pop.querySelector('.seg-btn.active'); try{ f && f.focus({preventScroll:true}); }catch(e){} }, 30);
+  setTimeout(()=>{ try{ soundTile.focus({preventScroll:true}); }catch(e){} }, 40);
 }
 function settingsBtn(extraCls=''){
   const b = circleBtn(ICON_SETTINGS, t('settings'), (e)=>openSettings(e.currentTarget), 'settings-btn '+extraCls);

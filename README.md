@@ -23,7 +23,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 ## Ovládání a zobrazení
 
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
-  kdo je na tahu, vpravo tlačítko Nastavení (jazyk, zvuky, velikost písma) a křížek.
+  kdo je na tahu, vpravo tlačítko Nastavení a křížek. Nastavení se otevře jako
+  ovládací centrum v iOS: dlaždice Zvuky, Jazyk a svislý posuvník velikosti písma.
 - Skóre všech hráčů je v mřížce, která se zalamuje — na mobilu se nemusí
   posouvat do strany. Plný slot = celá karta, poloviční slot = půlkarta;
   půlkarta je vidět i nad dvěma celými kartami (např. 2 celé + ½).
@@ -38,7 +39,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   odhalení pravdivé odpovědi u modré, další otázka v sólo hře), ťuknutí při stisku
   tlačítek, přiletění karty k hráči a vítězná fanfára na konci hry.
 - Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
-  Jsou záměrně měkké: teplý filtr bez ostrých výšek, jemný dozvuk místnosti, pomalejší náběh tónů.
+  Jsou měkké (teplý filtr bez ostrých výšek), ale okamžité: bez dozvuku a kompresoru,
+  zvukový výstup se drží vzhůru (telefony ho jinak po tichu uspí a první zvuk se zpozdí).
 - Přepínač Zvuky v panelu Nastavení (tlačítko s posuvníky vpravo nahoře) zvuky vypne/zapne;
   volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
 - Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
