@@ -36,6 +36,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - Odpovědi, které hráči sami napíšou u modré karty, zůstávají tak, jak byly napsány.
 - Při první návštěvě se jazyk odhadne podle prohlížeče (čeština/slovenština → CZ,
   jinak EN), pak se pamatuje.
+- Texty karet šance jsou v `i18n.js` (CHANCE_CS) a `data_en.js` (CHANCE_EN) podle
+  druhu karty — pro změnu textu karty šance uprav tam.
 - Nový text přidáš do obou částí slovníku v `i18n.js`; nové otázky na stejné místo
   v `data.js` i `data_en.js`.
 
@@ -73,7 +75,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   kartu získává hráč, který kartu šance vytáhl; když ne, soused kartu ztrácí;
   „Teď nehraješ" → tah končí bez otázky;
   „Všichni odpovídají na červenou" → kolečko místo otázky z hodu;
-  „Vyměň jednu kartu" → dobrovolná výměna 1 karty za 1 jiné barvy;
+  „Jednu svou kartu můžeš vyměnit za kartu jiné barvy, pokud chceš" →
+  dobrovolná výměna 1 karty za 1 jiné barvy;
   ostatní (ztráta karet, krádež, změna směru) → pak následuje otázka.
 - Vyhrává, kdo má **2 celé karty od každé barvy** (2 půlky = 1 celá).
 - **Krok zpět** (horní lišta) vrátí hru o krok — opakovaně, až 30 kroků.

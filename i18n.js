@@ -332,6 +332,21 @@ function playersWord(n){
 }
 
 /* ---------- texty karet ---------- */
+/* Texty karet šance podle druhu karty. Jsou tady (ne jen v data.js),
+   aby se vždy ukázal aktuální text — i kdyby na webu zůstal starší data.js. */
+const CHANCE_CS = {
+  lose_all: "Přicházíš o všechny karty.",
+  lose_all_unless_red: "Přicházíš o všechny karty, pokud ti nepadne červená.",
+  go_again: "Jedeš ještě jednou.",
+  change_color: "Můžeš změnit barvu karty své otázky.",
+  right_answers: "Na otázku odpovídá hráč po tvé pravici, pokud neodpoví, ztrácí danou barvu karty.",
+  reverse: "Změna směru hry proti směru hodinových ručiček.",
+  skip_next: "Teď nehraješ.",
+  steal: "Můžeš někomu ukradnout jednu libovolnou kartu.",
+  trade_one_for_one: "Jednu svou kartu můžeš vyměnit za kartu jiné barvy, pokud chceš.",
+  trade_two_for_one: "Jednu svou kartu můžeš vyměnit za kartu jiné barvy, pokud chceš.",
+  everyone_red: "Všichni odpovídají na červenou otázku."
+};
 function questionText(color, idx){
   const src = (LANG==='en' && typeof QUESTIONS_EN!=='undefined') ? QUESTIONS_EN : QUESTIONS;
   return (src[color] && src[color][idx]) || QUESTIONS[color][idx] || '';
@@ -340,7 +355,7 @@ function chanceText(idx){
   const c = CHANCE_CARDS[idx];
   if(!c) return '';
   if(LANG==='en' && typeof CHANCE_EN!=='undefined' && CHANCE_EN[c.key]) return CHANCE_EN[c.key];
-  return c.text;
+  return CHANCE_CS[c.key] || c.text;
 }
 function cardText(card){
   if(!card) return '';

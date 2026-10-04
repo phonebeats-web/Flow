@@ -322,7 +322,7 @@ const CHANCE_EN = {
   reverse: "The direction of play reverses.",
   skip_next: "You sit this turn out.",
   steal: "You may steal one card of your choice from another player.",
-  trade_one_for_one: "You may swap one of your cards for a card of another colour of your choice.",
-  trade_two_for_one: "You may swap one of your cards for a card of another colour of your choice.",
+  trade_one_for_one: "You may swap one of your cards for a card of another colour, if you want to.",
+  trade_two_for_one: "You may swap one of your cards for a card of another colour, if you want to.",
   everyone_red: "Everyone answers a red question."
 };
