@@ -7,7 +7,7 @@
 
         "players": {
           "$uid": {
-            ".write": "auth != null && data.parent().parent().child('phase').exists() && (data.exists() || data.parent().numChildren() < 8) && (auth.uid == $uid || auth.uid == data.parent().parent().child('turnPlayerId').val() || auth.uid == data.parent().parent().child('hostId').val())",
+            ".write": "auth != null && data.parent().parent().child('phase').exists() && (auth.uid == $uid || auth.uid == data.parent().parent().child('turnPlayerId').val() || auth.uid == data.parent().parent().child('hostId').val())",
             ".validate": "newData.hasChildren(['name'])",
             "name":     { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24" },
             "skipNext": { ".validate": "newData.isBoolean()" },

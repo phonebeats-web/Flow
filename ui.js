@@ -762,7 +762,8 @@ function renderLobby(s){
   if(amHost(room)){
     s.appendChild(button(t('lobby_start', playersWord(n)),'btn-primary', ()=>{
       hostStartGame();
-    }, n<2));
+    }, n<2 || n>MAX_PLAYERS));
+    if(n>MAX_PLAYERS) s.appendChild(el('div',{class:'dup-warn', role:'alert'}, t('err_too_many', MAX_PLAYERS)));
     s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:8px'}, t('lobby_share_hint')));
   } else {
     s.appendChild(el('div',{class:'center-col'}, waiting(t('lobby_wait'))));

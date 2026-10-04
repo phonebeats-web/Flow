@@ -230,6 +230,8 @@ async function playerJoinRoom(code, name){
 async function hostStartGame(){
   const room = state.room;
   if(room.players.length<2){ uiAlert(t('err_min2')); return; }
+  // pojistka: kdyby se při souběžném připojení dostal dovnitř devátý hráč
+  if(room.players.length>MAX_PLAYERS){ uiAlert(t('err_too_many', MAX_PLAYERS)); return; }
   room.phase='idle';
   await Online.pushState(room);
 }

@@ -70,8 +70,9 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 
 ## Jména a počet hráčů
 
-- Hrát může 2–8 hráčů (na jednom zařízení i online); devátý se nepřipojí
-  (hlídá to i pravidlo databáze).
+- Hrát může 2–8 hráčů (na jednom zařízení i online); devátý se nepřipojí.
+  (Pravidla Realtime Database neumí počítat hráče, proto to hlídá hra; kdyby se
+  při souběžném připojení dostal dovnitř devátý, hostitel hru nespustí.)
 
 - Jména se nesmí opakovat (porovnává se bez ohledu na velikost písmen, mezery a
   diakritiku): na jednom zařízení se shodná jména zvýrazní a „Začít hru" se zablokuje,
