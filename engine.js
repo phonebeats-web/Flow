@@ -2,7 +2,7 @@
    GAME ENGINE — čistá herní logika.
    Žádná závislost na DOM, na Firebase, ani na síti.
    Musí jít spustit i úplně offline (viz engine.test.js).
-   Chování je 1:1 převzaté z původní verze — beze změny pravidel.
+   Pravidla: hod 2× kostkou, červená/modrá/žlutá otázka, karty šance.
    ============================================================ */
 
 function uid(n=6){
@@ -82,6 +82,20 @@ function rightNeighbor(room){
 }
 
 function advanceTurn(room){
+  // Uklidit vše, co patří jen k právě dohranému tahu.
+  room.phase = 'idle';
+  room.currentCard = null;
+  room.pendingColor = null;
+  room.yellow = null;
+  room.votes = {};
+  room.awardColors = {};
+
+  // Karta šance „Jedeš ještě jednou" — stejný hráč hraje znovu.
+  if(room.extraTurn){
+    room.extraTurn = false;
+    return;
+  }
+
   const n = room.players.length;
   let next = ((room.turnIndex + room.direction) % n + n) % n;
   // handle skip-next
@@ -92,8 +106,51 @@ function advanceTurn(room){
     guard++;
   }
   room.turnIndex = next;
-  room.phase = 'idle';
-  room.currentCard = null;
+}
+
+/* Vyhodnocení hodu dvěma hody kostky.
+   Rozdílné barvy -> otázka PRVNÍ barvy.
+   Stejné barvy   -> nejdřív karta šance, pak (pokud to jde) otázka té barvy. */
+function evaluateRoll(first, second){
+  return { color:first, isDouble: first===second };
+}
+
+/* Pořadí hráčů pro žlutou otázku: začíná hráč na tahu,
+   pak ostatní ve směru hry. */
+function yellowOrder(room){
+  const n = room.players.length;
+  const order = [];
+  for(let k=0;k<n;k++){
+    const idx = ((room.turnIndex + k*room.direction) % n + n) % n;
+    order.push(room.players[idx].id);
+  }
+  return order;
+}
+
+/* Další hráč v pořadí žluté otázky (po posledním se vrací k tomu,
+   kdo kartu vytáhl). */
+function yellowNextId(room){
+  const y = room.yellow;
+  const i = y.order.indexOf(y.current);
+  return y.order[(i+1) % y.order.length];
+}
+
+/* Ukončení hry. Hráč na tahu se přepne na vítěze, aby vítěz mohl
+   v online režimu dohrát závěrečnou otázku (zapisuje jen hráč na tahu). */
+function finishGame(room, winner){
+  room.phase = 'finished';
+  room.winnerId = winner.id;
+  room.extraTurn = false;
+  const idx = room.players.findIndex(p=>p.id===winner.id);
+  if(idx>=0) room.turnIndex = idx;
+}
+
+/* Zkontroluje výhru (nejdřív preferovaný hráč, pak ostatní).
+   Vrací true, pokud hra skončila. */
+function resolveWin(room, preferred){
+  const winner = (preferred && checkWin(preferred)) ? preferred : room.players.find(p=>checkWin(p));
+  if(winner){ finishGame(room, winner); return true; }
+  return false;
 }
 
 function chanceEffectKey(text){

@@ -37,6 +37,14 @@ function normalizeRoom(raw){
   room.currentCard = raw.currentCard || null;
   room.winnerId = raw.winnerId || null;
   room.lastRolledColor = raw.lastRolledColor || null;
+  room.lastRoll = Array.isArray(raw.lastRoll) ? raw.lastRoll : null;
+  room.pendingColor = raw.pendingColor || null;   // otázka čekající po kartě šance
+  room.extraTurn = !!raw.extraTurn;                // „Jedeš ještě jednou"
+  room.yellow = raw.yellow && raw.yellow.order ? {
+    order: raw.yellow.order,
+    current: raw.yellow.current || null,
+    answered: raw.yellow.answered || {}
+  } : null;
   room.finalDone = !!raw.finalDone;         // vítěz už položil závěrečnou otázku
   room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
   room.awardColors = raw.awardColors || {}; // playerId -> barva půlkarty
@@ -65,6 +73,10 @@ function roomToFirebase(room){
     turnPlayerId: room.players[room.turnIndex] ? room.players[room.turnIndex].id : null,
     direction: room.direction,
     lastRolledColor: room.lastRolledColor,
+    lastRoll: room.lastRoll || null,
+    pendingColor: room.pendingColor || null,
+    extraTurn: !!room.extraTurn,
+    yellow: room.yellow || null,
     currentCard: room.currentCard,
     decks: room.decks,
     winnerId: room.winnerId,
@@ -162,6 +174,10 @@ const Online = {
       'turnPlayerId': room.players[room.turnIndex] ? room.players[room.turnIndex].id : null,
       'direction': room.direction,
       'lastRolledColor': room.lastRolledColor,
+      'lastRoll': room.lastRoll || null,
+      'pendingColor': room.pendingColor || null,
+      'extraTurn': !!room.extraTurn,
+      'yellow': room.yellow || null,
       'currentCard': room.currentCard,
       'decks': room.decks,
       'winnerId': room.winnerId,
@@ -174,6 +190,20 @@ const Online = {
       changes['players/'+p.id+'/full'] = p.full;
       changes['players/'+p.id+'/skipNext'] = !!p.skipNext;
     });
+    await FlowNet.updateRoom(room.code, changes);
+  },
+
+  /* Žlutá otázka: odpověď hráče, který NENÍ na tahu.
+     Zapisuje jen svou odpověď, posun kola a své vlastní karty. */
+  async pushYellowAnswer(room, player){
+    const changes = {
+      'yellow/current': room.yellow.current,
+      ['yellow/answered/'+player.id]: !!room.yellow.answered[player.id]
+    };
+    if(player){
+      changes['players/'+player.id+'/halves'] = player.halves;
+      changes['players/'+player.id+'/full'] = player.full;
+    }
     await FlowNet.updateRoom(room.code, changes);
   },
 
@@ -230,9 +260,12 @@ const Online = {
     }
   },
 
-  /* Host opustí/ukončí místnost. */
+  /* Hráč opustí místnost. */
   async leaveRoom(){
+    const code = Store.roomCode;
     Online.stopSync();
     Online.forgetSession();
+    // Ostatní uvidí, že hráč odešel (host ho pak může přeskočit).
+    if(code) await FlowNet.markOffline(code).catch(()=>{});
   }
 };

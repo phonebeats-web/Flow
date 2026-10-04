@@ -48,7 +48,8 @@ function startLocalGame(names){
   Store.roomCode=null;
   const room = {
     code:null, phase:'idle', players, turnIndex:0, direction:1,
-    lastRolledColor:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false
+    lastRolledColor:null, lastRoll:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false,
+    pendingColor:null, extraTurn:false, yellow:null, votes:{}, awardColors:{}
   };
   Store.setRoom(room);
   state.room = room;
@@ -105,7 +106,7 @@ async function hostStartGame(){
 }
 
 async function leaveOnlineRoom(){
-  await Online.leaveRoom();
+  try{ await Online.leaveRoom(); }catch(e){ console.error(e); }
   resetAppState();
   render();
 }
@@ -134,35 +135,144 @@ async function saveAndRender(){
 }
 
 /* ============ HERNÍ AKCE ============ */
-/* Vylosuje barvu. Odděleno od applyRoll, aby UI mohlo
+/* Vylosuje barvu. Odděleno od rollDice, aby UI mohlo
    nejdřív přehrát animaci hodu a teprve pak výsledek použít. */
 function pickDieColor(){
   return ['red','blue','yellow'][Math.floor(Math.random()*3)];
 }
 
-async function rollDice(preRolled){
+/* Hráč hází vždy DVAKRÁT.
+   Rozdílné barvy -> otázka první barvy.
+   Stejné barvy   -> nejdřív karta šance, potom (pokud to jde) otázka té barvy. */
+async function rollDice(first, second){
   const room = state.room;
-  const color = preRolled || pickDieColor();
-  const isDouble = room.lastRolledColor===color;
-  room.lastRolledColor = color;
-  if(isDouble){
+  first = first || pickDieColor();
+  second = second || pickDieColor();
+  const res = evaluateRoll(first, second);
+  room.lastRoll = [first, second];
+  room.lastRolledColor = res.color;
+  if(res.isDouble){
     const chance = drawFrom(room,'chance');
     room.currentCard = {type:'chance', text:chance.text, key:chance.key};
+    room.pendingColor = res.color;   // otázka, která přijde po kartě šance
     room.phase='chance';
   } else {
-    const q = drawFrom(room,color);
-    room.currentCard = {type:'question', color, text:q};
-    // Online + modrá: hráč na tahu nejdřív vymyslí 3 možnosti (kvízový režim).
-    if(color==='blue' && Store.mode==='online'){
-      room.votes = {};
-      room.awardColors = {};
-      state.blueCompose = {a:'', b:'', c:'', correct:0};
-      room.phase='blue-compose';
-    } else {
-      room.phase='rolled-question';
-    }
+    room.pendingColor = null;
+    startQuestion(room, res.color);
   }
   await saveAndRender();
+}
+
+/* Vytáhne otázku dané barvy a nastaví odpovídající fázi.
+   (Neukládá — volající pak zavolá saveAndRender.) */
+function startQuestion(room, color){
+  const q = drawFrom(room,color);
+  room.currentCard = {type:'question', color, text:q};
+  room.pendingColor = null;
+  if(color==='blue' && Store.mode==='online'){
+    // Online + modrá: hráč na tahu nejdřív vymyslí 3 možnosti (kvízový režim).
+    room.votes = {};
+    room.awardColors = {};
+    state.blueCompose = {a:'', b:'', c:'', correct:0};
+    room.phase='blue-compose';
+  } else if(color==='yellow'){
+    // Žlutá: odpovídají postupně všichni, začíná hráč na tahu.
+    const order = yellowOrder(room);
+    room.yellow = { order, current: order[0], answered: {} };
+    room.phase='yellow-round';
+  } else {
+    room.phase='rolled-question';
+  }
+}
+
+/* Po vyřešení karty šance: pokud čeká otázka z dvojitého hodu,
+   pokračuje se na ni, jinak tah končí. */
+function continueAfterChance(room){
+  if(room.phase==='finished') return;
+  if(room.pendingColor){
+    startQuestion(room, room.pendingColor);
+  } else {
+    advanceTurn(room);
+  }
+}
+
+/* ---------- ŽLUTÁ OTÁZKA ---------- */
+/* Hráč (playerId) potvrdil, zda odpověděl. Kdo neodpoví, ztrácí žlutou
+   kartu (nejdřív celou, pak půlku; když nemá nic, nic se neděje). */
+async function yellowAnswer(playerId, answered){
+  const room = state.room;
+  const y = room.yellow;
+  if(!y || y.current!==playerId) return;
+  const p = room.players.find(x=>x.id===playerId);
+  const ap = activePlayer(room);
+
+  // Hráč, který kartu vytáhl, odpovídá první. Když neodpoví,
+  // ztrácí žlutou a kolo končí.
+  if(playerId===ap.id && Object.keys(y.answered||{}).length===0){
+    if(!answered){
+      loseColor(ap,'yellow');
+      advanceTurn(room);
+      await saveAndRender();
+      return;
+    }
+    y.answered = Object.assign({}, y.answered, {[playerId]:true});
+    y.current = yellowNextId(room);
+    await saveAndRender();
+    return;
+  }
+
+  if(!answered && p) loseColor(p,'yellow');
+  y.answered = Object.assign({}, y.answered, {[playerId]: !!answered});
+  y.current = yellowNextId(room);
+
+  if(Store.mode==='online' && playerId!==ap.id){
+    // Odpovídající hráč není na tahu -> zapíše jen svou odpověď,
+    // posun v kole a vlastní karty (víc mu pravidla databáze nedovolí).
+    render();
+    try{ await Online.pushYellowAnswer(room, p); }
+    catch(e){ console.error('yellow push failed', e); }
+    return;
+  }
+  await saveAndRender();
+}
+
+/* Kolo došlo zpět k hráči, který kartu vytáhl -> získává žlutou kartu. */
+async function yellowFinish(){
+  const room = state.room;
+  const ap = activePlayer(room);
+  addFull(ap,'yellow');
+  if(!resolveWin(room, ap)) advanceTurn(room);
+  await saveAndRender();
+}
+
+/* ---------- HOST: PŘESKOČENÍ HRÁČE, KTERÝ ODEŠEL ---------- */
+async function hostSkipTurn(){
+  const room = state.room;
+  room.extraTurn = false;
+  advanceTurn(room);
+  await saveAndRender();
+}
+
+/* ---------- MODRÁ: SPRÁVNÁ ODPOVĚĎ ---------- */
+/* Správná odpověď se do databáze posílá až při vyhodnocení.
+   Do té doby je jen v zařízení hráče na tahu — uložená i v localStorage,
+   aby se neztratila, když si stránku obnoví. */
+const SECRET_KEY = 'flou_secret_correct';
+function rememberSecret(code, idx){
+  state.secretCorrect = idx;
+  try{ localStorage.setItem(SECRET_KEY, JSON.stringify({code, idx})); }catch(e){}
+}
+function recallSecret(code){
+  if(state.secretCorrect!==null && state.secretCorrect!==undefined) return state.secretCorrect;
+  try{
+    const v = JSON.parse(localStorage.getItem(SECRET_KEY)||'null');
+    if(v && v.code===code) return v.idx;
+  }catch(e){}
+  return null;
+}
+function forgetSecret(){
+  state.secretCorrect = null;
+  try{ localStorage.removeItem(SECRET_KEY); }catch(e){}
 }
 
 /* ============ BOOTSTRAP ============ */

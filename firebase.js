@@ -95,24 +95,19 @@ const FlowNet = (function(){
     await db.ref('rooms/'+code+'/players/'+myUid).set(player);
   }
 
-  /* Ověří existenci místnosti a zapíše hráče v JEDNOM síťovém kole.
-     Transakce nad větví players/: pokud místnost neexistuje, zápis se zruší. */
+  /* Ověří existenci místnosti a zapíše hráče.
+     Pravidla databáze dovolí zapsat hráče jen do EXISTUJÍCÍ místnosti,
+     takže překlep v kódu skončí odmítnutím a nevznikne osiřelá větev. */
   async function joinRoomFast(code, player){
     await ready();
     const roomRef = db.ref('rooms/'+code);
+    const snap = await roomRef.child('phase').once('value');
+    if(!snap.exists()) return { ok:false, uid:myUid };
     const res = await roomRef.child('players/'+myUid).transaction(current=>{
       if(current) return current;   // už tam jsem (reconnect) -> neměnit
       return player;
     });
     if(!res.committed) return { ok:false, uid:myUid };
-    // Ověření, že místnost opravdu existuje (ne jen osiřelá větev players).
-    const snap = await roomRef.child('phase').once('value');
-    if(!snap.exists()){
-      // Neexistující kód: smažeme celou osiřelou větev, ať v databázi
-      // nezůstávají prázdné místnosti po překlepech v kódu.
-      await roomRef.remove().catch(()=>{});
-      return { ok:false, uid:myUid };
-    }
     return { ok:true, uid:myUid, phase: snap.val() };
   }
 
@@ -157,8 +152,16 @@ const FlowNet = (function(){
     db.ref('rooms/'+code+'/players/'+myUid+'/online').onDisconnect().set(false);
   }
 
+  /* Hráč odchází z místnosti tlačítkem (ne zavřením karty). */
+  async function markOffline(code){
+    await ready();
+    const ref = db.ref('rooms/'+code+'/players/'+myUid+'/online');
+    await ref.onDisconnect().cancel();
+    await ref.set(false);
+  }
+
   return {
-    ready, uidOrNull, available,
+    ready, uidOrNull, available, markOffline,
     createRoom, roomExists, getRoom, joinRoom, joinRoomFast,
     updateRoom, listenToRoom, stopListening, setupDisconnect
   };
