@@ -96,6 +96,8 @@ function advanceTurn(room){
   room.votes = {};
   room.awardColors = {};
   room.tips = {};              // tipy předem u modré (online)
+  room.blueAuthor = null;      // modrá: kdo píše odpovědi
+  room.blueBeneficiary = null; // modrá: kdo dostane modrou kartu
   room.composeProgress = null; // průběh psaní odpovědí u modré (online)
 
   // Karta šance „Jedeš ještě jednou" — stejný hráč hraje znovu.
@@ -134,6 +136,27 @@ function turnOrder(room){
     order.push(room.players[idx].id);
   }
   return order;
+}
+
+/* Pořadí hráčů ve směru hry, začíná zadaným hráčem. */
+function orderFrom(room, startId){
+  const n = room.players.length;
+  const start = Math.max(0, room.players.findIndex(p=>p.id===startId));
+  const order = [];
+  for(let k=0;k<n;k++){
+    const idx = ((start + k*room.direction) % n + n) % n;
+    order.push(room.players[idx].id);
+  }
+  return order;
+}
+
+/* Modrá karta — role: autor píše odpovědi (normálně hráč na tahu, u karty šance
+   „odpovídá hráč po pravici" soused), příjemce dostane modrou kartu (hráč na tahu). */
+function blueAuthor(room){
+  return (room.blueAuthor && room.players.find(p=>p.id===room.blueAuthor)) || activePlayer(room);
+}
+function blueBeneficiary(room){
+  return (room.blueBeneficiary && room.players.find(p=>p.id===room.blueBeneficiary)) || activePlayer(room);
 }
 
 /* Kolečko odpovědí: všichni odpovídají postupně, začíná hráč na tahu. */

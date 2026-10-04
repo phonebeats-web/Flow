@@ -307,6 +307,8 @@ function startQuestion(room, color){
     room.blueTurn = null;
     room.tips = {};
     room.composeProgress = null;
+    room.blueAuthor = activePlayer(room).id;       // normálně píše hráč na tahu…
+    room.blueBeneficiary = activePlayer(room).id;  // …a modrou kartu dostane on
     state.lastProgressKey = null;
     state.blueCompose = freshBlueCompose();
     room.phase='blue-compose';
@@ -398,7 +400,8 @@ async function blueSubmit(options, correct){
     // Jedno zařízení: správná odpověď je v herním stavu (nikde se nezobrazí
     // až do vyhodnocení), hádají postupně ostatní ve směru hry.
     room.currentCard = Object.assign({}, room.currentCard, {options, correct});
-    const order = turnOrder(room).slice(1);
+    // hádají všichni kromě autora, ve směru hry od autora
+    const order = orderFrom(room, blueAuthor(room).id).slice(1);
     room.blueTurn = { order, current: order[0] || null };
   } else {
     // Online: správná odpověď zůstává jen v zařízení hráče na tahu.
@@ -427,15 +430,30 @@ async function blueLocalVote(optionIndex){
 /* Vyhodnocení modré: půlkarty pro ty, kdo uhodli, celá modrá pro hráče na tahu. */
 async function blueFinish(){
   const room = state.room;
-  const ap = activePlayer(room);
+  const author = blueAuthor(room);
+  const winnerOfCard = blueBeneficiary(room);
   const card = room.currentCard;
   const colors = room.awardColors || {};
   room.players.forEach(p=>{
-    if(p.id!==ap.id && room.votes[p.id]===card.correct && colors[p.id]) addHalf(p, colors[p.id]);
+    if(p.id!==author.id && room.votes[p.id]===card.correct && colors[p.id]) addHalf(p, colors[p.id]);
   });
-  addFull(ap, 'blue');
-  if(!resolveWin(room, ap)) advanceTurn(room);
+  addFull(winnerOfCard, 'blue');
+  if(!resolveWin(room, winnerOfCard)) advanceTurn(room);
   await saveAndRender();
+}
+
+/* Autor modré odpovědi nenapíše -> ztrácí modrou kartu (má-li ji), tah končí. */
+async function blueDecline(){
+  const room = state.room;
+  loseColor(blueAuthor(room), 'blue');
+  state.blueCompose = freshBlueCompose();
+  advanceTurn(room);
+  await saveAndRender();
+}
+
+/* Je toto zařízení autorem modré? (na jednom zařízení vždy ano) */
+function isBlueAuthorHere(room){
+  return Store.mode==='local' || blueAuthor(room).id===state.myPlayerId;
 }
 
 /* ---------- HOST: PŘESKOČENÍ HRÁČE, KTERÝ ODEŠEL ---------- */

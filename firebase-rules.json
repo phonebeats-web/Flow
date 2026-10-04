@@ -34,7 +34,7 @@
         "createdAt": { ".validate": "newData.isNumber()" },
 
         "phase": {
-          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())",
+          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val() || auth.uid == data.parent().child('blueAuthor').val())",
           ".validate": "newData.isString() && newData.val().matches(/^(lobby|idle|rolled-question|guessing|chance|everyone-red|right-neighbor|blue-compose|blue-guessing|blue-reveal|answer-round|finished)$/)"
         },
         "turnIndex":       { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isNumber() && newData.val() >= 0" },
@@ -44,7 +44,9 @@
         "lastRoll":        { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
         "pendingColor":    { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
         "extraTurn":       { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isBoolean()" },
-        "currentCard":     { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
+        "currentCard":     { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val() || auth.uid == data.parent().child('blueAuthor').val())" },
+        "blueAuthor":      { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isString()" },
+        "blueBeneficiary": { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isString()" },
         "decks":           { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
         "winnerId":        { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
         "finalDone":       { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isBoolean()" },
@@ -70,7 +72,7 @@
         },
 
         "composeProgress": {
-          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())"
+          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val() || auth.uid == data.parent().child('blueAuthor').val())"
         },
 
         "awardColors": {

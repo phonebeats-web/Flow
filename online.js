@@ -49,6 +49,8 @@ function normalizeRoom(raw){
   room.finalDone = !!raw.finalDone;         // vítěz už položil závěrečnou otázku
   room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
   room.tips = raw.tips || {};               // playerId -> tip předem (modrá)
+  room.blueAuthor = raw.blueAuthor || null;
+  room.blueBeneficiary = raw.blueBeneficiary || null;
   room.composeProgress = raw.composeProgress || null; // {filled, step} — průběh psaní
   room.awardColors = raw.awardColors || {}; // playerId -> barva půlkarty
   return room;
@@ -87,6 +89,8 @@ function roomToFirebase(room){
     awardColors: room.awardColors || {},
     tips: room.tips || {},
     composeProgress: room.composeProgress || null,
+    blueAuthor: room.blueAuthor || null,
+    blueBeneficiary: room.blueBeneficiary || null,
     finalDone: !!room.finalDone,
     createdAt: room.createdAt || Date.now()
   };
@@ -171,8 +175,9 @@ const Online = {
       // Vlastní zápis se vrací jako stejný stav, jaký už je vykreslený —
       // pak není potřeba překreslovat (méně práce, žádné poblikávání).
       const same = state.room && prevScreen===state.screen && stableStr(room)===stableStr(state.room);
-      state.room = room;
-      if(!same) render();
+      // Stejný stav: ponecháme stávající objekt — tlačítka na obrazovce s ním pracují.
+      // (Kdyby se vyměnil bez překreslení, kliknutí by měnilo starou kopii a nic by se neodeslalo.)
+      if(!same){ state.room = room; render(); }
     });
   },
 
@@ -204,6 +209,8 @@ const Online = {
       'awardColors': room.awardColors || {},
       'tips': room.tips || {},
       'composeProgress': room.composeProgress || null,
+      'blueAuthor': room.blueAuthor || null,
+      'blueBeneficiary': room.blueBeneficiary || null,
       'finalDone': !!room.finalDone
     };
     room.players.forEach(p=>{

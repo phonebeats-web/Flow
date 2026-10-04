@@ -117,6 +117,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   „Změň barvu" → vybereš barvu otázky;
   „Odpovídá hráč po pravici" → odpovídá na otázku padlé barvy; když odpoví,
   kartu získává hráč, který kartu šance vytáhl; když ne, soused kartu ztrácí;
+  u modré otázky proběhne celé kolo modré: soused napíše 3 odpovědi, hádají ostatní
+  (i hráč na tahu), půlkarty za uhodnutí, modrou kartu dostane hráč na tahu;
   „Teď nehraješ" → tah končí bez otázky;
   „Všichni odpovídají na červenou" → kolečko místo otázky z hodu;
   „Jednu svou kartu můžeš vyměnit za kartu jiné barvy, pokud chceš" →

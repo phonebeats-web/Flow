@@ -1231,6 +1231,15 @@ function renderChancePhase(s, room, mine){
     s.appendChild(button(t('continue'),'btn-primary', ()=>{
       const nb = rightNeighbor(room);
       const c = room.pendingColor || pickDieColor();
+      if(c==='blue'){
+        // modrá: soused napíše 3 odpovědi, ostatní hádají, modrou kartu dostane hráč na tahu
+        startQuestion(room, 'blue');
+        room.blueAuthor = nb.id;
+        room.blueBeneficiary = ap.id;
+        room.currentCard = Object.assign({}, room.currentCard, {forId:nb.id});
+        saveAndRender();
+        return;
+      }
       room.currentCard = {type:'question', color:c, idx:drawIndex(room, c), forId:nb.id};
       room.pendingColor = null;
       room.phase='right-neighbor';
@@ -1381,12 +1390,23 @@ function renderRightNeighbor(s, room, mine){
 function renderBlueCompose(s, room, mine){
   const card = room.currentCard;
   const ap = activePlayer(room);
+  const author = blueAuthor(room);
+  const viaNeighbor = author.id !== ap.id;   // karta šance „odpovídá hráč po pravici"
+  if(viaNeighbor) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(author.name))));
   s.appendChild(cardEl(card));
-  s.appendChild(gap(20));
+  s.appendChild(gap(viaNeighbor ? 14 : 20));
+  if(viaNeighbor){
+    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(author.name), b(ap.name), colorAcc('blue'))));
+    s.appendChild(gap(14));
+  }
 
-  if(!mine){
-    if(Store.mode==='online') renderBlueWaiting(s, room, ap);
-    else s.appendChild(el('div',{class:'center-col'}, waiting(...tn('blue_composing', ap.name))));
+  if(!isBlueAuthorHere(room)){
+    renderBlueWaiting(s, room, author);
+    // hráč na tahu může zaznamenat, že soused odpovědi napsat nechce
+    if(viaNeighbor && mine){
+      s.appendChild(gap(14));
+      s.appendChild(button(t('rn_not_answered', author.name),'btn-glass', ()=>{ blueDecline(); }));
+    }
     return;
   }
 
@@ -1397,7 +1417,7 @@ function renderBlueCompose(s, room, mine){
   if(bc.step!==2){
     s.appendChild(el('div',{class:'banner-info glass'},
       b(t('blue_intro_head')+' '),
-      local ? tn('blue_intro_local', b(ap.name)) : null,
+      local ? tn('blue_intro_local', b(author.name)) : null,
       el('span',{class:'blue-intro-more'}, ' '+t('blue_intro'))
     ));
     s.appendChild(gap(14));
@@ -1431,12 +1451,8 @@ function renderBlueCompose(s, room, mine){
     refreshDup();
     s.appendChild(el('div',{class:'stack stack-tight'},
       nextBtn,
-      button(t('not_answered_loses'),'btn-glass', ()=>{
-        loseColor(ap, 'blue');
-        state.blueCompose = freshBlueCompose();
-        advanceTurn(room);
-        saveAndRender();
-      })
+      // odmítnutí: na jednom zařízení vždy, online jen hráč na tahu (posouvá tah)
+      (local || !viaNeighbor) ? button(viaNeighbor ? t('rn_not_answered', author.name) : t('not_answered_loses'),'btn-glass', ()=>{ blueDecline(); }) : null
     ));
     return;
   }
@@ -1554,10 +1570,11 @@ function tipMatches(tip, truth){
    Online: hádají všichni najednou na svých zařízeních. */
 function renderBlueGuessing(s, room, mine){
   const card = room.currentCard;
-  const ap = activePlayer(room);
+  const ap = blueAuthor(room);          // vyhodnocuje autor odpovědí
   s.appendChild(cardEl(card));
   s.appendChild(gap(20));
   if(Store.mode==='local'){ renderBlueGuessingLocal(s, room, ap, card); return; }
+  mine = isBlueAuthorHere(room);
 
   const others = room.players.filter(p=>p.id!==ap.id);
   const votes = room.votes || {};
@@ -1658,7 +1675,8 @@ function renderBlueGuessingLocal(s, room, ap, card){
 function renderBlueReveal(s, room, mine){
   const card = room.currentCard;
   const ap = activePlayer(room);
-  const others = room.players.filter(p=>p.id!==ap.id);
+  const author = blueAuthor(room);
+  const others = room.players.filter(p=>p.id!==author.id);
   const votes = room.votes || {};
   const colors = room.awardColors || {};
   const winners = others.filter(p=> votes[p.id]===card.correct);
@@ -1723,7 +1741,7 @@ function renderBlueReveal(s, room, mine){
   if(!winners.length){
     s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:8px'}, t('nobody_guessed')));
   }
-  s.appendChild(button(t('blue_continue', ap.name),'btn-primary', ()=>{ blueFinish(); }, pending.length>0));
+  s.appendChild(button(t('blue_continue', blueBeneficiary(room).name),'btn-primary', ()=>{ blueFinish(); }, pending.length>0));
 }
 
 /* ---------- KONEC HRY ---------- */
