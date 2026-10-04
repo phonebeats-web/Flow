@@ -106,6 +106,7 @@ async function undoStep(){
 
 /* ============ LOCAL MODE ============ */
 function startLocalGame(names){
+  names = names.slice(0, MAX_PLAYERS);
   const players = names.map(n=>newPlayer(uid(4), n));
   Store.mode='local';
   Store.roomCode=null;
@@ -214,7 +215,7 @@ async function playerJoinRoom(code, name){
   try{
     const res = await Online.joinRoom(code, name);
     if(!res.ok){
-      uiAlert(t(res.reason==='name-taken' ? 'err_name_taken' : 'err_notfound'));
+      uiAlert(t(res.reason==='name-taken' ? 'err_name_taken' : res.reason==='room-full' ? 'err_room_full' : 'err_notfound', MAX_PLAYERS));
       state.screen='joinRoom';
     }
   }catch(e){

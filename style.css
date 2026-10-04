@@ -477,6 +477,62 @@ button{touch-action:manipulation;}
   .pill-aa .aa-big{font-size:16px;}
 }
 
+
+.max-note{margin-top:4px;font-weight:600;}
+
+/* ---------- Panel nastavení (jazyk, zvuky, velikost písma) ---------- */
+.settings-btn svg{width:22px;height:22px;}
+.settings-hero{
+  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;
+  width:44px;height:44px;
+  background:var(--g-sheen), rgba(255,255,255,.72) !important;
+  box-shadow:inset 0 1.5px 0 #fff, 0 6px 18px rgba(24,40,72,.18), 0 0 0 .5px rgba(24,40,72,.06) !important;
+}
+.set-pop{
+  position:fixed;z-index:90;right:12px;width:min(330px, calc(100vw - 24px));
+  border-radius:28px;padding:16px 16px 14px;
+  background:var(--g-sheen), rgba(255,255,255,.88) !important;
+  box-shadow:inset 0 1.5px 0 #fff, 0 22px 54px rgba(24,40,72,.26), 0 2px 8px rgba(24,40,72,.10) !important;
+  transform-origin:top right;animation:ts-in .22s cubic-bezier(.2,1.2,.4,1) both;
+}
+.set-pop.closing{animation:ts-out .16s ease both;}
+.set-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;color:var(--navy);margin:0 2px 10px;}
+.set-sec{
+  background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.85);border-radius:18px;
+  padding:11px 12px;margin-bottom:10px;
+}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.set-label{font-size:14px;font-weight:600;color:var(--navy);}
+.set-sec > .set-label{margin-bottom:8px;}
+.set-row > .set-label{margin:0;}
+.set-label-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;}
+/* segment Čeština / English */
+.seg{display:flex;gap:4px;padding:3px;border-radius:14px;background:rgba(24,40,72,.07);}
+.seg-btn{
+  flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:36px;border:0;border-radius:11px;cursor:pointer;background:transparent;
+  font-size:14px;font-weight:600;color:var(--navy-soft);
+  transition:background-color .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.seg-btn.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(24,40,72,.14);}
+.seg-flag{display:inline-flex;}
+.seg-flag svg{width:20px;height:14px;border-radius:3px;box-shadow:0 0 0 1px rgba(24,40,72,.15);display:block;}
+/* přepínač jako v iOS */
+.ios-switch{
+  position:relative;flex-shrink:0;width:51px;height:31px;border-radius:999px;border:0;cursor:pointer;padding:0;
+  background:rgba(24,40,72,.18);transition:background-color .22s ease;
+}
+.ios-switch.on{background:#34C759;}
+.ios-knob{
+  position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.04);
+  transition:transform .24s cubic-bezier(.3,1.3,.5,1);
+}
+.ios-switch.on .ios-knob{transform:translateX(20px);}
+.set-pop .btn{margin-top:2px;}
+/* písmena A u posuvníku přesně na střed */
+.ts-a{display:inline-flex;align-items:center;justify-content:center;padding:0;}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;

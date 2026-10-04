@@ -335,21 +335,6 @@ function langSwitch(extraCls=''){
    Informace o tahu je přímo v liště, takže ji nic nepřekrývá. */
 const ICON_CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12 15 19.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
-const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.8 9.6l4.8 4.8M20.6 9.6l-4.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-/* Tlačítko zvuku (piktogram reproduktoru) — vypnutí platí pro toto zařízení. */
-function soundBtn(){
-  const on = Sound.isEnabled();
-  const label = t(on ? 'sound_mute' : 'sound_unmute');
-  return el('button',{class:'pill-sound bar-sound'+(on?'':' off'), 'aria-label':label, title:label,
-    'aria-pressed': on ? 'false' : 'true', html: on ? ICON_SOUND_ON : ICON_SOUND_OFF,
-    onclick:()=>{
-      Sound.setEnabled(!Sound.isEnabled());
-      render();
-      if(Sound.isEnabled()) Sound.click();
-    }});
-}
-
 /* ---------- VELIKOST PÍSMA (jako „Velikost textu" v iOS) ----------
    Pět stupňů; mění se jen písmo (CSS proměnná --fs), rozložení hry zůstává.
    Volba se pamatuje pro dané zařízení. */
@@ -373,66 +358,84 @@ function setTextSize(i){
   scheduleScrollHint();
 }
 
-let tsClose = null;
-function openTextSize(anchor){
-  if(tsClose){ tsClose(); return; }
+
+/* ---------- NASTAVENÍ (jedno tlačítko, panel jako v iOS) ----------
+   Jazyk, zvuky a velikost písma jsou v jednom skleněném panelu, aby
+   lišta zůstala čistá. Panel je mimo #app — překreslení hry ho nezavře. */
+const ICON_SETTINGS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h8.6M17.4 7H20M4 17h2.6M11.4 17H20"/></g><circle cx="15" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+let setClose = null;
+function openSettings(anchor){
+  if(setClose){ setClose(); return; }
   const prevFocus = document.activeElement;
-  const range = el('input',{type:'range', class:'ts-range', min:'0', max:String(TEXT_SIZES.length-1), step:'1',
-    value:String(textSizeIdx), 'aria-label':t('text_size'),
-    oninput:(e)=>{ setTextSize(parseInt(e.target.value,10)); upd(); }});
-  const ticks = el('div',{class:'ts-ticks','aria-hidden':'true'}, ...TEXT_SIZES.map(()=>el('span',{})));
-  const pct = el('span',{class:'ts-pct'});
-  const upd = ()=>{
-    range.value = String(textSizeIdx);
-    range.style.setProperty('--p', (textSizeIdx/(TEXT_SIZES.length-1)*100)+'%');
-    pct.textContent = Math.round(TEXT_SIZES[textSizeIdx]*100)+' %';
+  const pop = el('div',{class:'set-pop glass', role:'dialog'});
+  let pctEl = null, rangeEl = null;
+  const updSize = ()=>{
+    if(!rangeEl) return;
+    rangeEl.value = String(textSizeIdx);
+    rangeEl.style.setProperty('--p', (textSizeIdx/(TEXT_SIZES.length-1)*100)+'%');
+    pctEl.textContent = Math.round(TEXT_SIZES[textSizeIdx]*100)+' %';
   };
-  const pop = el('div',{class:'ts-pop glass', role:'dialog', 'aria-label':t('text_size')},
-    el('div',{class:'ts-head'}, el('span',{class:'ts-title'}, t('text_size')), pct),
-    el('div',{class:'ts-row'},
-      el('button',{class:'ts-a ts-small', 'aria-label':t('text_smaller'), onclick:()=>{ setTextSize(textSizeIdx-1); upd(); }}, 'A'),
-      el('div',{class:'ts-track'}, ticks, range),
-      el('button',{class:'ts-a ts-large', 'aria-label':t('text_larger'), onclick:()=>{ setTextSize(textSizeIdx+1); upd(); }}, 'A')
-    ),
-    el('div',{class:'ts-preview'}, t('text_size_hint')),
-    button(t('done'),'btn-glass btn-sm', ()=>close())
-  );
-  // průhledná vrstva: klepnutí mimo panel ho zavře
+  // obsah se po změně jazyka / zvuku sestaví znovu (kvůli textům)
+  const fill = ()=>{
+    pop.setAttribute('aria-label', t('settings'));
+    const on = Sound.isEnabled();
+    rangeEl = el('input',{type:'range', class:'ts-range', min:'0', max:String(TEXT_SIZES.length-1), step:'1',
+      value:String(textSizeIdx), 'aria-label':t('text_size'),
+      oninput:(e)=>{ setTextSize(parseInt(e.target.value,10)); updSize(); }});
+    pctEl = el('span',{class:'ts-pct'});
+    pop.replaceChildren(
+      el('div',{class:'set-title'}, t('settings')),
+      el('div',{class:'set-sec'},
+        el('div',{class:'set-label'}, t('lang_label')),
+        el('div',{class:'seg', role:'group', 'aria-label':t('lang_label')},
+          ...['cs','en'].map(l=>el('button',{class:'seg-btn'+(LANG===l?' active':''), 'aria-pressed':LANG===l?'true':'false',
+            onclick:()=>{ if(LANG!==l){ setLang(l); render(); fill(); } }},
+            el('span',{class:'seg-flag', html:FLAG_SVG[l]}), l==='cs' ? 'Čeština' : 'English'))
+        )
+      ),
+      el('div',{class:'set-sec set-row'},
+        el('div',{class:'set-label', id:'set-sound-l'}, t('sound_title')),
+        el('button',{class:'ios-switch bar-sound'+(on?' on':''), role:'switch', 'aria-checked':on?'true':'false', 'aria-labelledby':'set-sound-l',
+          onclick:()=>{ Sound.setEnabled(!Sound.isEnabled()); if(Sound.isEnabled()) Sound.click(); fill(); }},
+          el('span',{class:'ios-knob'}))
+      ),
+      el('div',{class:'set-sec'},
+        el('div',{class:'set-label-row'}, el('span',{class:'set-label'}, t('text_size')), pctEl),
+        el('div',{class:'ts-row'},
+          el('button',{class:'ts-a ts-small', 'aria-label':t('text_smaller'), onclick:()=>{ setTextSize(textSizeIdx-1); updSize(); }}, 'A'),
+          el('div',{class:'ts-track'}, el('div',{class:'ts-ticks','aria-hidden':'true'}, ...TEXT_SIZES.map(()=>el('span',{}))), rangeEl),
+          el('button',{class:'ts-a ts-large', 'aria-label':t('text_larger'), onclick:()=>{ setTextSize(textSizeIdx+1); updSize(); }}, 'A')
+        )
+      ),
+      button(t('done'),'btn-glass btn-sm', ()=>close())
+    );
+    updSize();
+  };
   const catcher = el('div',{class:'ts-catcher', onclick:()=>close()});
   const onKey = (e)=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } };
   const close = ()=>{
-    if(!tsClose) return;
-    tsClose = null;
+    if(!setClose) return;
+    setClose = null;
     document.removeEventListener('keydown', onKey, true);
     pop.classList.add('closing');
     setTimeout(()=>{ pop.remove(); catcher.remove(); }, 160);
     if(prevFocus && prevFocus.focus && document.body.contains(prevFocus)){ try{ prevFocus.focus({preventScroll:true}); }catch(e){} }
   };
-  // umístění pod tlačítkem Aa (zarovnané k pravému okraji)
   const r = anchor.getBoundingClientRect();
   pop.style.top = Math.round(r.bottom + 10)+'px';
-  upd();
+  fill();
   document.body.appendChild(catcher);
   document.body.appendChild(pop);
   document.addEventListener('keydown', onKey, true);
-  tsClose = close;
-  setTimeout(()=>{ try{ range.focus({preventScroll:true}); }catch(e){} }, 30);
+  setClose = close;
+  setTimeout(()=>{ const f = pop.querySelector('.seg-btn.active'); try{ f && f.focus({preventScroll:true}); }catch(e){} }, 30);
 }
-function textSizeBtn(){
-  return el('button',{class:'pill-aa', 'aria-label':t('text_size'), title:t('text_size'),
-    onclick:(e)=>openTextSize(e.currentTarget.closest('.settings-pill') || e.currentTarget)},
-    el('span',{class:'aa-small'},'A'), el('span',{class:'aa-big'},'A'));
+function settingsBtn(extraCls=''){
+  const b = circleBtn(ICON_SETTINGS, t('settings'), (e)=>openSettings(e.currentTarget), 'settings-btn '+extraCls);
+  b.setAttribute('aria-haspopup','dialog');
+  return b;
 }
 
-/* Skleněná bublina „nastavení": velikost písma | zvuk | čeština / angličtina */
-function settingsPill(extraCls=''){
-  return el('div',{class:'settings-pill glass '+extraCls},
-    textSizeBtn(),
-    soundBtn(),
-    el('span',{class:'pill-divider','aria-hidden':'true'}),
-    langSwitch('in-pill')
-  );
-}
 function circleBtn(iconSvg, label, onClick, cls=''){
   return el('button',{class:'glass-circle glass '+cls, onclick:onClick, 'aria-label':label, title:label, html:iconSvg});
 }
@@ -466,7 +469,7 @@ function topBar(){
   return el('div',{class:'topbar'},
     el('div',{class:'bar-side bar-left'}, left),
     el('div',{class:'bar-center'}, title || miniLogo()),
-    el('div',{class:'bar-side bar-right'}, settingsPill(), ...right)
+    el('div',{class:'bar-side bar-right'}, settingsBtn(), ...right)
   );
 }
 
@@ -542,7 +545,7 @@ function homeHero(){
     <path d="M1,16 C20,4 42,22 63,12 L63,1 L1,1 Z" fill="#FFFFFF" opacity=".93"/>
   </svg>`;
   return el('div',{class:'hero'},
-    settingsPill('settings-hero'),
+    settingsBtn('settings-hero'),
     htmlToNode(`<div class="hero-band">${sunset}</div>`),
     htmlToNode(`<div class="hero-middle">
         ${miniCard('var(--red)', -10)}
@@ -625,7 +628,11 @@ function renderSetupLocal(s){
   s.appendChild(list);
   s.appendChild(warn);
   s.appendChild(gap(10));
-  s.appendChild(button(t('setup_add'),'btn-ghost',()=>{state.setupNames.push(''); render();}));
+  if(state.setupNames.length < MAX_PLAYERS){
+    s.appendChild(button(t('setup_add'),'btn-ghost',()=>{ if(state.setupNames.length < MAX_PLAYERS){ state.setupNames.push(''); render(); } }));
+  } else {
+    s.appendChild(el('div',{class:'subtitle center-text max-note'}, t('setup_max', MAX_PLAYERS)));
+  }
   s.appendChild(el('div',{class:'spacer'}));
   const startBtn = button(t('setup_start'),'btn-primary',()=>{
     const names = state.setupNames.map(n=>n.trim()).filter(Boolean);
@@ -741,7 +748,7 @@ function renderLobby(s){
   s.appendChild(el('div',{class:'code-display glass'}, room.code));
   s.appendChild(shareRow(room.code));
   s.appendChild(gap(18));
-  s.appendChild(el('div',{class:'title-md'}, t('lobby_players', n)));
+  s.appendChild(el('div',{class:'title-md'}, t('lobby_players', n+' / '+MAX_PLAYERS)));
   s.appendChild(gap(8));
   const list = el('div',{class:'stack stack-tight'});
   room.players.forEach(p=>{

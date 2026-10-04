@@ -5,6 +5,9 @@
    Pravidla: hod 2× kostkou, červená/modrá/žlutá otázka, karty šance.
    ============================================================ */
 
+/* Nejvyšší počet hráčů ve hře (jedno zařízení i online). */
+const MAX_PLAYERS = 8;
+
 function uid(n=6){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let s='';for(let i=0;i<n;i++)s+=chars[Math.floor(Math.random()*chars.length)];

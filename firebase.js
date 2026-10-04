@@ -112,6 +112,10 @@ const FlowNet = (function(){
     if(!snap.exists()) return { ok:false, uid:myUid };
     // Stejné jméno jako jiný hráč v místnosti? (návrat téhož hráče je v pořádku)
     const others = playersSnap.val() || {};
+    // Plná místnost (max. 8 hráčů) — kdo už v místnosti je, se vrátit může.
+    if(!others[myUid] && Object.keys(others).length >= (typeof MAX_PLAYERS==='number' ? MAX_PLAYERS : 8)){
+      return { ok:false, uid:myUid, reason:'room-full' };
+    }
     if(isNameTaken && Object.keys(others).some(id=> id!==myUid && others[id] && isNameTaken(others[id].name, player.name))){
       return { ok:false, uid:myUid, reason:'name-taken' };
     }

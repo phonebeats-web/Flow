@@ -23,7 +23,7 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 ## Ovládání a zobrazení
 
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
-  kdo je na tahu, vpravo jazyk (vlajky) a křížek pro ukončení hry.
+  kdo je na tahu, vpravo tlačítko Nastavení (jazyk, zvuky, velikost písma) a křížek.
 - Skóre všech hráčů je v mřížce, která se zalamuje — na mobilu se nemusí
   posouvat do strany. Plný slot = celá karta, poloviční slot = půlkarta;
   půlkarta je vidět i nad dvěma celými kartami (např. 2 celé + ½).
@@ -39,7 +39,7 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   tlačítek, přiletění karty k hráči a vítězná fanfára na konci hry.
 - Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
   Jsou záměrně měkké: teplý filtr bez ostrých výšek, jemný dozvuk místnosti, pomalejší náběh tónů.
-- Reproduktor ve skleněné bublině vpravo nahoře (vedle vlajek) zvuky vypne/zapne;
+- Přepínač Zvuky v panelu Nastavení (tlačítko s posuvníky vpravo nahoře) zvuky vypne/zapne;
   volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
 - Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
   i přepínač tichého režimu.
@@ -49,7 +49,7 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - Všechna potvrzovací a informační okna jsou vlastní, ve stylu hry (žádná
   systémová okna prohlížeče); zavírají se i klávesou Esc nebo klepnutím vedle.
 
-- Velikost písma (tlačítko „Aa" v bublině vpravo nahoře) — jako „Velikost textu" v iOS:
+- Velikost písma (v panelu Nastavení) — jako „Velikost textu" v iOS:
   posuvník s 5 stupni (90 %, 100 %, 112 %, 125 %, 140 %), změna se projeví hned.
   Mění se jen písmo (CSS proměnná `--fs`), rozložení hry zůstává; volba se pamatuje
   pro dané zařízení. Vstupní pole nikdy nejsou pod 16 px (iPhone by jinak přibližoval).
@@ -68,7 +68,10 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - Nový text přidáš do obou částí slovníku v `i18n.js`; nové otázky na stejné místo
   v `data.js` i `data_en.js`.
 
-## Jména hráčů
+## Jména a počet hráčů
+
+- Hrát může 2–8 hráčů (na jednom zařízení i online); devátý se nepřipojí
+  (hlídá to i pravidlo databáze).
 
 - Jména se nesmí opakovat (porovnává se bez ohledu na velikost písmen, mezery a
   diakritiku): na jednom zařízení se shodná jména zvýrazní a „Začít hru" se zablokuje,
