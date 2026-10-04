@@ -63,6 +63,9 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   Na jednom zařízení pak zařízení koluje — každý hádá zvlášť (předchozí volby
   nevidí) — a vrací se k autorovi, který vyhodnotí. Online hádají všichni najednou.
   Kdo uhodne, bere půl karty barvy dle výběru, autor bere celou modrou.
+  Online, zatímco autor píše, vidí ostatní živý průběh („píše odpovědi 2 ze 3",
+  „vybírá pravdivou") a mohou si předem tipnout, jakou pravdivou odpověď napíše.
+  Tip je jen pro zábavu (bez bodů) — při vyhodnocení se ukáže a trefa se označí.
 - **Žlutá** (názorové otázky) a karta šance **„Všichni odpovídají na červenou"**
   (jediný případ, kdy na červenou odpovídají všichni): kolečko — odpovídají postupně všichni, začíná ten, kdo kartu vytáhl. Kdo
   neodpoví, ztrácí kartu té barvy (má-li ji). Když kolečko dojde zpět k tomu,

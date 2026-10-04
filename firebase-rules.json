@@ -35,7 +35,7 @@
 
         "phase": {
           ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())",
-          ".validate": "newData.isString() && newData.val().matches(/^(lobby|idle|rolled-question|guessing|chance|everyone-red|right-neighbor|blue-compose|blue-guessing|blue-reveal|yellow-round|finished)$/)"
+          ".validate": "newData.isString() && newData.val().matches(/^(lobby|idle|rolled-question|guessing|chance|everyone-red|right-neighbor|blue-compose|blue-guessing|blue-reveal|answer-round|finished)$/)"
         },
         "turnIndex":       { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isNumber() && newData.val() >= 0" },
         "turnPlayerId":    { ".write": "auth != null && (auth.uid == data.val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isString()" },
@@ -49,7 +49,7 @@
         "winnerId":        { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())" },
         "finalDone":       { ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())", ".validate": "newData.isBoolean()" },
 
-        "yellow": {
+        "round": {
           ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val() || auth.uid == data.child('current').val())"
         },
 
@@ -59,6 +59,18 @@
             ".write": "auth != null && auth.uid == $uid",
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2"
           }
+        },
+
+        "tips": {
+          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid && data.parent().parent().child('phase').val() == 'blue-compose'",
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          }
+        },
+
+        "composeProgress": {
+          ".write": "auth != null && (auth.uid == data.parent().child('turnPlayerId').val() || auth.uid == data.parent().child('hostId').val())"
         },
 
         "awardColors": {

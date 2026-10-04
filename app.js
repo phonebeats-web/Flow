@@ -56,7 +56,9 @@ function clearTransientUI(){
    přijaté z databáze (takže jde vrátit i akci jiného hráče). */
 function historyKey(room){
   // Do porovnání nepatří, kdo je zrovna online.
+  // Tipy a průběh psaní nejsou herní tahy — krok zpět je nevrací.
   return stableStr(Object.assign({}, room, {
+    tips: null, composeProgress: null,
     players: room.players.map(p=>({id:p.id, name:p.name, halves:p.halves, full:p.full, skipNext:!!p.skipNext}))
   }));
 }
@@ -110,7 +112,8 @@ function startLocalGame(names){
   const room = {
     code:null, phase:'idle', players, turnIndex:0, direction:1,
     lastRolledColor:null, lastRoll:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false,
-    pendingColor:null, extraTurn:false, round:null, blueTurn:null, votes:{}, awardColors:{}
+    pendingColor:null, extraTurn:false, round:null, blueTurn:null, votes:{}, awardColors:{},
+    tips:{}, composeProgress:null
   };
   state.room = room;
   state.myPlayerId = null; // jedno zařízení: žádné pevné „já", zařízení si hráči podávají
@@ -298,6 +301,9 @@ function startQuestion(room, color){
     room.votes = {};
     room.awardColors = {};
     room.blueTurn = null;
+    room.tips = {};
+    room.composeProgress = null;
+    state.lastProgressKey = null;
     state.blueCompose = freshBlueCompose();
     room.phase='blue-compose';
   } else if(color==='yellow'){
@@ -393,6 +399,7 @@ async function blueSubmit(options, correct){
     // Online: správná odpověď zůstává jen v zařízení hráče na tahu.
     rememberSecret(room.code, correct);
     room.currentCard = Object.assign({}, room.currentCard, {options, correct:null});
+    room.composeProgress = null;   // tipy (room.tips) zůstávají až do vyhodnocení
   }
   state.blueCompose = freshBlueCompose();
   state.handoff = null;

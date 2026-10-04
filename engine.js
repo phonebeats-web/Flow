@@ -92,6 +92,8 @@ function advanceTurn(room){
   room.blueTurn = null;
   room.votes = {};
   room.awardColors = {};
+  room.tips = {};              // tipy předem u modré (online)
+  room.composeProgress = null; // průběh psaní odpovědí u modré (online)
 
   // Karta šance „Jedeš ještě jednou" — stejný hráč hraje znovu.
   if(room.extraTurn){

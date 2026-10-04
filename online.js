@@ -48,6 +48,8 @@ function normalizeRoom(raw){
   } : null;
   room.finalDone = !!raw.finalDone;         // vítěz už položil závěrečnou otázku
   room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
+  room.tips = raw.tips || {};               // playerId -> tip předem (modrá)
+  room.composeProgress = raw.composeProgress || null; // {filled, step} — průběh psaní
   room.awardColors = raw.awardColors || {}; // playerId -> barva půlkarty
   return room;
 }
@@ -83,6 +85,8 @@ function roomToFirebase(room){
     winnerId: room.winnerId,
     votes: room.votes || {},
     awardColors: room.awardColors || {},
+    tips: room.tips || {},
+    composeProgress: room.composeProgress || null,
     finalDone: !!room.finalDone,
     createdAt: room.createdAt || Date.now()
   };
@@ -198,6 +202,8 @@ const Online = {
       'winnerId': room.winnerId,
       'votes': room.votes || {},
       'awardColors': room.awardColors || {},
+      'tips': room.tips || {},
+      'composeProgress': room.composeProgress || null,
       'finalDone': !!room.finalDone
     };
     room.players.forEach(p=>{
@@ -245,6 +251,17 @@ const Online = {
       ['players/'+player.id+'/full']: player.full
     };
     await FlowNet.updateRoom(room.code, changes);
+  },
+
+  /* Tip předem u modré karty — jen vlastní větev. */
+  async pushTip(code, playerId, text){
+    await FlowNet.updateRoom(code, { ['tips/'+playerId]: text || null });
+  },
+
+  /* Průběh psaní odpovědí (kolik je vyplněno, ve kterém je kroku).
+     Posílá se jen při změně, ne při každém písmenku. */
+  async pushProgress(code, progress){
+    await FlowNet.updateRoom(code, { 'composeProgress': progress });
   },
 
   /* Zápis jednoho hlasu — jen vlastní větev, ne celý stav. */

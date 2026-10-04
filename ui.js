@@ -96,17 +96,29 @@ const FLAG_SVG = {
   cs: '<svg viewBox="0 0 6 4" aria-hidden="true"><rect width="6" height="2" fill="#fff"/><rect y="2" width="6" height="2" fill="#D7141A"/><path d="M0,0 L3,2 L0,4 Z" fill="#11457E"/></svg>',
   en: '<svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukc"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#ukc)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></svg>'
 };
+let langSwitchTimer = null;
 function langSwitch(extraCls=''){
-  return el('div',{class:'lang-switch '+extraCls, role:'group', 'aria-label':t('lang_label')},
+  /* Přepínač jako v iOS: obě vlajky v jedné skleněné bublině,
+     aktivní jazyk má pod sebou světlou „kapku", která se při přepnutí posune. */
+  const sw = el('div',{class:'lang-switch glass '+extraCls, role:'group', 'aria-label':t('lang_label'), 'data-active':LANG},
+    el('span',{class:'lang-thumb','aria-hidden':'true'}),
     ...['cs','en'].map(l=>el('button',{
       class:'lang-btn'+(LANG===l?' active':''),
       'aria-pressed': LANG===l ? 'true' : 'false',
       'aria-label': l==='cs' ? 'Čeština' : 'English',
       title: l==='cs' ? 'Čeština' : 'English',
       html: FLAG_SVG[l],
-      onclick:()=>{ if(LANG!==l){ setLang(l); render(); } }
+      onclick:(e)=>{
+        if(sw.getAttribute('data-active')===l) return;
+        // nejdřív se posune kapka, pak se přepne jazyk (platí poslední klepnutí)
+        sw.setAttribute('data-active', l);
+        sw.querySelectorAll('.lang-btn').forEach(btn=>btn.classList.toggle('active', btn===e.currentTarget));
+        clearTimeout(langSwitchTimer);
+        langSwitchTimer = setTimeout(()=>{ if(LANG!==l){ setLang(l); render(); } }, 220);
+      }
     }))
   );
+  return sw;
 }
 
 /* ---------- HORNÍ LIŠTA (jako navigační lišta v iOS) ----------
@@ -147,7 +159,7 @@ function topBar(){
   return el('div',{class:'topbar'},
     el('div',{class:'bar-side bar-left'}, left || el('span',{class:'bar-placeholder'})),
     el('div',{class:'bar-center'}, title || miniLogo()),
-    el('div',{class:'bar-side bar-right'}, langSwitch('glass'), ...right)
+    el('div',{class:'bar-side bar-right'}, langSwitch(), ...right)
   );
 }
 
@@ -989,7 +1001,8 @@ function renderBlueCompose(s, room, mine){
   s.appendChild(gap(20));
 
   if(!mine){
-    s.appendChild(el('div',{class:'center-col'}, waiting(...tn('blue_composing', ap.name))));
+    if(Store.mode==='online') renderBlueWaiting(s, room, ap);
+    else s.appendChild(el('div',{class:'center-col'}, waiting(...tn('blue_composing', ap.name))));
     return;
   }
 
@@ -1009,7 +1022,7 @@ function renderBlueCompose(s, room, mine){
       list.appendChild(el('div',{class:'row'},
         el('span',{class:'opt-num'}, String(i+1)),
         el('input',{class:'card-input', 'data-fk':'blue-'+k, placeholder:t('blue_ph', i+1), value:bc[k], maxlength:'140',
-          oninput:(e)=>{ bc[k]=e.target.value; }})
+          oninput:(e)=>{ bc[k]=e.target.value; sendComposeProgress(room, bc); }})
       ));
     });
     s.appendChild(list);
@@ -1018,6 +1031,7 @@ function renderBlueCompose(s, room, mine){
       button(t('blue_next'),'btn-blue', ()=>{
         if(keys.some(k=>!(bc[k]||'').trim())){ alert(t('blue_fill_all')); return; }
         bc.step = 2;
+        sendComposeProgress(room, bc);
         render();
       }),
       button(t('not_answered_loses'),'btn-glass', ()=>{
@@ -1046,8 +1060,84 @@ function renderBlueCompose(s, room, mine){
     button(local ? t('blue_submit_local') : t('blue_submit_online'),'btn-blue', ()=>{
       blueSubmit(keys.map(k=>bc[k].trim()), bc.correct);
     }, bc.correct===null),
-    button(t('blue_edit'),'btn-ghost', ()=>{ bc.step=1; render(); })
+    button(t('blue_edit'),'btn-ghost', ()=>{ bc.step=1; sendComposeProgress(room, bc); render(); })
   ));
+}
+
+/* ---------- MODRÁ ONLINE: ČEKÁNÍ NA ODPOVĚDI ----------
+   Čekající hráči vidí živý průběh psaní a mezitím si mohou tipnout,
+   jakou pravdivou odpověď hráč na tahu napíše. Tip je jen pro zábavu
+   a ukáže se při vyhodnocení. */
+function sendComposeProgress(room, bc){
+  if(Store.mode!=='online') return;
+  const filled = ['a','b','c'].filter(k=>(bc[k]||'').trim()).length;
+  const prog = {filled, step: bc.step===2 ? 2 : 1};
+  const key = prog.filled+'|'+prog.step;
+  if(state.lastProgressKey===key) return;
+  state.lastProgressKey = key;
+  room.composeProgress = prog;
+  Online.pushProgress(room.code, prog).catch(e=>console.error('progress push', e));
+}
+
+function composeSteps(pr){
+  const filled = pr ? (pr.filled||0) : 0;
+  const marking = !!(pr && pr.step===2);
+  const wrap = el('div',{class:'compose-steps','aria-hidden':'true'});
+  for(let i=0;i<3;i++) wrap.appendChild(el('span',{class:'cstep'+((marking || i<filled)?' on':'')}));
+  wrap.appendChild(el('span',{class:'cstep cstep-true'+(marking?' on':'')}, '✓'));
+  return wrap;
+}
+
+function renderBlueWaiting(s, room, ap){
+  const pr = room.composeProgress;
+  const line = !pr ? tn('progress_start', b(ap.name))
+             : pr.step===2 ? tn('progress_marking', b(ap.name))
+             : (pr.filled ? tn('progress_writing', b(ap.name), pr.filled) : tn('progress_start', b(ap.name)));
+  s.appendChild(el('div',{class:'center-col', style:'gap:10px'}, waiting(...line), composeSteps(pr)));
+  s.appendChild(gap(18));
+
+  // nový tah = prázdné políčko na tip
+  const tipKey = room.turnIndex+':'+(room.currentCard ? room.currentCard.idx : '');
+  if(state.tipFor!==tipKey){ state.tipFor = tipKey; state.tipDraft = ''; state.tipEditing = false; }
+
+  const myTip = (room.tips||{})[state.myPlayerId];
+  const box = el('div',{class:'panel glass tip-panel'},
+    el('div',{class:'panel-title'}, t('tip_title')),
+    el('div',{class:'subtitle', style:'margin-top:2px'}, ...tn('tip_q', b(ap.name)))
+  );
+  if(myTip && !state.tipEditing){
+    box.appendChild(el('div',{class:'tip-saved'}, ...tn('tip_saved', b(myTip))));
+    box.appendChild(button(t('tip_change'),'btn-ghost btn-sm', ()=>{ state.tipEditing=true; state.tipDraft=myTip; render(); }));
+  } else {
+    const save = ()=>{
+      const v = (state.tipDraft||'').trim();
+      if(!v) return;
+      state.tipEditing = false;
+      Online.pushTip(room.code, state.myPlayerId, v.slice(0,80)).catch(e=>console.error('tip push', e));
+    };
+    box.appendChild(el('div',{class:'row', style:'margin-top:12px'},
+      el('input',{class:'card-input', 'data-fk':'tip', placeholder:t('tip_ph'), value:state.tipDraft||'', maxlength:'80',
+        enterkeyhint:'done',
+        oninput:(e)=>{ state.tipDraft=e.target.value; },
+        onkeydown:(e)=>{ if(e.key==='Enter'){ e.preventDefault(); save(); } }}),
+      button(t('tip_save'),'btn-blue btn-sm btn-auto', save)
+    ));
+  }
+  box.appendChild(el('div',{class:'subtitle', style:'margin-top:8px;font-size:13px'}, t('tip_note')));
+  s.appendChild(box);
+}
+
+/* Trefil se tip? Porovnání bez diakritiky, velikosti písmen a interpunkce;
+   stačí, když jedno obsahuje druhé (např. „mango" × „Mango a ananas"). */
+function normTip(x){
+  return String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function tipMatches(tip, truth){
+  const a = normTip(tip), c = normTip(truth);
+  if(!a || !c) return false;
+  if(a===c) return true;
+  return (a.length>=3 && (' '+c+' ').includes(' '+a+' ')) || (c.length>=3 && (' '+a+' ').includes(' '+c+' '));
 }
 
 /* Hádání. Jedno zařízení: zařízení koluje, každý hádá zvlášť.
@@ -1104,6 +1194,8 @@ function renderBlueGuessing(s, room, mine){
     ));
     return;
   }
+  const myTip = (room.tips||{})[state.myPlayerId];
+  if(myTip) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 4px;font-size:13.5px'}, ...tn('tip_reminder', b(myTip))));
   s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:12px'}, t('guess_q')));
   s.appendChild(optionButtons(card.options, i=>{ Online.pushVote(room.code, state.myPlayerId, i); }));
 }
@@ -1161,6 +1253,8 @@ function renderBlueReveal(s, room, mine){
   const colors = room.awardColors || {};
   const winners = others.filter(p=> votes[p.id]===card.correct);
   const local = Store.mode==='local';
+  const tips = room.tips || {};
+  const trueText = (card.options||[])[card.correct] || '';
 
   s.appendChild(el('div',{class:'title-md center-text', style:'margin-bottom:10px'}, t('true_answer')));
   s.appendChild(qcardEl('blue', (card.options||[])[card.correct] || '—'));
@@ -1173,7 +1267,9 @@ function renderBlueReveal(s, room, mine){
     list.appendChild(el('div',{class:'guess-row glass reveal-row'+(ok?' ok':'')},
       el('div',{},
         el('div',{class:'reveal-name'}, p.name),
-        el('div',{class:'reveal-guess'}, guess!==null ? t('guessed_label')+' '+guess : t('no_vote'))
+        el('div',{class:'reveal-guess'}, guess!==null ? t('guessed_label')+' '+guess : t('no_vote')),
+        tips[p.id] ? el('div',{class:'reveal-guess reveal-tip'}, t('tip_label')+' '+tips[p.id],
+          tipMatches(tips[p.id], trueText) ? el('span',{class:'tip-hit'}, t('tip_hit')) : null) : null
       ),
       el('span',{class:'round-status'}, ok ? t('st_correct') : t('st_wrong'))
     ));
@@ -1240,7 +1336,7 @@ function renderFinished(s, room){
     s.appendChild(gap(20));
     s.appendChild(el('div',{class:'stack stack-tight'},
       button(t('final_done'),'btn-primary', ()=>{ room.finalDone = true; saveAndRender(); }),
-      button(t('final_skip'),'btn-ghost', ()=>{ room.finalDone = true; saveAndRender(); })
+      button(t('final_skip'),'btn-glass', ()=>{ room.finalDone = true; saveAndRender(); })
     ));
     return;
   }

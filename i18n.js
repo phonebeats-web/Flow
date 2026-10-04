@@ -101,6 +101,12 @@ cs: {
   trade_skip:'Neměnit — pokračovat', trade_skip_q:'Neměnit — pokračovat na otázku',
 
   blue_composing:'{0} vymýšlí odpovědi',
+  progress_start:'{0} se pouští do psaní odpovědí', progress_writing:'{0} píše odpovědi ({1} ze 3)',
+  progress_marking:'{0} vybírá pravdivou odpověď',
+  tip_title:'Tipni si předem', tip_q:'Jakou pravdivou odpověď asi {0} napíše?', tip_ph:'Tvůj tip…',
+  tip_save:'Uložit tip', tip_saved:'Tvůj tip: {0}', tip_change:'Změnit tip',
+  tip_note:'Jen pro zábavu — tipy se ukážou při vyhodnocení.', tip_label:'tip předem:', tip_hit:'trefa ✓',
+  tip_reminder:'Tvůj tip předem: {0}',
   blue_intro_head:'Modrá karta = hádání.',
   blue_intro_local:'Zařízení drží {0}, ostatní se zatím nedívají.',
   blue_intro:'Napiš tři odpovědi na otázku — jednu pravdivou a dvě vymyšlené. V dalším kroku označíš, která je pravdivá, a ostatní ji pak budou hádat.',
@@ -126,7 +132,7 @@ cs: {
 
   final_right:'{0} získává právo na otázku', final_card:'Zeptej se ostatních na cokoliv.',
   final_note:'Odpovídají všichni. Poslední otázka hry je ta, kterou si vymyslíš sám.',
-  final_thinking:'{0} vymýšlí otázku', final_done:'Máme odpovězeno', final_skip:'Přeskočit',
+  final_thinking:'{0} vymýšlí otázku', final_done:'Máme odpovězeno', final_skip:'Nechci ostatním otázku položit',
   winner:'{0} vyhrává!', winner_sub:'Sesbíral/a 2 celé karty od každé barvy.', new_game:'Nová hra',
 
   solo_kind_red:'Hluboká otázka', solo_kind_blue:'Otázka o tobě', solo_kind_yellow:'Názorová otázka',
@@ -230,6 +236,12 @@ en: {
   trade_skip:'No swap — continue', trade_skip_q:'No swap — continue to the question',
 
   blue_composing:'{0} is writing answers',
+  progress_start:'{0} is getting started on the answers', progress_writing:'{0} is writing answers ({1} of 3)',
+  progress_marking:'{0} is choosing the true answer',
+  tip_title:'Guess in advance', tip_q:'What do you think {0}\'s true answer will be?', tip_ph:'Your guess…',
+  tip_save:'Save guess', tip_saved:'Your guess: {0}', tip_change:'Change guess',
+  tip_note:'Just for fun — the guesses are shown at the reveal.', tip_label:'guessed in advance:', tip_hit:'spot on ✓',
+  tip_reminder:'Your advance guess: {0}',
   blue_intro_head:'Blue card = guessing.',
   blue_intro_local:'{0} is holding the device — no peeking, everyone else.',
   blue_intro:'Write three answers to the question — one true and two made up. In the next step you\'ll mark which one is true, and then the others will try to guess it.',
@@ -255,7 +267,7 @@ en: {
 
   final_right:'{0} earns the right to ask a question', final_card:'Ask the others anything you like.',
   final_note:'Everyone answers. The last question of the game is one you make up yourself.',
-  final_thinking:'{0} is thinking of a question', final_done:'We\'ve answered', final_skip:'Skip',
+  final_thinking:'{0} is thinking of a question', final_done:'We\'ve answered', final_skip:'I don\'t want to ask a question',
   winner:'{0} wins!', winner_sub:'Collected 2 whole cards of each colour.', new_game:'New game',
 
   solo_kind_red:'Deep question', solo_kind_blue:'Question about you', solo_kind_yellow:'Opinion question',
