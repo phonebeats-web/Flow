@@ -27,6 +27,10 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   posouvat do strany. Plný slot = celá karta, poloviční slot = půlkarta;
   půlkarta je vidět i nad dvěma celými kartami (např. 2 celé + ½).
 
+- Obrazovka se přizpůsobí displeji: když se obsah nevejde, hra ho automaticky
+  zhustí (menší karta, mezery, kostky, tlačítka — úrovně `fit-1` a `fit-2`).
+  Šipka „Další možnosti níže" se ukáže jen tam, kde ani to nestačí.
+
 ## Jazyky (čeština / angličtina)
 
 - Jazyk patří **zařízení**, ne hře — přepíná se vlajkou nahoře kdykoli,

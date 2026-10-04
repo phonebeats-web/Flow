@@ -24,12 +24,13 @@ function el(tag, attrs={}, ...children){
 function htmlToNode(html){
   const div=document.createElement('div'); div.innerHTML=html; return div.firstChild;
 }
-function gap(h){ return el('div',{style:'height:'+h+'px'}); }
+function gap(h){ return el('div',{class:'gap', style:'--h:'+h+'px'}); }
 function button(label, cls, onClick, disabled=false){
   return el('button',{class:'btn '+cls, onclick:onClick, disabled: disabled?'disabled':null},label);
 }
 function b(text){ return el('b',{},text); }
 const COLORS = ['red','yellow','blue'];
+function colorBtnCls(c){ return c==='red' ? 'btn-red' : c==='blue' ? 'btn-blue' : c==='yellow' ? 'btn-yellow' : 'btn-primary'; }
 function colorVar(c){
   return c==='red' ? 'var(--red)' : c==='blue' ? 'var(--blue)' : c==='yellow' ? 'var(--yellow)' : c==='chance' ? 'var(--orange)' : 'var(--navy-soft)';
 }
@@ -40,6 +41,7 @@ function waiting(...parts){
 function playerById(room, id){ return room.players.find(p=>p.id===id); }
 
 /* ---------- RENDER ---------- */
+const raf = (typeof requestAnimationFrame==='function') ? requestAnimationFrame : (f=>setTimeout(f,16));
 let lastViewKey = null;
 
 function render(){
@@ -58,7 +60,7 @@ function render(){
 
   const frag = document.createDocumentFragment();
   const isHome = state.screen==='home';
-  if(isHome) frag.appendChild(homeHero());
+  if(isHome){ const hero = homeHero(); if(animate) hero.classList.add('hero-anim'); frag.appendChild(hero); }
   else frag.appendChild(topBar());
 
   const screen = el('div',{class:'screen'+(isHome?' screen-sea':'')+(animate?' anim':'')});
@@ -85,8 +87,43 @@ function render(){
       }
     }
   }
+  fitToScreen();
   scheduleScrollHint();
 }
+
+/* ---------- PŘIZPŮSOBENÍ OBRAZOVCE ----------
+   Když se obsah nevejde na displej, postupně se zhušťuje (menší karta,
+   mezery, kostky, tlačítka) — fit-1, pak fit-2. Většinou se tak vše vejde
+   bez rolování. Když ani to nestačí (např. hodně hráčů a dlouhá otázka),
+   zůstane rolování s šipkou „Další možnosti níže". */
+const FIT_LEVELS = ['fit-1','fit-2'];
+/* Nevejde se? Rozhoduje, kde končí poslední prvek obsahu (ne výška stránky,
+   ta se kvůli zaokrouhlení zlomků pixelu může lišit o 1 px). */
+function overflowsScreen(){
+  const sc = document.querySelector('#app .screen');
+  const last = sc && sc.lastElementChild;
+  if(!last) return false;
+  const pb = parseFloat(getComputedStyle(sc).paddingBottom) || 0;
+  // offsetTop nezávisí na právě běžící animaci (posunu) obrazovky
+  let y = 0, e = last;
+  while(e){ y += e.offsetTop; e = e.offsetParent; }
+  return y + last.offsetHeight + pb > window.innerHeight + 2;
+}
+function fitToScreen(){
+  const app = document.getElementById('app');
+  if(!app || !window.innerHeight) return;
+  app.classList.remove(...FIT_LEVELS);
+  for(const lvl of FIT_LEVELS){
+    if(!overflowsScreen()) break;
+    app.classList.add(lvl);
+  }
+}
+let fitQueued = false;
+window.addEventListener('resize', ()=>{
+  if(fitQueued) return;
+  fitQueued = true;
+  raf(()=>{ fitQueued = false; fitToScreen(); scheduleScrollHint(); });
+}, {passive:true});
 
 /* ---------- PŘEPÍNAČ JAZYKA (vlajky) ---------- */
 /* Jazyk patří zařízení, ne hře: přepnout jde kdykoli, i uprostřed tahu.
@@ -175,7 +212,6 @@ function confirmExitGame(){
 /* Když se obsah nevejde na displej, dole se ukáže šipka,
    že níže jsou další možnosti. Klepnutím se stránka posune. */
 let hintEl = null, hintLabel = null, hintQueued = false;
-const raf = (typeof requestAnimationFrame==='function') ? requestAnimationFrame : (f=>setTimeout(f,16));
 function ensureScrollHint(){
   if(hintEl) return;
   hintLabel = el('span',{});
@@ -199,7 +235,7 @@ function scheduleScrollHint(){
     hintQueued = false;
     const doc = document.documentElement;
     const remaining = doc.scrollHeight - (window.scrollY + window.innerHeight);
-    hintEl.classList.toggle('show', remaining > 56);
+    hintEl.classList.toggle('show', remaining > 24);
   });
 }
 
@@ -241,10 +277,10 @@ function homeHero(){
 
 function renderHome(s){
   s.appendChild(el('div',{class:'stack'},
-    button(t('home_local'),'btn-primary',()=>{state.screen='setupLocal'; state.setupNames=['','']; render();}),
-    button(t('home_create'),'btn-glass',()=>{state.myName=''; state.screen='setupHost'; render();}),
-    button(t('home_join'),'btn-glass',()=>{state.joinCode=''; state.myName=''; state.screen='joinRoom'; render();}),
-    button(t('home_solo'),'btn-glass',()=>{ startSolo(); }),
+    button(t('home_local'),'btn-glass btn-home tone-red',()=>{state.screen='setupLocal'; state.setupNames=['','']; render();}),
+    button(t('home_create'),'btn-glass btn-home tone-yellow',()=>{state.myName=''; state.screen='setupHost'; render();}),
+    button(t('home_join'),'btn-glass btn-home tone-blue',()=>{state.joinCode=''; state.myName=''; state.screen='joinRoom'; render();}),
+    button(t('home_solo'),'btn-glass btn-home tone-orange',()=>{ startSolo(); }),
   ));
 
   const open = !!state.rulesOpen;
@@ -697,7 +733,7 @@ function renderQuestionPhase(s, room, mine){
     s.appendChild(gap(12));
   }
   s.appendChild(el('div',{class:'stack stack-tight'},
-    button(t('answered_gets'),'btn-primary', ()=>{
+    button(t('answered_gets'), colorBtnCls(card.color), ()=>{
       addFull(ap, card.color);
       if(!resolveWin(room, ap)) advanceTurn(room);
       saveAndRender();
@@ -735,7 +771,8 @@ function renderRound(s, room, mine){
   const backToDrawer = started && r.current===ap.id;
 
   // Přehled pořadí: kdo už odpověděl, kdo je na řadě.
-  const list = el('div',{class:'stack stack-tight'});
+  // Při 5 a více hráčích ve dvou sloupcích, ať se vše vejde na displej.
+  const list = el('div',{class:'stack stack-tight'+(r.order.length>=5?' round-grid':'')});
   r.order.forEach((pid,i)=>{
     const p = playerById(room, pid);
     if(!p) return;
@@ -749,7 +786,10 @@ function renderRound(s, room, mine){
       status = t('st_waiting');
     }
     list.appendChild(el('div',{class:'guess-row glass round-row '+cls, style:'--c:'+colorVar(col)},
-      el('span',{}, p.name + (i===0 ? ' '+t('drew_card') : '') + (pid===state.myPlayerId ? ' — '+t('you') : '')),
+      el('span',{}, p.name,
+        i===0 ? el('span',{class:'drew-full'}, ' '+t('drew_card')) : null,
+        i===0 ? el('span',{class:'drew-mark', title:t('drew_card'), 'aria-label':t('drew_card')}, ' ★') : null,
+        pid===state.myPlayerId ? ' — '+t('you') : ''),
       el('span',{class:'round-status'}, status)
     ));
   });
@@ -786,7 +826,7 @@ function renderRound(s, room, mine){
         'btn-glass', ()=>{ roundAnswer(current.id, false); })
     ));
     if(isDrawer){
-      s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:8px'}, t('drawer_skip_note')));
+      s.appendChild(el('div',{class:'subtitle center-text fit-hide', style:'margin-top:8px'}, t('drawer_skip_note')));
     }
   } else {
     s.appendChild(waiting(...tn('answering_wait', b(current.name))));
@@ -979,7 +1019,7 @@ function renderRightNeighbor(s, room, mine){
   s.appendChild(gap(14));
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
-    button(t('rn_answered', ap.name),'btn-primary', ()=>{
+    button(t('rn_answered', ap.name), colorBtnCls(card.color), ()=>{
       addFull(ap, card.color);
       if(!resolveWin(room, ap)) advanceTurn(room);
       saveAndRender();
@@ -1014,7 +1054,7 @@ function renderBlueCompose(s, room, mine){
     s.appendChild(el('div',{class:'banner-info glass'},
       b(t('blue_intro_head')+' '),
       local ? tn('blue_intro_local', b(ap.name)) : null,
-      ' '+t('blue_intro')
+      el('span',{class:'blue-intro-more'}, ' '+t('blue_intro'))
     ));
     s.appendChild(gap(14));
     const list = el('div',{class:'stack stack-tight'});
@@ -1257,7 +1297,9 @@ function renderBlueReveal(s, room, mine){
   const trueText = (card.options||[])[card.correct] || '';
 
   s.appendChild(el('div',{class:'title-md center-text', style:'margin-bottom:10px'}, t('true_answer')));
-  s.appendChild(qcardEl('blue', (card.options||[])[card.correct] || '—'));
+  const answerCard = qcardEl('blue', (card.options||[])[card.correct] || '—');
+  answerCard.classList.add('qcard-answer');
+  s.appendChild(answerCard);
   s.appendChild(gap(16));
 
   const list = el('div',{class:'stack stack-tight'});

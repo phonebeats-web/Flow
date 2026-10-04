@@ -36,7 +36,7 @@ html,body{margin:0;padding:0;}
 body{
   font-family:'Inter',system-ui,-apple-system,sans-serif;
   background:var(--cream);color:var(--navy);
-  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
 /* Barevné pozadí pod sklem: výrazné, ale měkké skvrny + vlny v barvách FLOU.
    Je pevně na místě (position:fixed), takže se při rolování „přelévá" pod sklem. */
@@ -59,7 +59,7 @@ button,input,select{font:inherit;color:inherit;}
 button{touch-action:manipulation;}
 :focus-visible{outline:3px solid var(--blue-dark);outline-offset:2px;}
 
-#app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;display:flex;flex-direction:column;}
+#app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;position:relative;display:flex;flex-direction:column;}
 
 /* ---------- Sklo ---------- */
 .glass{
@@ -163,7 +163,8 @@ button{touch-action:manipulation;}
 }
 
 /* ---------- Úvodní hlavička ---------- */
-.hero{width:100vw;margin-left:calc(50% - 50vw);flex-shrink:0;animation:hero-in .5s ease both;}
+.hero{width:100vw;margin-left:calc(50% - 50vw);flex-shrink:0;}
+.hero.hero-anim{animation:hero-in .5s ease both;}
 .hero-band{width:100%;line-height:0;}
 .hero-band .hero-waves{width:100%;display:block;height:78px;}
 .hero-band-sea .hero-waves{height:52px;}
@@ -176,7 +177,8 @@ button{touch-action:manipulation;}
 @keyframes hero-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
 
 /* ---------- Obrazovka ---------- */
-.screen{flex:1;display:flex;flex-direction:column;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 76px);}
+.screen{flex:1;display:flex;flex-direction:column;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 22px);}
+.gap{height:calc(var(--h) * var(--gap-scale,1));flex-shrink:0;}
 .screen.anim{animation:fadeIn .28s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .screen-sea{
@@ -191,7 +193,7 @@ button{touch-action:manipulation;}
 .title-md{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:700;line-height:1.25;}
 .subtitle{color:var(--navy-soft);font-size:15px;line-height:1.5;margin-top:6px;}
 .center-text{text-align:center;}
-.spacer{flex:1;min-height:22px;}
+.spacer{flex:1;min-height:calc(22px * var(--gap-scale,1));}
 .stack{display:flex;flex-direction:column;gap:12px;}
 .stack-tight{gap:10px;}
 .row{display:flex;gap:10px;align-items:center;}
@@ -456,7 +458,93 @@ button{touch-action:manipulation;}
 @keyframes blink{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
 ::-webkit-scrollbar{display:none;}
 
+/* ---------- Úvodní volby: stejné sklo, jemně jiný tón ---------- */
+.screen-sea .btn-home{color:var(--navy);border-color:rgba(255,255,255,.8);}
+.screen-sea .btn-home.tone-red{background:var(--g-sheen), linear-gradient(90deg, rgba(255,232,224,.86), rgba(255,244,238,.78));}
+.screen-sea .btn-home.tone-yellow{background:var(--g-sheen), linear-gradient(90deg, rgba(255,245,206,.86), rgba(255,250,232,.78));}
+.screen-sea .btn-home.tone-blue{background:var(--g-sheen), linear-gradient(90deg, rgba(220,244,250,.88), rgba(238,250,253,.80));}
+.screen-sea .btn-home.tone-orange{background:var(--g-sheen), linear-gradient(90deg, rgba(255,236,218,.86), rgba(255,246,236,.78));}
+.btn-home::before{
+  content:"";width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  box-shadow:inset 0 -2px 2px rgba(0,0,0,.12), 0 0 0 2px rgba(255,255,255,.8);
+}
+.btn-home.tone-red::before{background:var(--red);}
+.btn-home.tone-yellow::before{background:var(--yellow);}
+.btn-home.tone-blue::before{background:var(--blue);}
+.btn-home.tone-orange::before{background:var(--orange);}
+
+/* kolečko s 5+ hráči: dva sloupce, stav pod jménem */
+.round-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.round-grid .guess-row{flex-direction:column;align-items:flex-start;gap:1px;padding:8px 12px;}
+.round-grid .guess-row > span:first-child{font-size:14px;line-height:1.25;}
+.round-grid .round-status{font-size:12.5px;}
+.drew-mark{display:none;color:var(--orange);}
+.round-grid .drew-full{display:none;}
+.round-grid .drew-mark{display:inline;}
+/* karta s pravdivou odpovědí u modré bývá krátká */
+.qcard.qcard-answer{padding:46px 20px;min-height:140px;}
+.qcard.qcard-answer .wave-band{height:44px;}
+
+/* ---------- Přizpůsobení obrazovce (fit-1, fit-2) ----------
+   Přidává se automaticky, jen když se obsah nevejde na displej. */
+#app.fit-1{--gap-scale:.6;}
+#app.fit-1 .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px;}
+#app.fit-1 .qcard{padding:44px 20px;min-height:150px;}
+#app.fit-1 .qcard .wave-band{height:42px;}
+#app.fit-1 .qcard-text{font-size:20px;}
+#app.fit-1 .qcard-final{padding:76px 20px;min-height:250px;}
+#app.fit-1 .qcard-final .wave-band{height:64px;}
+#app.fit-1 .die{width:66px;height:66px;border-radius:21px;}
+#app.fit-1 .die .dot{width:30px;height:30px;}
+#app.fit-1 .die-area{gap:14px;}
+#app.fit-1 .btn{min-height:48px;padding-top:10px;padding-bottom:10px;}
+#app.fit-1 .banner-info{padding:11px 15px;font-size:14px;}
+#app.fit-1 .guess-row{padding:8px 14px;}
+#app.fit-1 .option-btn{padding:9px 14px;}
+#app.fit-1 .stack{gap:9px;}
+#app.fit-1 .stack-tight{gap:8px;}
+#app.fit-1 .score-chip{padding:6px 10px 7px;}
+#app.fit-1 .roll-summary{margin-bottom:8px;}
+#app.fit-1 .subtitle{font-size:14px;margin-top:4px;}
+#app.fit-1 .hero-band .hero-waves{height:58px;}
+#app.fit-1 .hero-middle{padding:10px 16px 8px;}
+#app.fit-1 .win-crown{font-size:44px;}
+
+#app.fit-2{--gap-scale:.35;}
+#app.fit-2 .qcard{padding:34px 16px;min-height:120px;}
+#app.fit-2 .qcard .wave-band{height:32px;}
+#app.fit-2 .qcard-text{font-size:18px;line-height:1.28;}
+#app.fit-2 .qcard-final{padding:60px 16px;min-height:200px;}
+#app.fit-2 .qcard-final .wave-band{height:50px;}
+#app.fit-2 .die{width:54px;height:54px;border-radius:18px;}
+#app.fit-2 .die .dot{width:24px;height:24px;}
+#app.fit-2 .btn{min-height:44px;font-size:16px;padding-top:8px;padding-bottom:8px;}
+#app.fit-2 .banner-info{padding:9px 13px;font-size:13.5px;line-height:1.4;}
+#app.fit-2 .guess-row{padding:7px 12px;}
+#app.fit-2 .option-btn{padding:7px 12px;font-size:15px;}
+#app.fit-2 .opt-num{width:28px;height:28px;}
+#app.fit-2 .stack{gap:7px;}
+#app.fit-2 .stack-tight{gap:6px;}
+#app.fit-2 .score-grid{gap:5px;}
+#app.fit-2 .score-chip .pname{margin-bottom:3px;font-size:12.5px;}
+#app.fit-2 .slot{width:9px;height:12px;}
+#app.fit-2 .glass-circle{width:40px;height:40px;}
+#app.fit-2 .bar-title{padding:3px 14px;}
+#app.fit-2 .color-dot-btn{width:42px;height:42px;}
+#app.fit-2 .panel{padding:12px 14px;}
+#app.fit-2 .hero-title{font-size:clamp(42px,11vw,64px);}
+#app.fit-2 .hero-band .hero-waves{height:44px;}
+#app.fit-2 .blue-intro-more{display:none;}
+#app.fit-2 .fit-hide{display:none;}
+#app.fit-2 .award-pick .color-pick{margin-top:4px;gap:12px;}
+#app.fit-2 .award-pick .color-dot-btn{width:36px;height:36px;}
+#app.fit-2 .reveal-guess{font-size:12.5px;}
+#app.fit-2 .title-md{font-size:18px;}
+#app.fit-1 .qcard.qcard-answer{padding:34px 16px;min-height:104px;}
+#app.fit-1 .qcard.qcard-answer .wave-band{height:32px;}
+#app.fit-2 .round-grid .guess-row{padding:6px 10px;}
+
 @media (prefers-reduced-motion:reduce){
-  .hero,.screen.anim,.rules-body,.die.rolling,.die.landed,.scroll-hint-arrow,.waiting-dots span{animation:none;}
+  .hero.hero-anim,.screen.anim,.rules-body,.die.rolling,.die.landed,.scroll-hint-arrow,.waiting-dots span{animation:none;}
   .rules-chevron,.scroll-hint{transition:none;}
 }
