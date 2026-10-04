@@ -56,7 +56,7 @@ cs: {
   err_min2:'Jsou potřeba alespoň 2 hráči.',
   room_ended:'Místnost byla ukončena.',
 
-  turn_of:'Na tahu: {0}', is_offline:'{0} je offline.',
+  turn_of:'Na tahu: {0}', turn_label:'Na tahu', is_offline:'{0} je offline.',
   skip_turn_btn:'Přeskočit tah hráče {0}', skip_turn_confirm:'Přeskočit tah hráče {0}?',
   roll_btn:'Hodit kostkou', rolling:'Kostka se točí…',
   roll_hint:'Házíš dvakrát. Rozhoduje první barva, dvě stejné znamenají kartu šance.',
@@ -128,9 +128,12 @@ cs: {
   winner:'{0} vyhrává!', winner_sub:'Sesbíral/a 2 celé karty od každé barvy.', new_game:'Nová hra',
 
   solo_kind_red:'Hluboká otázka', solo_kind_blue:'Otázka o tobě', solo_kind_yellow:'Názorová otázka',
-  solo_btn_red:'Hluboká', solo_btn_blue:'O mně', solo_btn_yellow:'Názor',
+  solo_btn_red:'Hluboké', solo_btn_blue:'O mně', solo_btn_yellow:'Názorové',
   solo_count:'{0}. otázka', solo_hint:'Odpověz si v klidu nahlas nebo si odpověď zapiš.',
   solo_prev:'‹ Předchozí', solo_next:'Další ›', solo_new:'Další otázka ›', solo_pick:'Nebo si vyber, na co máš chuť:',
+  solo_filter_title:'Jaké otázky chceš?',
+  solo_filter_all:'Padají otázky všech barev. Klepnutím na barvu budou padat jen otázky té barvy.',
+  solo_filter_some:'Padají jen otázky zaškrtnutých barev. Když vše odškrtneš, budou zase padat všechny.',
 },
 
 en: {
@@ -180,7 +183,7 @@ en: {
   err_min2:'At least 2 players are needed.',
   room_ended:'The room has been closed.',
 
-  turn_of:'Turn: {0}', is_offline:'{0} is offline.',
+  turn_of:'Turn: {0}', turn_label:'Now playing', is_offline:'{0} is offline.',
   skip_turn_btn:'Skip {0}\'s turn', skip_turn_confirm:'Skip {0}\'s turn?',
   roll_btn:'Roll the die', rolling:'Rolling…',
   roll_hint:'You roll twice. The first colour decides; two of the same colour mean a chance card.',
@@ -255,6 +258,9 @@ en: {
   solo_btn_red:'Deep', solo_btn_blue:'About me', solo_btn_yellow:'Opinion',
   solo_count:'Question {0}', solo_hint:'Take your time — answer out loud or write your answer down.',
   solo_prev:'‹ Previous', solo_next:'Next ›', solo_new:'Next question ›', solo_pick:'Or pick what you\'re in the mood for:',
+  solo_filter_title:'Which questions would you like?',
+  solo_filter_all:'You\'re getting questions of all colours. Tap a colour to get only questions of that colour.',
+  solo_filter_some:'You\'re only getting questions of the ticked colours. Untick them all to get every colour again.',
 }
 };
 

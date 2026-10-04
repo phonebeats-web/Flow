@@ -1,4 +1,4 @@
-# FLOU — online verze (V5)
+# FLOU — online verze (V6)
 
 Karetní diskusní hra FLOU jako webová aplikace. Funguje lokálně na jednom
 zařízení i online mezi více zařízeními přes kód místnosti.
@@ -19,6 +19,14 @@ app.js                stav aplikace, local mode, herní akce
 firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahrát do konzole!)
 ```
 
+## Ovládání a zobrazení
+
+- Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
+  kdo je na tahu, vpravo jazyk (vlajky) a křížek pro ukončení hry.
+- Skóre všech hráčů je v mřížce, která se zalamuje — na mobilu se nemusí
+  posouvat do strany. Plný slot = celá karta, poloviční slot = půlkarta;
+  půlkarta je vidět i nad dvěma celými kartami (např. 2 celé + ½).
+
 ## Jazyky (čeština / angličtina)
 
 - Jazyk patří **zařízení**, ne hře — přepíná se vlajkou nahoře kdykoli,
@@ -37,7 +45,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   hru opustit (jen při 3 a více hráčích).
 - **Online** — každý na svém zařízení, připojení kódem nebo odkazem.
 - **Hrát sám** — jen otázky k zamyšlení: bez kostky, karet šance, bodů a hádání.
-  Lze táhnout náhodnou otázku nebo zvolit barvu a vracet se k předchozím.
+  Dole lze zaškrtnout barvy — pak padají jen otázky těchto barev; když je vše
+  odškrtnuté, padají všechny. Lze se vracet k předchozím otázkám.
 
 ## Pravidla hry (jak je hra implementuje)
 

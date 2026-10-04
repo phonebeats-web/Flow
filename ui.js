@@ -109,40 +109,45 @@ function langSwitch(extraCls=''){
   );
 }
 
-/* ---------- HORNÍ LIŠTA (zpět / ukončit / jazyk / krok zpět) ---------- */
-function barBtn(icon, labelLong, labelShort, onClick, cls=''){
-  return el('button',{class:'bar-btn '+cls, onclick:onClick, 'aria-label':labelLong},
-    el('span',{class:'bar-ico','aria-hidden':'true'}, icon),
-    el('span',{class:'bar-label bar-long'}, labelLong),
-    el('span',{class:'bar-label bar-short'}, labelShort)
-  );
+/* ---------- HORNÍ LIŠTA (jako navigační lišta v iOS) ----------
+   Vlevo kulaté skleněné tlačítko se šipkou zpět (ve hře = krok zpět),
+   uprostřed titulek (ve hře: kdo je na tahu), vpravo jazyk a ukončení.
+   Informace o tahu je přímo v liště, takže ji nic nepřekrývá. */
+const ICON_CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12 15 19.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+function circleBtn(iconSvg, label, onClick, cls=''){
+  return el('button',{class:'glass-circle glass '+cls, onclick:onClick, 'aria-label':label, title:label, html:iconSvg});
 }
 function miniLogo(){
   return htmlToNode(`<div class="bar-logo" aria-hidden="true"><span style="color:var(--red)">F</span><span style="color:var(--yellow)">L</span><span style="color:var(--blue)">O</span><span style="color:var(--orange)">U</span></div>`);
 }
 function topBar(){
-  let left = null, undo = null;
+  let left = null, right = [], title = null;
   const sc = state.screen;
+  const room = state.room;
   if(sc==='setupLocal' || sc==='setupHost' || sc==='joinRoom'){
-    left = barBtn('←', t('bar_back'), t('bar_back'), ()=>{ state.screen='home'; render(); });
+    left = circleBtn(ICON_CHEVRON, t('bar_back'), ()=>{ state.screen='home'; render(); });
   } else if(sc==='lobby'){
-    left = barBtn('←', t('bar_leave'), t('bar_leave'), ()=>{
+    left = circleBtn(ICON_CHEVRON, t('bar_leave'), ()=>{
       if(confirm(t('confirm_leave_room'))) leaveOnlineRoom();
     });
   } else if(sc==='game'){
-    left = barBtn('✕', t('bar_exit_game'), t('bar_exit'), confirmExitGame, 'bar-exit');
-    if(canUndo(state.room)){
-      undo = barBtn('↶', t('bar_undo'), t('bar_undo_short'), ()=>{ undoStep(); }, 'bar-undo');
+    if(canUndo(room)) left = circleBtn(ICON_CHEVRON, t('bar_undo'), ()=>{ undoStep(); }, 'bar-undo');
+    right.push(circleBtn(ICON_CLOSE, t('bar_exit_game'), confirmExitGame, 'bar-exit'));
+    if(room && room.phase!=='finished'){
+      const ap = activePlayer(room);
+      title = el('div',{class:'bar-title glass', role:'status'},
+        el('span',{class:'bar-title-label'}, t('turn_label')),
+        el('span',{class:'bar-title-name'}, ap.name + (ap.id===state.myPlayerId ? ' ('+t('you')+')' : ''))
+      );
     }
   } else if(sc==='solo'){
-    left = barBtn('✕', t('bar_exit'), t('bar_exit'), ()=>{ resetAppState(); render(); }, 'bar-exit');
+    right.push(circleBtn(ICON_CLOSE, t('bar_exit'), ()=>{ resetAppState(); render(); }, 'bar-exit'));
   }
   return el('div',{class:'topbar'},
-    el('div',{class:'topbar-inner glass'},
-      el('div',{class:'bar-side'}, left),
-      miniLogo(),
-      el('div',{class:'bar-side bar-right'}, langSwitch(), undo)
-    )
+    el('div',{class:'bar-side bar-left'}, left || el('span',{class:'bar-placeholder'})),
+    el('div',{class:'bar-center'}, title || miniLogo()),
+    el('div',{class:'bar-side bar-right'}, langSwitch('glass'), ...right)
   );
 }
 
@@ -416,9 +421,8 @@ function renderGame(s){
   if(room.phase==='finished'){ renderFinished(s, room); return; }
 
   const ap = activePlayer(room);
-  s.appendChild(el('div',{class:'turn-banner'}, ...tn('turn_of', b(ap.name))));
   s.appendChild(scoreRow(room));
-  s.appendChild(gap(18));
+  s.appendChild(gap(16));
 
   const mine = isMyTurnOrLocal(room);
 
@@ -590,8 +594,11 @@ function rollSummary(room){
   );
 }
 
+/* Skóre všech hráčů v mřížce — zalamuje se, takže se na mobilu
+   nemusí posouvat do strany. */
 function scoreRow(room){
-  const row = el('div',{class:'score-row'});
+  const n = room.players.length;
+  const row = el('div',{class:'score-grid'+(n>=5?' dense':'')});
   const activeId = activePlayer(room) ? activePlayer(room).id : null;
   room.players.forEach(p=>{
     const isActive = p.id===activeId;
@@ -602,20 +609,21 @@ function scoreRow(room){
   });
   return row;
 }
-/* Skóre jedné barvy: dva sloty (k výhře jsou potřeba 2 celé karty). */
+/* Skóre jedné barvy: plné sloty = celé karty, poloplný slot = půlkarta.
+   Vždy aspoň 2 sloty (cíl pro výhru); celé karty navíc i půlka nad nimi
+   přidají další slot, takže je vidět např. 2 celé + půlka. */
 function dotsFor(p,color){
   const colVar = colorVar(color);
   const full = p.full[color];
-  const half = p.halves[color];
-  const wrap = el('span',{class:'score-color'});
-  for(let i=0;i<2;i++){
+  const half = p.halves[color] > 0;
+  const slots = Math.max(2, full + (half ? 1 : 0));
+  const wrap = el('span',{class:'score-color', title: colorName(color)+': '+full+(half?' + ½':'')});
+  for(let i=0;i<slots;i++){
     let cls = 'slot';
     if(i < full) cls += ' filled';
-    else if(i === full && half > 0) cls += ' halffull';
+    else if(i === full && half) cls += ' halffull';
+    if(i >= 2) cls += ' over';
     wrap.appendChild(el('span',{class:cls, style:'--c:'+colVar}));
-  }
-  if(full > 2){
-    wrap.appendChild(el('span',{class:'slot-extra', style:'color:'+colVar}, '+'+(full-2)));
   }
   return wrap;
 }
@@ -1242,13 +1250,14 @@ function renderFinished(s, room){
 }
 
 /* ---------- HRA PRO JEDNOHO ---------- */
-/* Jen otázky k zamyšlení: žádná kostka, šance, body ani hádání. */
+/* Jen otázky k zamyšlení: žádná kostka, šance, body ani hádání.
+   Dole si hráč může zaškrtnout barvy — pak padají jen ty. */
 const SOLO_BTN_CLS = {red:'btn-red', blue:'btn-blue', yellow:'btn-yellow'};
 function renderSolo(s){
   const so = state.solo;
   const cur = so.history[so.pos];
   s.appendChild(el('div',{class:'solo-head'},
-    el('span',{class:'solo-kind', style:'--c:'+colorVar(cur.color)}, t('solo_kind_'+cur.color)),
+    el('span',{class:'solo-kind glass', style:'--c:'+colorVar(cur.color)}, t('solo_kind_'+cur.color)),
     el('span',{class:'solo-count'}, t('solo_count', so.pos+1))
   ));
   s.appendChild(qcardEl(cur.color, questionText(cur.color, cur.idx)));
@@ -1260,9 +1269,22 @@ function renderSolo(s){
     button(t('solo_prev'),'btn-glass', ()=>soloStep(-1), so.pos===0),
     button(atEnd ? t('solo_new') : t('solo_next'),'btn-primary', ()=>{ atEnd ? soloDraw(null) : soloStep(1); })
   ));
+
+  const filter = so.filter || [];
+  const box = el('div',{class:'panel glass solo-filter'},
+    el('div',{class:'panel-title'}, t('solo_filter_title')),
+    el('div',{class:'row solo-chips'},
+      ...COLORS.map(c=>{
+        const on = filter.includes(c);
+        return el('button',{class:'solo-chip'+(on?' on':''), style:'--c:'+colorVar(c),
+          'aria-pressed': on?'true':'false', onclick:()=>soloToggle(c)},
+          (on ? '✓ ' : '') + t('solo_btn_'+c)
+        );
+      })
+    ),
+    el('div',{class:'subtitle', style:'margin-top:8px;font-size:13.5px'},
+      filter.length ? t('solo_filter_some') : t('solo_filter_all'))
+  );
   s.appendChild(gap(18));
-  s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 8px'}, t('solo_pick')));
-  s.appendChild(el('div',{class:'row solo-colors'},
-    ...COLORS.map(c=>button(t('solo_btn_'+c), SOLO_BTN_CLS[c]+' btn-sm', ()=>soloDraw(c)))
-  ));
+  s.appendChild(box);
 }

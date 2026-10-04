@@ -147,14 +147,16 @@ function startSolo(){
   state.solo = {
     decks: { red: indexList(QUESTIONS.red.length), blue: indexList(QUESTIONS.blue.length), yellow: indexList(QUESTIONS.yellow.length) },
     history: [],
-    pos: -1
+    pos: -1,
+    filter: []   // zvolené barvy; prázdné = všechny barvy
   };
   state.screen = 'solo';
   soloDraw(null);
 }
 function soloDraw(color){
   const so = state.solo;
-  const c = color || ['red','blue','yellow'][Math.floor(Math.random()*3)];
+  const pool = color ? [color] : (so.filter && so.filter.length ? so.filter : ['red','blue','yellow']);
+  const c = pool[Math.floor(Math.random()*pool.length)];
   const idx = drawIndex(so, c);   // drawIndex potřebuje jen objekt s .decks
   // Kdo se vrátil o pár karet zpět a táhne novou, pokračuje od konce.
   so.history.push({color:c, idx});
@@ -162,6 +164,17 @@ function soloDraw(color){
   so.pos = so.history.length-1;
   render();
   window.scrollTo(0,0);
+}
+/* Zaškrtnutí / odškrtnutí barvy. Pokud aktuální otázka do výběru
+   nepatří, rovnou se táhne nová z vybraných barev. */
+function soloToggle(color){
+  const so = state.solo;
+  const f = so.filter || (so.filter = []);
+  const i = f.indexOf(color);
+  if(i>=0) f.splice(i,1); else f.push(color);
+  const cur = so.history[so.pos];
+  if(f.length && !f.includes(cur.color)) soloDraw(null);
+  else render();
 }
 function soloStep(delta){
   const so = state.solo;
