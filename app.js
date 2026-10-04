@@ -1,44 +1,104 @@
 /* ============================================================
-   APP — stav aplikace, ukládání stavu, local mode, herní akce.
-   Online zápisy jdou přes Online.pushState() (js/online.js),
-   který dál volá FlowNet (js/firebase.js). Tento soubor
+   APP — stav aplikace, historie (krok zpět), local mode,
+   hra pro jednoho a herní akce.
+   Online zápisy jdou přes Online.pushState() (online.js),
+   který dál volá FlowNet (firebase.js). Tento soubor
    nevolá Firebase API přímo.
    ============================================================ */
 
 /* ============ STORAGE ============ */
 const Store = {
   mode: 'local', // 'local' | 'online'
-  roomCode: null,
-  async setRoom(room){
-    if(this.mode==='local'){ window._localRoom = room; return; }
-    await Online.pushState(room);
-  }
+  roomCode: null
 };
 
 /* ============ APP STATE ============ */
+function freshBlueCompose(){ return {a:'', b:'', c:'', correct:null, step:1}; }
+
 function initialState(){
   return {
     screen: 'home',
-    mode: null, // 'local' | 'online'
     myPlayerId: null,
     myName: '',
     setupNames: [],
     joinCode: '',
     room: null,
     busy: false,
-    guessSelections: {}, // playerId -> true/false during guess resolution
-    guessColors: {},     // playerId -> chosen color
-    chanceUI: {},        // scratch state for chance resolution
+    chanceUI: {},        // pomocný stav u karet šance
+    exchangeUI: null,    // rozpracovaná směna karet na začátku tahu
+    leaveOpen: false,    // rozbalený výběr hráče, který odchází (jedno zařízení)
     rulesOpen: false,    // rozbalená pravidla na úvodní obrazovce
-    blueCompose: {a:'', b:'', c:'', correct:0}, // rozepsané možnosti u modré karty
-    secretCorrect: null, // správná odpověď — drží se lokálně do vyhodnocení
+    blueCompose: freshBlueCompose(), // rozepsané možnosti u modré karty
+    secretCorrect: null, // online: správná odpověď — drží se lokálně do vyhodnocení
+    handoff: null,       // jedno zařízení: kdo potvrdil, že drží zařízení
+    solo: null,          // hra pro jednoho
   };
 }
 let state = initialState();
 function resetAppState(){
   Store.mode = 'local';
   Store.roomCode = null;
+  History.reset();
   state = initialState();
+}
+/* Vyčistí rozpracované volby v UI (po kroku zpět apod.). */
+function clearTransientUI(){
+  state.chanceUI = {};
+  state.exchangeUI = null;
+  state.leaveOpen = false;
+  state.handoff = null;
+  state.blueCompose = freshBlueCompose();
+}
+
+/* ============ HISTORIE — KROK ZPĚT ============ */
+/* Ukládá potvrzené stavy hry. Krok zpět vrátí předchozí stav.
+   Na jednom zařízení se ukládá po každé akci, online po každé změně
+   přijaté z databáze (takže jde vrátit i akci jiného hráče). */
+function historyKey(room){
+  // Do porovnání nepatří, kdo je zrovna online.
+  return stableStr(Object.assign({}, room, {
+    players: room.players.map(p=>({id:p.id, name:p.name, halves:p.halves, full:p.full, skipNext:!!p.skipNext}))
+  }));
+}
+const History = {
+  stack: [],          // [{key, json}]
+  max: 30,
+  reset(){ this.stack = []; },
+  record(room){
+    if(!room) return;
+    const key = historyKey(room);
+    const last = this.stack[this.stack.length-1];
+    if(last && last.key===key) return;
+    this.stack.push({key, json: JSON.stringify(room)});
+    if(this.stack.length > this.max) this.stack.shift();
+  },
+  canUndo(){ return this.stack.length >= 2; }
+};
+
+function canUndo(room){
+  if(!room || state.rolling || !History.canUndo()) return false;
+  if(Store.mode==='local') return true;
+  return amHost(room) || isMyTurnOrLocal(room);
+}
+
+async function undoStep(){
+  if(!History.canUndo()) return;
+  History.stack.pop();
+  const prev = JSON.parse(History.stack[History.stack.length-1].json);
+  // Kdo je online, se nevrací — to je skutečnost, ne herní stav.
+  if(state.room){
+    prev.players.forEach(p=>{
+      const now = state.room.players.find(x=>x.id===p.id);
+      if(now){ p.online = now.online; }
+    });
+  }
+  clearTransientUI();
+  state.room = prev;
+  render();
+  if(Store.mode==='online'){
+    try{ await Online.pushState(prev); }
+    catch(e){ console.error('undo push failed', e); }
+  }
 }
 
 /* ============ LOCAL MODE ============ */
@@ -46,22 +106,73 @@ function startLocalGame(names){
   const players = names.map(n=>newPlayer(uid(4), n));
   Store.mode='local';
   Store.roomCode=null;
+  History.reset();
   const room = {
     code:null, phase:'idle', players, turnIndex:0, direction:1,
     lastRolledColor:null, lastRoll:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false,
-    pendingColor:null, extraTurn:false, yellow:null, votes:{}, awardColors:{}
+    pendingColor:null, extraTurn:false, round:null, blueTurn:null, votes:{}, awardColors:{}
   };
-  Store.setRoom(room);
   state.room = room;
-  state.myPlayerId = null; // local mode: no fixed "me", everyone shares the device
+  state.myPlayerId = null; // jedno zařízení: žádné pevné „já", zařízení si hráči podávají
   state.screen='game';
+  History.record(room);
+  render();
+}
+
+/* Hráč odchází z rozehrané hry na jednom zařízení (jen při 3+ hráčích). */
+async function removeLocalPlayer(id){
+  const room = state.room;
+  const n = room.players.length;
+  if(n<=2) return;
+  const idx = room.players.findIndex(p=>p.id===id);
+  if(idx<0) return;
+  const wasActive = idx===room.turnIndex;
+  room.players.splice(idx,1);
+  const m = n-1;
+  if(idx < room.turnIndex) room.turnIndex--;
+  else if(wasActive){
+    // Na tahu je další hráč ve směru hry.
+    room.turnIndex = room.direction===1 ? idx % m : ((idx-1) % m + m) % m;
+    room.extraTurn = false;
+  }
+  room.turnIndex = Math.max(0, Math.min(room.turnIndex, m-1));
+  state.leaveOpen = false;
+  await saveAndRender();
+}
+
+/* ============ HRA PRO JEDNOHO ============ */
+/* Bez kostky, bez karet šance, bez bodování — jen otázky k zamyšlení. */
+function startSolo(){
+  resetAppState();
+  state.solo = {
+    decks: { red: indexList(QUESTIONS.red.length), blue: indexList(QUESTIONS.blue.length), yellow: indexList(QUESTIONS.yellow.length) },
+    history: [],
+    pos: -1
+  };
+  state.screen = 'solo';
+  soloDraw(null);
+}
+function soloDraw(color){
+  const so = state.solo;
+  const c = color || ['red','blue','yellow'][Math.floor(Math.random()*3)];
+  const idx = drawIndex(so, c);   // drawIndex potřebuje jen objekt s .decks
+  // Kdo se vrátil o pár karet zpět a táhne novou, pokračuje od konce.
+  so.history.push({color:c, idx});
+  if(so.history.length > 100) so.history.shift();
+  so.pos = so.history.length-1;
+  render();
+  window.scrollTo(0,0);
+}
+function soloStep(delta){
+  const so = state.solo;
+  so.pos = Math.max(0, Math.min(so.history.length-1, so.pos+delta));
   render();
 }
 
 /* ============ ONLINE ENTRY POINTS ============ */
 async function hostCreateRoom(name){
   if(!FlowNet.available()){
-    alert('Online režim vyžaduje připojení k internetu.');
+    alert(t('err_offline'));
     return;
   }
   state.busy = true; render();
@@ -70,7 +181,7 @@ async function hostCreateRoom(name){
     // obrazovku i state nastaví realtime listener (Online.startSync)
   }catch(e){
     console.error(e);
-    alert('Nepodařilo se vytvořit místnost. Zkontroluj připojení k internetu.');
+    alert(t('err_create'));
     state.screen='home';
   }finally{
     state.busy = false; render();
@@ -79,19 +190,19 @@ async function hostCreateRoom(name){
 
 async function playerJoinRoom(code, name){
   if(!FlowNet.available()){
-    alert('Online režim vyžaduje připojení k internetu.');
+    alert(t('err_offline'));
     return;
   }
   state.busy = true; render();
   try{
     const res = await Online.joinRoom(code, name);
     if(!res.ok){
-      alert('Místnost s tímto kódem nenalezena.');
+      alert(t('err_notfound'));
       state.screen='joinRoom';
     }
   }catch(e){
     console.error(e);
-    alert('Připojení se nezdařilo. Zkontroluj kód a připojení k internetu.');
+    alert(t('err_join'));
     state.screen='joinRoom';
   }finally{
     state.busy = false; render();
@@ -100,7 +211,7 @@ async function playerJoinRoom(code, name){
 
 async function hostStartGame(){
   const room = state.room;
-  if(room.players.length<2){ alert('Potřeba alespoň 2 hráči.'); return; }
+  if(room.players.length<2){ alert(t('err_min2')); return; }
   room.phase='idle';
   await Online.pushState(room);
 }
@@ -123,11 +234,10 @@ function amHost(room){
 }
 async function saveAndRender(){
   if(Store.mode==='local'){
-    await Store.setRoom(state.room);
+    History.record(state.room);
     render();
   } else {
-    // USER ACTION -> zápis; render zajistí i realtime listener,
-    // ale renderujeme hned pro okamžitou odezvu.
+    // USER ACTION -> zápis; renderujeme hned pro okamžitou odezvu.
     render();
     try{ await Online.pushState(state.room); }
     catch(e){ console.error('push failed', e); }
@@ -151,9 +261,11 @@ async function rollDice(first, second){
   const res = evaluateRoll(first, second);
   room.lastRoll = [first, second];
   room.lastRolledColor = res.color;
+  state.exchangeUI = null;
+  state.leaveOpen = false;
   if(res.isDouble){
-    const chance = drawFrom(room,'chance');
-    room.currentCard = {type:'chance', text:chance.text, key:chance.key};
+    const ci = drawIndex(room,'chance');
+    room.currentCard = {type:'chance', idx:ci, key:CHANCE_CARDS[ci].key};
     room.pendingColor = res.color;   // otázka, která přijde po kartě šance
     room.phase='chance';
   } else {
@@ -166,20 +278,18 @@ async function rollDice(first, second){
 /* Vytáhne otázku dané barvy a nastaví odpovídající fázi.
    (Neukládá — volající pak zavolá saveAndRender.) */
 function startQuestion(room, color){
-  const q = drawFrom(room,color);
-  room.currentCard = {type:'question', color, text:q};
+  room.currentCard = {type:'question', color, idx: drawIndex(room,color)};
   room.pendingColor = null;
-  if(color==='blue' && Store.mode==='online'){
-    // Online + modrá: hráč na tahu nejdřív vymyslí 3 možnosti (kvízový režim).
+  if(color==='blue'){
+    // Modrá: hráč na tahu napíše 3 odpovědi a označí pravdivou.
     room.votes = {};
     room.awardColors = {};
-    state.blueCompose = {a:'', b:'', c:'', correct:0};
+    room.blueTurn = null;
+    state.blueCompose = freshBlueCompose();
     room.phase='blue-compose';
   } else if(color==='yellow'){
     // Žlutá: odpovídají postupně všichni, začíná hráč na tahu.
-    const order = yellowOrder(room);
-    room.yellow = { order, current: order[0], answered: {} };
-    room.phase='yellow-round';
+    startRound(room, 'yellow');
   } else {
     room.phase='rolled-question';
   }
@@ -196,51 +306,109 @@ function continueAfterChance(room){
   }
 }
 
-/* ---------- ŽLUTÁ OTÁZKA ---------- */
-/* Hráč (playerId) potvrdil, zda odpověděl. Kdo neodpoví, ztrácí žlutou
-   kartu (nejdřív celou, pak půlku; když nemá nic, nic se neděje). */
-async function yellowAnswer(playerId, answered){
+/* ---------- SMĚNA NA ZAČÁTKU TAHU ---------- */
+/* Hráč s aspoň 3 celými kartami jedné barvy smí 2 z nich vyměnit
+   za 1 kartu jiné barvy. */
+async function turnExchange(give, want){
   const room = state.room;
-  const y = room.yellow;
-  if(!y || y.current!==playerId) return;
+  const ap = activePlayer(room);
+  if(!exchangeColors(ap).includes(give) || give===want) return;
+  ap.full[give] -= 2;
+  ap.full[want] += 1;
+  state.exchangeUI = null;
+  resolveWin(room, ap);
+  await saveAndRender();
+}
+
+/* ---------- KOLEČKO ODPOVĚDÍ (žlutá, červená pro všechny) ---------- */
+/* Hráč (playerId) potvrdil, zda odpověděl. Kdo neodpoví, ztrácí kartu
+   barvy kolečka (nejdřív celou, pak půlku; když nemá nic, nic se neděje). */
+async function roundAnswer(playerId, answered){
+  const room = state.room;
+  const r = room.round;
+  if(!r || r.current!==playerId) return;
   const p = room.players.find(x=>x.id===playerId);
   const ap = activePlayer(room);
+  const first = playerId===ap.id && Object.keys(r.answered||{}).length===0;
 
   // Hráč, který kartu vytáhl, odpovídá první. Když neodpoví,
-  // ztrácí žlutou a kolo končí.
-  if(playerId===ap.id && Object.keys(y.answered||{}).length===0){
-    if(!answered){
-      loseColor(ap,'yellow');
-      advanceTurn(room);
-      await saveAndRender();
-      return;
-    }
-    y.answered = Object.assign({}, y.answered, {[playerId]:true});
-    y.current = yellowNextId(room);
+  // ztrácí kartu a kolečko končí.
+  if(first && !answered){
+    loseColor(ap, r.color);
+    advanceTurn(room);
     await saveAndRender();
     return;
   }
 
-  if(!answered && p) loseColor(p,'yellow');
-  y.answered = Object.assign({}, y.answered, {[playerId]: !!answered});
-  y.current = yellowNextId(room);
+  if(!answered && p) loseColor(p, r.color);
+  r.answered = Object.assign({}, r.answered, {[playerId]: !!answered});
+  r.current = roundNextId(room);
 
   if(Store.mode==='online' && playerId!==ap.id){
     // Odpovídající hráč není na tahu -> zapíše jen svou odpověď,
-    // posun v kole a vlastní karty (víc mu pravidla databáze nedovolí).
+    // posun v kolečku a vlastní karty (víc mu pravidla databáze nedovolí).
     render();
-    try{ await Online.pushYellowAnswer(room, p); }
-    catch(e){ console.error('yellow push failed', e); }
+    try{ await Online.pushRoundAnswer(room, p); }
+    catch(e){ console.error('round push failed', e); }
     return;
   }
   await saveAndRender();
 }
 
-/* Kolo došlo zpět k hráči, který kartu vytáhl -> získává žlutou kartu. */
-async function yellowFinish(){
+/* Kolečko došlo zpět k hráči, který kartu vytáhl -> získává kartu. */
+async function roundFinish(){
   const room = state.room;
   const ap = activePlayer(room);
-  addFull(ap,'yellow');
+  addFull(ap, room.round.color);
+  if(!resolveWin(room, ap)) advanceTurn(room);
+  await saveAndRender();
+}
+
+/* ---------- MODRÁ KARTA ---------- */
+/* Hráč na tahu odeslal 3 možnosti a označil pravdivou. */
+async function blueSubmit(options, correct){
+  const room = state.room;
+  room.votes = {};
+  room.awardColors = {};
+  if(Store.mode==='local'){
+    // Jedno zařízení: správná odpověď je v herním stavu (nikde se nezobrazí
+    // až do vyhodnocení), hádají postupně ostatní ve směru hry.
+    room.currentCard = Object.assign({}, room.currentCard, {options, correct});
+    const order = turnOrder(room).slice(1);
+    room.blueTurn = { order, current: order[0] || null };
+  } else {
+    // Online: správná odpověď zůstává jen v zařízení hráče na tahu.
+    rememberSecret(room.code, correct);
+    room.currentCard = Object.assign({}, room.currentCard, {options, correct:null});
+  }
+  state.blueCompose = freshBlueCompose();
+  state.handoff = null;
+  room.phase = 'blue-guessing';
+  await saveAndRender();
+}
+
+/* Jedno zařízení: hádající hráč vybral možnost -> zařízení jde dalšímu. */
+async function blueLocalVote(optionIndex){
+  const room = state.room;
+  const bt = room.blueTurn;
+  if(!bt || !bt.current) return;
+  room.votes = Object.assign({}, room.votes, {[bt.current]: optionIndex});
+  const i = bt.order.indexOf(bt.current);
+  bt.current = bt.order[i+1] || null;
+  state.handoff = null;
+  await saveAndRender();
+}
+
+/* Vyhodnocení modré: půlkarty pro ty, kdo uhodli, celá modrá pro hráče na tahu. */
+async function blueFinish(){
+  const room = state.room;
+  const ap = activePlayer(room);
+  const card = room.currentCard;
+  const colors = room.awardColors || {};
+  room.players.forEach(p=>{
+    if(p.id!==ap.id && room.votes[p.id]===card.correct && colors[p.id]) addHalf(p, colors[p.id]);
+  });
+  addFull(ap, 'blue');
   if(!resolveWin(room, ap)) advanceTurn(room);
   await saveAndRender();
 }
@@ -253,7 +421,7 @@ async function hostSkipTurn(){
   await saveAndRender();
 }
 
-/* ---------- MODRÁ: SPRÁVNÁ ODPOVĚĎ ---------- */
+/* ---------- MODRÁ ONLINE: SPRÁVNÁ ODPOVĚĎ ---------- */
 /* Správná odpověď se do databáze posílá až při vyhodnocení.
    Do té doby je jen v zařízení hráče na tahu — uložená i v localStorage,
    aby se neztratila, když si stránku obnoví. */

@@ -1,460 +1,514 @@
+/* ============================================================
+   FLOU — vzhled „liquid glass"
+   Průsvitné skleněné plochy (rozmazané pozadí, světlý okraj,
+   jemný lesk) nad měkkým barevným pozadím v barvách hry.
+   ============================================================ */
 :root{
-    --cream:#FBF6EC;
-    --navy:#182848;
-    --navy-soft:#3A4A6B;
-    --red:#E9502E;
-    --red-dark:#C93E20;
-    --orange:#F3873F;
-    --yellow:#F6C61E;
-    --blue:#5FC4DC;
-    --blue-light:#7FD2E6;
-    --blue-dark:#3FA9C4;
-    --white:#FFFFFF;
-    --shadow: 0 10px 30px rgba(24,40,72,0.12);
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    font-family:'Inter',sans-serif;
-    background:var(--cream);
-    color:var(--navy);
-    min-height:100vh;
-    overflow-x:hidden;
-  }
-  h1,h2,h3,.display{
-    font-family:'Baloo 2',sans-serif;
-    color:var(--navy);
-    margin:0;
-  }
-  #app{
-    max-width:520px;
-    margin:0 auto;
-    min-height:100vh;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-  }
-  .wave-top{
-    position:relative;
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    height:150px;
-    overflow:hidden;
-    flex-shrink:0;
-  }
-  .wave-top svg{position:absolute;top:0;left:0;width:100%;height:100%;}
+  --cream:#FBF6EC;
+  --navy:#182848;
+  --navy-soft:#3A4A6B;
+  --red:#E9502E;
+  --red-dark:#C93E20;
+  --orange:#F3873F;
+  --yellow:#F6C61E;
+  --yellow-dark:#9A7A06;
+  --blue:#5FC4DC;
+  --blue-light:#7FD2E6;
+  --blue-dark:#2E97B3;
+  --white:#FFFFFF;
 
-  /* ĂvodnĂ­ hlaviÄka â jen na domovskĂŠ obrazovce.
-     Vlny se roztahujĂ­ pĹes celĂŠ okno, nĂĄpis zĹŻstĂĄvĂĄ v rozumnĂŠ
-     velikosti nezĂĄvisle na ĹĄĂ­Ĺce displeje. */
-  .hero{
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    flex-shrink:0;
-    animation:hero-in .5s ease both;
-  }
-  .hero-band{width:100%;line-height:0;}
-  .hero-band .hero-waves{width:100%;display:block;height:86px;}
-  .hero-band-sea .hero-waves{height:56px;}
+  /* sklo */
+  --glass-bg: linear-gradient(140deg, rgba(255,255,255,.74) 0%, rgba(255,255,255,.50) 100%);
+  --glass-border: rgba(255,255,255,.78);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(255,255,255,.30), 0 8px 26px rgba(24,40,72,.10);
+  --radius: 22px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--cream);
+  color:var(--navy);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* Barevné pozadí pod sklem — statické přechody, žádné filtry (rychlé). */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(60vmax 45vmax at 0% 0%, rgba(233,80,46,.30), transparent 60%),
+    radial-gradient(55vmax 40vmax at 100% 8%, rgba(246,198,30,.34), transparent 60%),
+    radial-gradient(70vmax 50vmax at 100% 100%, rgba(95,196,220,.38), transparent 62%),
+    radial-gradient(50vmax 40vmax at 0% 85%, rgba(243,135,63,.20), transparent 60%),
+    var(--cream);
+}
+button,input,select{font:inherit;color:inherit;}
+button{touch-action:manipulation;}
+:focus-visible{outline:3px solid var(--blue-dark);outline-offset:2px;}
 
-  .hero-middle{
-    display:flex;align-items:center;justify-content:center;
-    gap:clamp(10px,4vw,34px);
-    padding:26px 16px 20px;
-  }
-  .hero-titleblock{text-align:center;}
-  .hero-title{
-    font-family:'Baloo 2',sans-serif;
-    font-size:clamp(52px,13vw,84px);
-    font-weight:800;
-    line-height:1;
-    letter-spacing:clamp(4px,1.6vw,12px);
-    white-space:nowrap;
-  }
-  .hero-sub{
-    font-family:'Inter',sans-serif;
-    font-size:clamp(11px,2.9vw,15px);
-    font-weight:700;
-    letter-spacing:clamp(2px,.8vw,4px);
-    color:var(--navy-soft);
-    margin-top:10px;
-    white-space:nowrap;
-  }
-  .hero-card{
-    width:clamp(44px,12vw,72px);
-    height:auto;
-    flex-shrink:0;
-  }
-  @media (max-width:340px){
-    .hero-card{display:none;}
-  }
+#app{
+  max-width:520px;
+  margin:0 auto;
+  min-height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
 
-  @keyframes hero-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-  @media (prefers-reduced-motion:reduce){ .hero{animation:none;} }
-  .screen{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    padding:30px 22px 48px;
-    animation:fadeIn .35s ease;
-  }
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-  .title-xl{font-size:44px;font-weight:800;letter-spacing:-0.5px;}
-  .title-lg{font-size:28px;font-weight:700;}
-  .title-md{font-size:20px;font-weight:700;}
-  .subtitle{color:var(--navy-soft);font-size:15px;line-height:1.5;margin-top:6px;}
-  .btn{
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    border:none;border-radius:16px;
-    padding:16px 20px;
-    font-family:'Baloo 2',sans-serif;
-    font-size:17px;font-weight:700;
-    cursor:pointer;
-    transition:transform .12s ease, box-shadow .12s ease;
-    width:100%;
-  }
-  .btn:active{transform:scale(0.97);}
-  .btn-primary{background:var(--navy);color:var(--cream);box-shadow:var(--shadow);}
-  .btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy);}
-  .btn-red{background:var(--red);color:var(--white);}
-  .btn-blue{background:var(--blue-dark);color:var(--white);}
-  .btn-yellow{background:var(--yellow);color:var(--navy);}
-  .btn-ghost{background:transparent;color:var(--navy-soft);font-weight:600;text-decoration:underline;box-shadow:none;padding:10px;}
-  .btn:disabled{opacity:0.4;cursor:not-allowed;}
-  .stack{display:flex;flex-direction:column;gap:14px;}
-  .row{display:flex;gap:10px;align-items:center;}
-  .card-input{
-    width:100%;padding:14px 16px;border-radius:14px;border:2px solid #E4DCC9;
-    font-family:'Inter',sans-serif;font-size:16px;background:var(--white);color:var(--navy);
-  }
-  .card-input:focus{outline:none;border-color:var(--navy);}
-  .spacer{flex:1;}
-  .pill{
-    display:inline-flex;align-items:center;gap:6px;
-    background:var(--white);border-radius:999px;padding:6px 14px;
-    font-weight:700;font-size:14px;box-shadow:var(--shadow);
-  }
-  .code-display{
-    font-family:'Baloo 2',sans-serif;font-size:38px;font-weight:800;
-    letter-spacing:8px;text-align:center;background:var(--white);
-    border-radius:18px;padding:18px;box-shadow:var(--shadow);color:var(--navy);
-  }
-  /* SdĂ­lenĂ­ kĂłdu mĂ­stnosti */
-  .share-row{
-    display:flex;gap:10px;justify-content:center;
-    margin-top:12px;
-  }
-  .share-btn{
-    flex:1;max-width:190px;
-    background:var(--white);
-    border:2px solid rgba(24,40,72,.14);
-    border-radius:14px;
-    padding:11px 10px;
-    font-family:'Baloo 2',sans-serif;
-    font-size:14.5px;font-weight:700;
-    color:var(--navy);
-    cursor:pointer;
-    white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis;
-    transition:border-color .16s ease, background-color .2s ease, color .2s ease;
-  }
-  .share-btn:hover{border-color:var(--navy);}
-  .share-btn:active{transform:scale(.97);}
-  .share-btn.done{
-    background:var(--blue);
-    border-color:var(--blue);
-    color:var(--white);
-  }
+/* ---------- Sklo ---------- */
+.glass{
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass{background:rgba(255,255,255,.92);}
+}
+@media (prefers-reduced-transparency:reduce){
+  .glass{background:rgba(255,255,255,.96);-webkit-backdrop-filter:none;backdrop-filter:none;}
+}
+@media (max-width:520px){
+  :root{--glass-blur: blur(14px) saturate(170%);}
+}
 
-  .player-chip{
-    display:flex;align-items:center;justify-content:space-between;
-    background:var(--white);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);
-  }
-  .player-chip .name{font-weight:700;}
-  .remove-btn{background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;line-height:1;}
-  /* Karta podle tiĹĄtÄnĂŠho originĂĄlu: bĂ­lĂĄ plocha s barevnou vlnou
-     nahoĹe i dole, text tmavÄ modrĂ˝ uprostĹed. */
-  .qcard{
-    border-radius:22px;
-    padding:74px 26px;
-    min-height:230px;
-    display:flex;align-items:center;justify-content:center;
-    text-align:center;
-    background:var(--white);
-    box-shadow:var(--shadow);
-    position:relative;
-    overflow:hidden;
-  }
-  .qcard .wave-band{
-    position:absolute;left:0;width:100%;height:74px;
-    display:block;pointer-events:none;
-  }
-  .qcard .wave-band.top{top:0;}
-  .qcard .wave-band.bottom{bottom:0;transform:scaleY(-1);}
-  .qcard-text{
-    font-family:'Baloo 2',sans-serif;
-    font-size:24px;font-weight:700;line-height:1.35;
-    position:relative;z-index:2;
-    color:var(--navy);
-  }
-  @media (max-width:380px){
-    .qcard{padding:62px 20px;min-height:210px;}
-    .qcard .wave-band{height:62px;}
-    .qcard-text{font-size:21px;}
-  }
-  /* Kostka: bĂ­lĂĄ krychliÄka s barevnĂ˝m koleÄkem uprostĹed. */
-  /* VzduĹĄnÄjĹĄĂ­ hernĂ­ obrazovka â skĂłre, kostka a tlaÄĂ­tko
-     majĂ­ mezi sebou prostor, aĹĽ nejsou natlaÄenĂŠ na sebe. */
-  .gap-after-score{height:42px;}
-  .die-area{margin-top:26px;gap:34px;}
-  @media (max-width:420px){
-    .gap-after-score{height:34px;}
-    .die-area{margin-top:18px;gap:28px;}
-  }
+/* ---------- Horní lišta ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 6px;
+}
+.topbar-inner{
+  display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;
+  border-radius:24px;padding:7px;min-height:54px;
+}
+.bar-side{display:flex;align-items:center;min-width:0;}
+.bar-right{justify-content:flex-end;}
+.bar-logo{
+  font-family:'Baloo 2',sans-serif;font-weight:800;font-size:23px;
+  letter-spacing:3px;line-height:1;padding:0 6px;
+}
+.bar-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  height:40px;padding:0 14px 0 5px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.9);
+  background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.70));
+  box-shadow:inset 0 1px 0 #fff, 0 3px 10px rgba(24,40,72,.12);
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--navy);
+  cursor:pointer;white-space:nowrap;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.bar-btn:active{transform:scale(.95);}
+.bar-ico{
+  width:30px;height:30px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--navy);color:#fff;font-size:15px;font-weight:700;line-height:1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+.bar-exit .bar-ico{background:linear-gradient(180deg,#F06A4A,var(--red-dark));}
+.bar-exit{color:var(--red-dark);}
+.bar-undo .bar-ico{background:linear-gradient(180deg,#4FB4CE,var(--blue-dark));font-size:17px;}
+.bar-right{gap:6px;}
+.bar-short{display:none;}
+/* Na úzkém displeji ustoupí logo a popisky se zkrátí, ať se nic nepřekrývá. */
+@media (max-width:440px){
+  .topbar-inner{grid-template-columns:auto 1fr;}
+  .bar-logo{display:none;}
+  .bar-long{display:none;}
+  .bar-short{display:inline;}
+}
+@media (max-width:330px){
+  .bar-label{display:none;}
+  .bar-btn{padding:0 5px;}
+}
 
-  .die{
-    width:86px;height:86px;border-radius:22px;
-    background:linear-gradient(150deg,#FFFFFF 0%,#F4EEE1 100%);
-    box-shadow:0 10px 24px rgba(24,40,72,.16), inset 0 -4px 0 rgba(24,40,72,.06);
-    display:flex;align-items:center;justify-content:center;
-    margin:0 auto;
-  }
-  .die .dot{
-    width:38px;height:38px;border-radius:50%;
-    box-shadow:inset 0 -3px 6px rgba(0,0,0,.12);
-    transition:background .09s linear;
-  }
+/* ---------- Přepínač jazyka (vlajky) ---------- */
+.lang-switch{
+  display:inline-flex;align-items:center;gap:3px;padding:3px;border-radius:999px;
+  background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 #fff, 0 3px 10px rgba(24,40,72,.10);
+  flex-shrink:0;
+}
+.lang-btn{
+  width:32px;height:32px;padding:0;border-radius:50%;border:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;opacity:.5;filter:saturate(.6);
+  transition:opacity .15s ease, filter .15s ease, box-shadow .15s ease;
+}
+.lang-btn svg{width:22px;height:15px;border-radius:3px;display:block;box-shadow:0 0 0 1px rgba(24,40,72,.15);}
+.lang-btn.active{opacity:1;filter:none;background:#fff;box-shadow:0 2px 6px rgba(24,40,72,.18);}
+.lang-btn:active{transform:scale(.92);}
+.hero{position:relative;}
+.lang-hero{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:5;}
 
-  /* ToÄenĂ­ bÄhem hodu */
-  .die.rolling{animation:die-roll .45s cubic-bezier(.45,.05,.55,.95) infinite;}
-  @keyframes die-roll{
-    0%  {transform:rotate(0deg)   scale(1)    translateY(0);}
-    25% {transform:rotate(90deg)  scale(1.08) translateY(-8px);}
-    50% {transform:rotate(180deg) scale(.96)  translateY(0);}
-    75% {transform:rotate(270deg) scale(1.08) translateY(-5px);}
-    100%{transform:rotate(360deg) scale(1)    translateY(0);}
-  }
+/* ---------- Úvodní hlavička ---------- */
+.hero{
+  width:100vw;margin-left:calc(50% - 50vw);
+  flex-shrink:0;animation:hero-in .5s ease both;
+}
+.hero-band{width:100%;line-height:0;}
+.hero-band .hero-waves{width:100%;display:block;height:78px;}
+.hero-band-sea .hero-waves{height:52px;}
+.hero-middle{
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(10px,4vw,34px);padding:18px 16px 14px;
+}
+.hero-titleblock{text-align:center;}
+.hero-title{
+  font-family:'Baloo 2',sans-serif;font-size:clamp(50px,13vw,80px);
+  font-weight:800;line-height:1;letter-spacing:clamp(4px,1.6vw,12px);white-space:nowrap;
+}
+.hero-sub{
+  font-size:clamp(11px,2.9vw,14px);font-weight:700;
+  letter-spacing:clamp(2px,.8vw,4px);color:var(--navy-soft);margin-top:8px;white-space:nowrap;
+}
+.hero-card{width:clamp(44px,12vw,70px);height:auto;flex-shrink:0;}
+@media (max-width:340px){ .hero-card{display:none;} }
+@keyframes hero-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
 
-  /* DosednutĂ­ na vĂ˝sledek */
-  .die.landed{animation:die-land .5s cubic-bezier(.2,1.5,.4,1) 1;}
-  @keyframes die-land{
-    0%  {transform:scale(1.18);}
-    45% {transform:scale(.94);}
-    75% {transform:scale(1.04);}
-    100%{transform:scale(1);}
-  }
+/* ---------- Obrazovka ---------- */
+.screen{
+  flex:1;display:flex;flex-direction:column;
+  padding:14px 18px calc(env(safe-area-inset-bottom,0px) + 72px);
+}
+.screen.anim{animation:fadeIn .28s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.screen-sea{
+  background:linear-gradient(180deg,var(--blue) 0%, var(--blue-dark) 140%);
+  width:100vw;margin-left:calc(50% - 50vw);
+  padding-top:22px;
+  padding-left:max(20px, calc(50vw - 240px));
+  padding-right:max(20px, calc(50vw - 240px));
+}
+.screen-sea .btn-glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.28));
+  color:var(--navy);
+  border-color:rgba(255,255,255,.7);
+}
+.screen-sea .rules-toggle{color:var(--white);}
 
-  /* Kdo si nepĹeje pohyb, dostane jen zmÄnu barvy. */
-  @media (prefers-reduced-motion:reduce){
-    .die.rolling,.die.landed{animation:none;}
-  }
-  .turn-banner{
-    text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;
-    color:var(--navy-soft);margin-bottom:14px;
-  }
-  .turn-banner b{color:var(--navy);}
-  .score-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
-  .score-chip{
-    flex-shrink:0;background:var(--white);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);
-    min-width:110px;
-    border:2px solid transparent;
-    transition:border-color .16s ease;
-  }
-  /* HrĂĄÄ na tahu: jen zvĂ˝raznÄnĂ˝ obrys */
-  .score-chip.active{border-color:var(--navy);}
-  .score-chip .pname{font-weight:700;font-size:13px;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .score-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
-  .score-dots{display:flex;gap:9px;align-items:center;}
+.title-lg{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:700;line-height:1.2;}
+.title-md{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:700;line-height:1.25;}
+.subtitle{color:var(--navy-soft);font-size:15px;line-height:1.5;margin-top:6px;}
+.center-text{text-align:center;}
+.spacer{flex:1;min-height:22px;}
+.stack{display:flex;flex-direction:column;gap:12px;}
+.stack-tight{gap:10px;}
+.row{display:flex;gap:10px;align-items:center;}
+.center-col{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;}
 
-  /* SkĂłre: kaĹždĂĄ barva mĂĄ dva sloty â tolik celĂ˝ch karet je tĹeba k vĂ˝hĹe.
-     PrĂĄzdnĂ˝ / poloviÄnĂ­ / plnĂ˝ slot je vidÄt na prvnĂ­ pohled. */
-  .score-color{display:flex;gap:3px;align-items:center;}
-  .score-color .slot{
-    width:13px;height:17px;border-radius:4px;
-    background:transparent;
-    border:2px solid var(--c);
-    opacity:.3;
-    position:relative;overflow:hidden;
-    transition:opacity .2s ease, background-color .2s ease;
-  }
-  .score-color .slot.filled{background:var(--c);opacity:1;}
-  .score-color .slot.halffull{opacity:1;}
-  .score-color .slot.halffull::after{
-    content:"";position:absolute;left:0;right:0;bottom:0;height:50%;
-    background:var(--c);
-  }
-  .score-color .slot-extra{font-size:10.5px;font-weight:700;margin-left:1px;}
+/* ---------- Tlačítka ---------- */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:54px;padding:13px 22px;
+  border:1px solid transparent;border-radius:999px;
+  font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:700;line-height:1.2;
+  text-align:center;cursor:pointer;
+  transition:transform .12s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none;}
+.btn-primary{
+  background:linear-gradient(180deg,#2C4370 0%, var(--navy) 100%);
+  color:#fff;border-color:rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 8px 20px rgba(24,40,72,.28);
+}
+.btn-glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.58));
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  color:var(--navy);border-color:rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 #fff, 0 6px 18px rgba(24,40,72,.10);
+}
+.btn-red{
+  background:linear-gradient(180deg,#F26A49 0%, var(--red) 55%, var(--red-dark) 100%);
+  color:#fff;border-color:rgba(255,255,255,.25);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 8px 20px rgba(233,80,46,.30);
+}
+.btn-blue{
+  background:linear-gradient(180deg,#5CC2DA 0%, #39A8C5 50%, #237F99 100%);
+  color:#fff;border-color:rgba(255,255,255,.3);text-shadow:0 1px 2px rgba(10,60,80,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 8px 20px rgba(46,151,179,.30);
+}
+.btn-yellow{
+  background:linear-gradient(180deg,#FFDA55 0%, var(--yellow) 60%, #E6B000 100%);
+  color:var(--navy);border-color:rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 8px 20px rgba(230,176,0,.30);
+}
+.btn-ghost{
+  background:transparent;color:var(--navy-soft);font-weight:600;
+  min-height:44px;padding:8px;text-decoration:underline;text-underline-offset:3px;
+}
+.btn-sm{min-height:46px;font-size:15.5px;padding:10px 16px;}
+.btn-auto{width:auto;flex-shrink:0;}
+.soft-link{
+  background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.8);
+  border-radius:999px;padding:9px 16px;cursor:pointer;
+  font-weight:600;font-size:14px;color:var(--navy-soft);
+}
 
-  /* Odchod ze hry â nenĂĄpadnĂ˝ odkaz dole */
-  .exit-wrap{
-    display:flex;justify-content:center;
-    margin-top:34px;
-  }
-  .exit-btn{
-    background:none;border:none;
-    font-family:'Inter',sans-serif;
-    font-size:13.5px;font-weight:500;
-    color:var(--navy-soft);
-    opacity:.6;
-    text-decoration:underline;
-    text-underline-offset:3px;
-    padding:8px 12px;
-    cursor:pointer;
-    transition:opacity .16s ease;
-  }
-  .exit-btn:hover{opacity:1;}
+/* ---------- Vstupy ---------- */
+.card-input{
+  width:100%;padding:14px 18px;border-radius:18px;
+  border:1px solid rgba(24,40,72,.12);
+  background:rgba(255,255,255,.82);
+  font-size:16px;color:var(--navy);
+  box-shadow:inset 0 1px 2px rgba(24,40,72,.06);
+}
+.card-input:focus{outline:none;border-color:var(--navy);background:#fff;}
+.code-input{text-transform:uppercase;letter-spacing:3px;text-align:center;font-weight:700;}
+.remove-btn{
+  width:40px;height:40px;flex-shrink:0;border-radius:50%;
+  background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.9);
+  color:var(--red-dark);font-size:16px;cursor:pointer;
+}
 
-  .guess-row{
-    display:flex;align-items:center;justify-content:space-between;
-    background:var(--white);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);
-  }
-  .toggle{
-    width:46px;height:28px;border-radius:14px;background:#E4DCC9;position:relative;cursor:pointer;flex-shrink:0;
-    transition:background .15s ease;
-  }
-  .toggle.on{background:var(--navy);}
-  .toggle::after{
-    content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
-    background:var(--white);transition:transform .15s ease;
-  }
-  .toggle.on::after{transform:translateX(18px);}
-  .color-pick{display:flex;gap:10px;justify-content:center;margin-top:8px;}
-  .color-dot-btn{
-    width:44px;height:44px;border-radius:50%;border:3px solid transparent;cursor:pointer;
-  }
-  .color-dot-btn.selected{border-color:var(--navy);}
-  .color-dot-btn.c-red{background:var(--red);}
-  .color-dot-btn.c-yellow{background:var(--yellow);}
-  .color-dot-btn.c-blue{background:var(--blue);}
-  /* DomovskĂĄ obrazovka: moĹe pokraÄuje aĹž ke spodnĂ­mu okraji.
-     Vlnky a plovoucĂ­ karty zaplnĂ­ prĂĄzdnou plochu dole. */
-  .screen-sea{
-    background-color:var(--blue);
-    position:relative;
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    padding-left:max(22px, calc(50vw - 238px));
-    padding-right:max(22px, calc(50vw - 238px));
-    overflow:hidden;
-  }
-  .screen-sea::after{
-    content:"";
-    position:absolute;left:0;right:0;bottom:0;height:230px;
-    pointer-events:none;
-    background-repeat:no-repeat;
-    background-size:100% 100%;
-    background-image:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 230' preserveAspectRatio='none'>\
-<g fill='none' stroke='%23ffffff' stroke-linecap='round'>\
-<path d='M0,40 C130,18 250,58 380,36 C440,26 490,40 520,32' stroke-opacity='.14' stroke-width='6'/>\
-<path d='M0,92 C120,70 260,110 380,88 C445,76 490,92 520,84' stroke-opacity='.11' stroke-width='6'/>\
-<path d='M0,146 C140,124 250,164 390,142 C450,132 495,146 520,138' stroke-opacity='.09' stroke-width='6'/>\
-<path d='M0,198 C130,178 255,214 385,194 C447,184 494,196 520,190' stroke-opacity='.07' stroke-width='6'/>\
-</g></svg>");
-  }
-  .screen-sea > *{position:relative;z-index:1;}
+/* ---------- Místnost ---------- */
+.code-display{
+  font-family:'Baloo 2',sans-serif;font-size:38px;font-weight:800;
+  letter-spacing:8px;text-align:center;border-radius:var(--radius);padding:16px;
+}
+.share-row{display:flex;gap:10px;justify-content:center;margin-top:12px;}
+.share-btn{
+  flex:1;max-width:200px;border-radius:999px;padding:11px 10px;
+  font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;color:var(--navy);
+  cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.share-btn.done{background:var(--blue-dark);color:#fff;}
+.player-chip{
+  display:flex;align-items:center;justify-content:space-between;
+  border-radius:18px;padding:12px 16px;
+}
+.player-chip .name{font-weight:700;}
+.badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;}
+.badge.you{background:var(--navy);color:#fff;}
+.badge.host{background:var(--navy-soft);color:#fff;}
 
-  /* TlaÄĂ­tka na hladinÄ: bez obrysu, s mÄkkĂ˝m stĂ­nem jako karty na vodÄ */
-  .screen-sea .btn-secondary{border:none;box-shadow:0 8px 18px rgba(10,60,80,.20);}
-  .screen-sea .btn-primary{box-shadow:0 8px 18px rgba(10,60,80,.28);}
-  .screen-sea .rules-toggle{color:var(--white);}
-  .screen-sea .rules-step-text{color:var(--navy-soft);}
+/* ---------- Hra: hlavička a skóre ---------- */
+.turn-banner{
+  text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;
+  color:var(--navy-soft);margin:4px 0 10px;
+}
+.turn-banner b{color:var(--navy);}
+.score-row{
+  display:flex;gap:8px;overflow-x:auto;
+  /* vnitřní odsazení, aby se stíny kartiček neořezávaly */
+  padding:6px 18px 14px;margin:0 -18px -6px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+}
+.score-chip{
+  flex-shrink:0;border-radius:18px;padding:9px 13px;min-width:108px;
+  scroll-snap-align:start;transition:box-shadow .2s ease;
+  /* v posuvném řádku bez rozmazání — rychlejší a bez pruhu v pozadí */
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  background:linear-gradient(140deg, rgba(255,255,255,.9), rgba(255,255,255,.72));
+  box-shadow:inset 0 1px 0 #fff, 0 4px 12px rgba(24,40,72,.08);
+}
+.score-chip.active{
+  box-shadow:inset 0 0 0 2px var(--navy), inset 0 1px 0 #fff, 0 5px 14px rgba(24,40,72,.14);
+}
+.score-chip.offline{opacity:.55;}
+.score-chip .pname{font-weight:700;font-size:13px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.score-dots{display:flex;gap:8px;align-items:center;}
+.score-color{display:flex;gap:3px;align-items:center;}
+.score-color .slot{
+  width:12px;height:16px;border-radius:4px;border:2px solid var(--c);
+  opacity:.3;position:relative;overflow:hidden;
+}
+.score-color .slot.filled{background:var(--c);opacity:1;}
+.score-color .slot.halffull{opacity:1;}
+.score-color .slot.halffull::after{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;background:var(--c);}
+.score-color .slot-extra{font-size:10.5px;font-weight:700;margin-left:1px;}
 
-  /* Pravidla schovanĂĄ pod rozbalovacĂ­m odkazem */
-  .rules{margin-top:14px;}
-  .rules-toggle{
-    display:flex;align-items:center;justify-content:center;gap:7px;
-    width:100%;
-    background:none;border:none;
-    font-family:'Baloo 2',sans-serif;
-    font-size:16px;font-weight:700;
-    color:var(--navy-soft);
-    padding:12px;cursor:pointer;
-  }
-  .rules-chevron{
-    display:inline-block;
-    font-size:19px;line-height:1;
-    transition:transform .22s ease;
-  }
-  .rules-toggle.open .rules-chevron{transform:rotate(180deg);}
-  .rules-body{
-    background:var(--white);
-    border-radius:16px;
-    padding:16px 18px;
-    box-shadow:var(--shadow);
-    animation:rules-in .22s ease both;
-  }
-  @keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
-  .rules-step{display:flex;gap:12px;align-items:flex-start;}
-  .rules-step + .rules-step{margin-top:14px;}
-  .rules-num{
-    flex-shrink:0;
-    width:26px;height:26px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;
-    color:var(--white);
-  }
-  .rules-step-title{font-weight:700;font-size:14.5px;color:var(--navy);}
-  .rules-step-text{font-size:13.5px;line-height:1.45;color:var(--navy-soft);margin-top:2px;}
-  @media (prefers-reduced-motion:reduce){
-    .rules-body{animation:none;}
-    .rules-chevron{transition:none;}
-  }
+/* ---------- Kostky ---------- */
+.die-area{margin-top:6px;gap:22px;}
+.dice-pair{display:flex;gap:22px;justify-content:center;}
+.die{
+  width:84px;height:84px;border-radius:24px;
+  background:linear-gradient(150deg,rgba(255,255,255,.95) 0%, rgba(244,238,225,.85) 100%);
+  border:1px solid rgba(255,255,255,.95);
+  box-shadow:inset 0 1px 0 #fff, inset 0 -4px 0 rgba(24,40,72,.06), 0 12px 26px rgba(24,40,72,.16);
+  display:flex;align-items:center;justify-content:center;
+}
+.die .dot{
+  width:38px;height:38px;border-radius:50%;
+  box-shadow:inset 0 -4px 6px rgba(0,0,0,.14), inset 0 3px 4px rgba(255,255,255,.45);
+  transition:background .09s linear;
+}
+.die.rolling{animation:die-roll .45s cubic-bezier(.45,.05,.55,.95) infinite;}
+@keyframes die-roll{
+  0%{transform:rotate(0) scale(1) translateY(0);}
+  25%{transform:rotate(90deg) scale(1.08) translateY(-8px);}
+  50%{transform:rotate(180deg) scale(.96) translateY(0);}
+  75%{transform:rotate(270deg) scale(1.08) translateY(-5px);}
+  100%{transform:rotate(360deg) scale(1) translateY(0);}
+}
+.die.landed{animation:die-land .5s cubic-bezier(.2,1.5,.4,1) 1;}
+@keyframes die-land{0%{transform:scale(1.18);}45%{transform:scale(.94);}75%{transform:scale(1.04);}100%{transform:scale(1);}}
+.roll-summary{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:14px;color:var(--navy-soft);font-weight:600;margin:-4px 0 12px;
+}
+.roll-dot{display:inline-block;width:14px;height:14px;border-radius:5px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.12);}
+.roll-note{font-weight:500;}
 
-  .banner-info{
-    background:var(--white);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);
-    font-size:14.5px;color:var(--navy-soft);line-height:1.5;
-  }
-  .banner-info b{color:var(--navy);}
-  .center-col{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;}
-  .win-crown{font-size:64px;}
+/* ---------- Karta otázky (podle tištěného originálu) ---------- */
+.qcard{
+  border-radius:26px;padding:58px 24px;min-height:200px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  background:#fff;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.95);
+  box-shadow:0 0 0 5px rgba(255,255,255,.45), 0 14px 34px rgba(24,40,72,.14);
+}
+.qcard .wave-band{position:absolute;left:0;width:100%;height:56px;display:block;pointer-events:none;}
+.qcard .wave-band.top{top:0;}
+.qcard .wave-band.bottom{bottom:0;transform:scaleY(-1);}
+.qcard-text{
+  font-family:'Baloo 2',sans-serif;font-size:23px;font-weight:700;line-height:1.32;
+  position:relative;z-index:2;color:var(--navy);overflow-wrap:anywhere;
+}
+@media (max-width:380px){
+  .qcard{padding:50px 18px;min-height:180px;}
+  .qcard .wave-band{height:48px;}
+  .qcard-text{font-size:20px;}
+}
+.qcard-final{padding:96px 24px;min-height:310px;}
+.qcard-final .wave-band{height:80px;}
+.qcard-final .qcard-text{font-size:21px;}
+.qcard-note{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;color:var(--navy-soft);line-height:1.5;margin-top:12px;}
 
-  /* ZĂĄvÄreÄnĂĄ karta vĂ­tÄze â nese vĹĄechny barvy hry */
-  .qcard-final{
-    padding:104px 26px;
-    min-height:330px;
-  }
-  .qcard-final .wave-band{height:84px;}
-  .qcard-final .qcard-text{font-size:21px;}
-  .qcard-note{
-    font-family:'Inter',sans-serif;
-    font-size:13.5px;font-weight:500;
-    color:var(--navy-soft);
-    line-height:1.5;
-    margin-top:12px;
-  }
-  @media (max-width:380px){
-    .qcard-final{padding:88px 20px;min-height:300px;}
-    .qcard-final .wave-band{height:70px;}
-    .qcard-final .qcard-text{font-size:18.5px;}
-  }
+/* ---------- Informační bloky a panely ---------- */
+.banner-info{
+  border-radius:20px;padding:14px 18px;
+  font-size:14.5px;color:var(--navy-soft);line-height:1.5;
+}
+.banner-info b{color:var(--navy);}
+.panel{border-radius:var(--radius);padding:16px 18px;}
+.panel-accent{box-shadow:inset 0 0 0 2px rgba(243,135,63,.55), var(--glass-shadow);}
+.panel-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;}
+.panel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.panel-row .subtitle{font-size:13.5px;}
 
-  .link-btn{background:none;border:none;color:var(--navy-soft);text-decoration:underline;cursor:pointer;font-size:14px;font-family:'Inter',sans-serif;}
-  .badge{
-    display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;
-  }
-  .badge.you{background:var(--navy);color:var(--cream);}
-  .waiting-dots span{animation:blink 1.4s infinite;opacity:.2;}
-  .waiting-dots span:nth-child(2){animation-delay:.2s;}
-  .waiting-dots span:nth-child(3){animation-delay:.4s;}
-  @keyframes blink{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
-  ::-webkit-scrollbar{display:none;}
+/* řádky se jmény (kolečko, hádání, odhalení) */
+.guess-row{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-radius:18px;padding:11px 16px;font-weight:600;
+}
+.round-status{font-size:13.5px;color:var(--navy-soft);font-weight:600;white-space:nowrap;}
+.round-row.now{box-shadow:inset 4px 0 0 var(--c), inset 0 0 0 2px var(--c), var(--glass-shadow);}
+.round-row.now .round-status{color:var(--navy);}
+.round-row.ok .round-status{color:#2F8A4E;}
+.round-row.no .round-status{color:var(--red-dark);}
+.reveal-row.ok{box-shadow:inset 0 0 0 2px var(--blue), var(--glass-shadow);}
+.reveal-row.ok .round-status{color:var(--blue-dark);}
+.reveal-name{font-weight:700;}
+.reveal-guess{font-size:13px;font-weight:500;color:var(--navy-soft);margin-top:2px;}
+.award-pick{padding:0 0 4px;}
 
-  /* ---------- Dvojitý hod ---------- */
-  .dice-pair{display:flex;gap:22px;justify-content:center;}
-  .dice-pair .die{margin:0;}
-  .roll-summary{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    font-size:14px;color:var(--navy-soft);font-weight:600;
-    margin:-6px 0 14px;
-  }
-  .roll-dot{display:inline-block;width:14px;height:14px;border-radius:5px;}
-  .roll-note{font-weight:500;}
+/* možnosti u modré karty */
+.option-btn{
+  display:flex;align-items:center;gap:12px;width:100%;
+  border-radius:20px;padding:12px 16px;cursor:pointer;text-align:left;
+  font-size:16px;font-weight:600;color:var(--navy);
+  transition:transform .12s ease, box-shadow .15s ease;
+}
+.option-btn:active{transform:scale(.98);}
+.option-btn.selected{box-shadow:inset 0 0 0 2.5px var(--blue-dark), var(--glass-shadow);}
+.opt-num{
+  width:32px;height:32px;flex-shrink:0;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#7DD3E7,var(--blue-dark));color:#fff;
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.option-btn.selected .opt-num{background:var(--navy);}
+.opt-text{flex:1;overflow-wrap:anywhere;}
 
-  /* ---------- Žlutá otázka: pořadí odpovídajících ---------- */
-  .yellow-row{transition:border-color .2s;}
-  .yellow-row .yellow-status{font-size:14px;color:var(--navy-soft);font-weight:600;white-space:nowrap;margin-left:10px;}
-  .yellow-row.now{box-shadow:inset 0 0 0 2px var(--yellow);}
-  .yellow-row.now .yellow-status{color:var(--navy);}
-  .yellow-row.ok .yellow-status{color:#A8850A;}
-  .yellow-row.no .yellow-status{color:var(--red-dark);}
+/* předání zařízení */
+.handoff{
+  border-radius:var(--radius);padding:22px 18px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.handoff-ico{font-size:34px;line-height:1;margin-bottom:6px;}
+
+/* výběr barvy — lesklé kuličky */
+.color-pick{display:flex;gap:14px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.color-dot-btn{
+  width:48px;height:48px;border-radius:50%;cursor:pointer;
+  border:2px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 -5px 8px rgba(0,0,0,.15), inset 0 4px 6px rgba(255,255,255,.5), 0 6px 14px rgba(24,40,72,.16);
+  transition:transform .12s ease, box-shadow .15s ease;
+}
+.color-dot-btn:active{transform:scale(.92);}
+.color-dot-btn.selected{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--navy), inset 0 -5px 8px rgba(0,0,0,.15);}
+.color-dot-btn.c-red{background:var(--red);}
+.color-dot-btn.c-yellow{background:var(--yellow);}
+.color-dot-btn.c-blue{background:var(--blue);}
+
+/* ---------- Pravidla na úvodní obrazovce ---------- */
+.rules{margin-top:12px;}
+.rules-toggle{
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  background:none;border:none;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;
+  color:var(--navy-soft);padding:12px;cursor:pointer;
+}
+.rules-chevron{display:inline-block;font-size:19px;line-height:1;transition:transform .22s ease;}
+.rules-toggle.open .rules-chevron{transform:rotate(180deg);}
+.rules-body{border-radius:var(--radius);padding:16px 18px;animation:rules-in .22s ease both;}
+@keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.rules-step{display:flex;gap:12px;align-items:flex-start;}
+.rules-step + .rules-step{margin-top:13px;}
+.rules-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:#fff;
+}
+.rules-step-title{font-weight:700;font-size:14.5px;color:var(--navy);}
+.rules-step-text{font-size:13.5px;line-height:1.45;color:var(--navy-soft);margin-top:2px;}
+
+/* ---------- Konec hry ---------- */
+.win-crown{font-size:60px;line-height:1;}
+
+/* ---------- Hra pro jednoho ---------- */
+.solo-head{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 12px;}
+.solo-kind{
+  display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;
+  background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.85);
+  border-radius:999px;padding:6px 13px 6px 9px;
+}
+.solo-kind::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c);}
+.solo-count{font-size:14px;font-weight:600;color:var(--navy-soft);}
+.solo-nav > .btn{flex:1;}
+.solo-colors > .btn{flex:1;padding-left:8px;padding-right:8px;}
+
+/* ---------- Nápověda „roluj níž" ---------- */
+.scroll-hint{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:30;
+  transform:translate(-50%, 16px);opacity:0;pointer-events:none;
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:999px;padding:9px 16px 9px 10px;cursor:pointer;
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14.5px;color:var(--navy);
+  white-space:nowrap;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.scroll-hint.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+.scroll-hint-arrow{
+  width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;font-size:15px;
+  animation:hint-bob 1.6s ease-in-out infinite;
+}
+@keyframes hint-bob{0%,100%{transform:translateY(-1px);}50%{transform:translateY(3px);}}
+
+/* ---------- Čekací tečky ---------- */
+.waiting-dots span{animation:blink 1.4s infinite;opacity:.2;}
+.waiting-dots span:nth-child(2){animation-delay:.2s;}
+.waiting-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
+
+::-webkit-scrollbar{display:none;}
+
+@media (prefers-reduced-motion:reduce){
+  .hero,.screen.anim,.rules-body,.die.rolling,.die.landed,.scroll-hint-arrow,.waiting-dots span{animation:none;}
+  .rules-chevron,.scroll-hint{transition:none;}
+}

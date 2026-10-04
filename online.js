@@ -40,10 +40,11 @@ function normalizeRoom(raw){
   room.lastRoll = Array.isArray(raw.lastRoll) ? raw.lastRoll : null;
   room.pendingColor = raw.pendingColor || null;   // otázka čekající po kartě šance
   room.extraTurn = !!raw.extraTurn;                // „Jedeš ještě jednou"
-  room.yellow = raw.yellow && raw.yellow.order ? {
-    order: raw.yellow.order,
-    current: raw.yellow.current || null,
-    answered: raw.yellow.answered || {}
+  room.round = raw.round && raw.round.order ? {
+    color: raw.round.color,
+    order: raw.round.order,
+    current: raw.round.current || null,
+    answered: raw.round.answered || {}
   } : null;
   room.finalDone = !!raw.finalDone;         // vítěz už položil závěrečnou otázku
   room.votes = raw.votes || {};             // playerId -> index zvolené možnosti
@@ -76,7 +77,7 @@ function roomToFirebase(room){
     lastRoll: room.lastRoll || null,
     pendingColor: room.pendingColor || null,
     extraTurn: !!room.extraTurn,
-    yellow: room.yellow || null,
+    round: room.round || null,
     currentCard: room.currentCard,
     decks: room.decks,
     winnerId: room.winnerId,
@@ -137,6 +138,8 @@ const Online = {
   /* ---------- REALTIME SYNC (nahrazuje polling) ---------- */
   startSync(code){
     Store.mode = 'online';
+    Online.lastSynced = null;
+    History.reset();
     Store.roomCode = code;
     FlowNet.listenToRoom(code, (raw)=>{
       // REMOTE UPDATE — pouze lokální state + render, žádný zápis zpět.
@@ -144,19 +147,28 @@ const Online = {
         // místnost zmizela (host ji ukončil)
         FlowNet.stopListening();
         Online.forgetSession();
-        alert('Místnost byla ukončena.');
+        alert(t('room_ended'));
         resetAppState();
         render();
         return;
       }
-      const room = normalizeRoom(raw);
-      state.room = room;
+      Online.lastSynced = raw;
+      // Herní stav dostane vlastní kopii — jinak by úpravy během tahu
+      // měnily i „poslední známý stav" a změny by se neodeslaly.
+      const room = normalizeRoom(JSON.parse(JSON.stringify(raw)));
+      const prevScreen = state.screen;
       if(room.phase === 'lobby'){
-        if(state.screen !== 'lobby'){ state.screen = 'lobby'; }
-      } else if(state.screen === 'lobby' || state.screen === 'joinRoom' || state.screen === 'setupHost'){
+        state.screen = 'lobby';
+      } else if(state.screen !== 'game'){
+        // Hra běží (i po návratu po obnovení stránky) -> herní obrazovka.
         state.screen = 'game';
       }
-      render();
+      if(room.phase !== 'lobby') History.record(room);
+      // Vlastní zápis se vrací jako stejný stav, jaký už je vykreslený —
+      // pak není potřeba překreslovat (méně práce, žádné poblikávání).
+      const same = state.room && prevScreen===state.screen && stableStr(room)===stableStr(state.room);
+      state.room = room;
+      if(!same) render();
     });
   },
 
@@ -177,9 +189,12 @@ const Online = {
       'lastRoll': room.lastRoll || null,
       'pendingColor': room.pendingColor || null,
       'extraTurn': !!room.extraTurn,
-      'yellow': room.yellow || null,
+      'round': room.round || null,
       'currentCard': room.currentCard,
-      'decks': room.decks,
+      'decks/red': room.decks.red,
+      'decks/blue': room.decks.blue,
+      'decks/yellow': room.decks.yellow,
+      'decks/chance': room.decks.chance,
       'winnerId': room.winnerId,
       'votes': room.votes || {},
       'awardColors': room.awardColors || {},
@@ -190,20 +205,45 @@ const Online = {
       changes['players/'+p.id+'/full'] = p.full;
       changes['players/'+p.id+'/skipNext'] = !!p.skipNext;
     });
+    // Posíláme jen to, co se oproti poslednímu stavu z databáze změnilo
+    // (např. balíčky karet se mění jen při tažení) — menší a rychlejší zápis.
+    const base = Online.lastSynced;
+    if(base){
+      for(const path in changes){
+        const v = changes[path];
+        const now = path.split('/').reduce((o,k)=> (o && typeof o==='object') ? o[k] : undefined, base);
+        const same = (path.endsWith('skipNext') || path==='extraTurn' || path==='finalDone')
+          ? (!!now === !!v)
+          : stableStr(now) === stableStr(v);
+        if(same) delete changes[path];
+      }
+    }
+    if(!Object.keys(changes).length) return;
+    // Zapsané hodnoty si hned promítneme do posledního známého stavu,
+    // aby rychle za sebou jdoucí akce porovnávaly se správnými daty.
+    if(base){
+      for(const path in changes){
+        const keys = path.split('/');
+        let o = base;
+        for(let i=0;i<keys.length-1;i++){
+          if(!o[keys[i]] || typeof o[keys[i]]!=='object') o[keys[i]] = {};
+          o = o[keys[i]];
+        }
+        o[keys[keys.length-1]] = changes[path];
+      }
+    }
     await FlowNet.updateRoom(room.code, changes);
   },
 
-  /* Žlutá otázka: odpověď hráče, který NENÍ na tahu.
-     Zapisuje jen svou odpověď, posun kola a své vlastní karty. */
-  async pushYellowAnswer(room, player){
+  /* Kolečko odpovědí: odpověď hráče, který NENÍ na tahu.
+     Zapisuje jen svou odpověď, posun kolečka a své vlastní karty. */
+  async pushRoundAnswer(room, player){
     const changes = {
-      'yellow/current': room.yellow.current,
-      ['yellow/answered/'+player.id]: !!room.yellow.answered[player.id]
+      'round/current': room.round.current,
+      ['round/answered/'+player.id]: !!room.round.answered[player.id],
+      ['players/'+player.id+'/halves']: player.halves,
+      ['players/'+player.id+'/full']: player.full
     };
-    if(player){
-      changes['players/'+player.id+'/halves'] = player.halves;
-      changes['players/'+player.id+'/full'] = player.full;
-    }
     await FlowNet.updateRoom(room.code, changes);
   },
 
@@ -251,8 +291,8 @@ const Online = {
         return false;
       }
       state.myPlayerId = myUid;
-      await FlowNet.setupDisconnect(saved.code);
       Online.startSync(saved.code);
+      FlowNet.setupDisconnect(saved.code).catch(e=>console.error('disconnect setup', e));
       return true;
     }catch(e){
       console.error('reconnect failed', e);

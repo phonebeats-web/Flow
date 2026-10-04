@@ -33,15 +33,17 @@ function freshDecks(){
   };
 }
 
-function drawFrom(room, colorKey){
-  const source = colorKey==='chance' ? CHANCE_CARDS : QUESTIONS[colorKey];
+/* Vytáhne kartu a vrátí její ČÍSLO (index). Text si každé zařízení
+   dosadí samo ve zvoleném jazyce (viz i18n.js) — po síti jde jen číslo. */
+function drawIndex(room, colorKey){
+  const len = colorKey==='chance' ? CHANCE_CARDS.length : QUESTIONS[colorKey].length;
   let deck = room.decks[colorKey];
   if(!deck || deck.length===0){
-    deck = indexList(source.length);
+    deck = indexList(len);
   }
   const idx = deck[deck.length-1];
   room.decks[colorKey] = deck.slice(0, deck.length-1);
-  return source[idx];
+  return idx;
 }
 
 function newPlayer(id, name){
@@ -86,7 +88,8 @@ function advanceTurn(room){
   room.phase = 'idle';
   room.currentCard = null;
   room.pendingColor = null;
-  room.yellow = null;
+  room.round = null;
+  room.blueTurn = null;
   room.votes = {};
   room.awardColors = {};
 
@@ -115,9 +118,10 @@ function evaluateRoll(first, second){
   return { color:first, isDouble: first===second };
 }
 
-/* Pořadí hráčů pro žlutou otázku: začíná hráč na tahu,
-   pak ostatní ve směru hry. */
-function yellowOrder(room){
+/* Pořadí hráčů od hráče na tahu ve směru hry (hráč na tahu je první).
+   Používá se pro „kolečko" odpovědí (žlutá, červená pro všechny)
+   i pro hádání modré na jednom zařízení. */
+function turnOrder(room){
   const n = room.players.length;
   const order = [];
   for(let k=0;k<n;k++){
@@ -127,12 +131,37 @@ function yellowOrder(room){
   return order;
 }
 
-/* Další hráč v pořadí žluté otázky (po posledním se vrací k tomu,
-   kdo kartu vytáhl). */
-function yellowNextId(room){
-  const y = room.yellow;
-  const i = y.order.indexOf(y.current);
-  return y.order[(i+1) % y.order.length];
+/* Kolečko odpovědí: všichni odpovídají postupně, začíná hráč na tahu. */
+function startRound(room, color){
+  const order = turnOrder(room);
+  room.round = { color, order, current: order[0], answered: {} };
+  room.phase = 'answer-round';
+}
+
+/* Další hráč v kolečku (po posledním se vrací k tomu, kdo kartu vytáhl). */
+function roundNextId(room){
+  const r = room.round;
+  const i = r.order.indexOf(r.current);
+  return r.order[(i+1) % r.order.length];
+}
+
+/* Hráč má na začátku tahu od některé barvy aspoň 3 celé karty
+   -> smí vyměnit 2 z nich za 1 kartu jiné barvy. */
+function exchangeColors(player){
+  return ['red','yellow','blue'].filter(c=>player.full[c]>=3);
+}
+
+/* JSON se seřazenými klíči a bez prázdných hodnot — slouží k porovnání
+   stavů (krok zpět, úspora zápisů a překreslování). */
+function stableStr(v){
+  if(v===null || v===undefined) return 'null';
+  if(Array.isArray(v)) return '['+v.map(stableStr).join(',')+']';
+  if(typeof v==='object'){
+    const keys = Object.keys(v).filter(k=>v[k]!==null && v[k]!==undefined).sort();
+    if(!keys.length) return 'null';
+    return '{'+keys.map(k=>JSON.stringify(k)+':'+stableStr(v[k])).join(',')+'}';
+  }
+  return JSON.stringify(v);
 }
 
 /* Ukončení hry. Hráč na tahu se přepne na vítěze, aby vítěz mohl
@@ -153,9 +182,3 @@ function resolveWin(room, preferred){
   return false;
 }
 
-function chanceEffectKey(text){
-  const found = CHANCE_CARDS.find(c=>c.text===text);
-  return found ? found.key : null;
-}
-
-function labelColor(c){ return c==='red'?'červená':c==='blue'?'modrá':'žlutá'; }

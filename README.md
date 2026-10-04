@@ -1,4 +1,4 @@
-# FLOU — online verze (V3)
+# FLOU — online verze (V5)
 
 Karetní diskusní hra FLOU jako webová aplikace. Funguje lokálně na jednom
 zařízení i online mezi více zařízeními přes kód místnosti.
@@ -8,7 +8,9 @@ zařízení i online mezi více zařízeními přes kód místnosti.
 ```
 index.html            spojuje vše dohromady
 style.css             vzhled
-data.js               karty: 101 červených, 101 modrých, 101 žlutých, 23 šancí
+data.js               karty česky: 101 červených, 101 modrých, 101 žlutých, 23 šancí
+data_en.js            tytéž karty anglicky (stejné pořadí)
+i18n.js               texty rozhraní CZ/EN, volba jazyka, texty karet
 engine.js             ČISTÁ herní logika — bez DOM, bez Firebase, běží i offline
 firebase.js           JEDINÉ místo, které zná Firebase API
 online.js             online režim: místnosti, realtime sync, reconnect
@@ -17,30 +19,55 @@ app.js                stav aplikace, local mode, herní akce
 firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahrát do konzole!)
 ```
 
+## Jazyky (čeština / angličtina)
+
+- Jazyk patří **zařízení**, ne hře — přepíná se vlajkou nahoře kdykoli,
+  i uprostřed tahu (hodí se, když se u jednoho zařízení střídají Češi a angličtináři).
+- Online si každý hráč volí jazyk na svém zařízení. Karty se po síti posílají
+  jen jako **čísla**, takže každý vidí otázky ve svém jazyce.
+- Odpovědi, které hráči sami napíšou u modré karty, zůstávají tak, jak byly napsány.
+- Při první návštěvě se jazyk odhadne podle prohlížeče (čeština/slovenština → CZ,
+  jinak EN), pak se pamatuje.
+- Nový text přidáš do obou částí slovníku v `i18n.js`; nové otázky na stejné místo
+  v `data.js` i `data_en.js`.
+
+## Režimy
+
+- **Jedno zařízení** — hráči si zařízení podávají. Na začátku tahu může kdokoli
+  hru opustit (jen při 3 a více hráčích).
+- **Online** — každý na svém zařízení, připojení kódem nebo odkazem.
+- **Hrát sám** — jen otázky k zamyšlení: bez kostky, karet šance, bodů a hádání.
+  Lze táhnout náhodnou otázku nebo zvolit barvu a vracet se k předchozím.
+
 ## Pravidla hry (jak je hra implementuje)
 
 - Hráč hází **dvakrát** kostkou se třemi barvami (červená, modrá, žlutá).
   Rozdílné barvy → otázka **první** barvy. Dvě stejné → nejdřív **karta šance**,
   pak (pokud to karta dovolí) otázka té barvy.
+- **Směna na začátku tahu:** kdo má od jedné barvy aspoň 3 celé karty, může
+  2 z nich vyměnit za 1 kartu jiné barvy. Jinak se možnost nezobrazuje.
 - **Červená** (hluboké otázky): odpovídá jen ten, kdo kartu vytáhl. Ostatní se
   mohou doptat. Odpoví → celá červená karta, neodpoví → ztrácí červenou.
-- **Modrá** (hádání): hráč vymyslí 3 odpovědi (1 pravdivá). Kdo uhodne, bere
-  půl karty barvy dle svého výběru. Hráč na tahu bere celou modrou.
-- **Žlutá** (názorové otázky): odpovídají postupně všichni, začíná ten, kdo kartu
-  vytáhl, pak ostatní ve směru hry. Kdo neodpoví, ztrácí žlutou kartu (má-li ji).
-  Když kolo dojde zpět k tomu, kdo kartu vytáhl, bere celou žlutou kartu.
-  Když neodpoví hned na začátku ten, kdo kartu vytáhl, ztrácí žlutou a kolo končí.
+- **Modrá** (hádání): hráč napíše 3 odpovědi a v dalším kroku označí pravdivou.
+  Na jednom zařízení pak zařízení koluje — každý hádá zvlášť (předchozí volby
+  nevidí) — a vrací se k autorovi, který vyhodnotí. Online hádají všichni najednou.
+  Kdo uhodne, bere půl karty barvy dle výběru, autor bere celou modrou.
+- **Žlutá** (názorové otázky) a karta šance **„Všichni odpovídají na červenou"**
+  (jediný případ, kdy na červenou odpovídají všichni): kolečko — odpovídají postupně všichni, začíná ten, kdo kartu vytáhl. Kdo
+  neodpoví, ztrácí kartu té barvy (má-li ji). Když kolečko dojde zpět k tomu,
+  kdo kartu vytáhl, bere celou kartu té barvy. Když neodpoví hned na začátku
+  on sám, ztrácí kartu a kolečko končí.
 - **Oranžová** (šance) po dvojitém hodu:
   „Jedeš ještě jednou" → odpovíš na otázku a hraješ znovu;
   „Změň barvu" → vybereš barvu otázky;
   „Odpovídá hráč po pravici" → odpovídá na otázku padlé barvy;
   „Teď nehraješ" → tah končí bez otázky;
-  „Všichni odpovídají na červenou" → nahrazuje otázku z hodu;
-  ostatní karty (ztráta karet, krádež, výměna, změna směru) → pak následuje otázka.
+  „Všichni odpovídají na červenou" → kolečko místo otázky z hodu;
+  „Vyměň jednu kartu" → dobrovolná výměna 1 karty za 1 jiné barvy;
+  ostatní (ztráta karet, krádež, změna směru) → pak následuje otázka.
 - Vyhrává, kdo má **2 celé karty od každé barvy** (2 půlky = 1 celá).
-
-Pravidlo architektury: `engine.js` nesmí nikdy volat Firebase ani DOM.
-Firebase API se smí objevit pouze v `js/firebase.js`.
+- **Krok zpět** (horní lišta) vrátí hru o krok — opakovaně, až 30 kroků.
+  Online ho vidí host a hráč na tahu.
 
 ## Nasazení na hosting
 
