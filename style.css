@@ -5,6 +5,7 @@
    Pod sklem je barevné pozadí v barvách hry, aby bylo sklo vidět.
    ============================================================ */
 :root{
+  --fs: 1;              /* velikost pisma (nastaveni Aa): 0.9 az 1.4 */
   --cream:#FBF6EC;
   --navy:#182848;
   --navy-soft:#34456A;
@@ -35,6 +36,7 @@
 html,body{margin:0;padding:0;}
 body{
   font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:calc(16px * var(--fs));
   background:var(--cream);color:var(--navy);
   min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
@@ -137,12 +139,12 @@ button{touch-action:manipulation;}
   min-width:0;max-width:100%;border-radius:999px;padding:5px 16px;
   display:flex;flex-direction:column;align-items:center;line-height:1.15;
 }
-.bar-title-label{font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--navy-soft);}
+.bar-title-label{font-size:calc(11px * var(--fs));font-weight:600;letter-spacing:.3px;color:var(--navy-soft);}
 .bar-title-name{
-  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;color:var(--navy);
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(17px * var(--fs));color:var(--navy);
   max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.bar-logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:24px;letter-spacing:3px;line-height:1;}
+.bar-logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:calc(24px * var(--fs));letter-spacing:3px;line-height:1;}
 
 /* ---------- Přepínač jazyka (vlajky) ----------
    Skleněná bublina s oběma vlajkami; pod aktivní vlajkou je světlá „kapka",
@@ -216,9 +218,9 @@ button{touch-action:manipulation;}
 .screen-sea .rules-toggle{color:#fff;text-shadow:0 1px 2px rgba(10,60,80,.25);}
 .screen-sea .btn-glass{background:var(--g-sheen), rgba(255,255,255,.7);}
 
-.title-lg{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:700;line-height:1.2;}
-.title-md{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:700;line-height:1.25;}
-.subtitle{color:var(--navy-soft);font-size:15px;line-height:1.5;margin-top:6px;}
+.title-lg{font-family:'Baloo 2',sans-serif;font-size:calc(28px * var(--fs));font-weight:700;line-height:1.2;}
+.title-md{font-family:'Baloo 2',sans-serif;font-size:calc(20px * var(--fs));font-weight:700;line-height:1.25;}
+.subtitle{color:var(--navy-soft);font-size:calc(15px * var(--fs));line-height:1.5;margin-top:6px;}
 .center-text{text-align:center;}
 .spacer{flex:1;min-height:calc(22px * var(--gap-scale,1));}
 .stack{display:flex;flex-direction:column;gap:12px;}
@@ -231,7 +233,7 @@ button{touch-action:manipulation;}
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;min-height:54px;padding:13px 22px;
   border:1px solid transparent;border-radius:999px;
-  font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:700;line-height:1.2;
+  font-family:'Baloo 2',sans-serif;font-size:calc(17px * var(--fs));font-weight:700;line-height:1.2;
   text-align:center;cursor:pointer;
   transition:transform .14s ease, box-shadow .15s ease, filter .15s ease;
 }
@@ -267,14 +269,14 @@ button{touch-action:manipulation;}
   background:rgba(255,255,255,.32);color:var(--navy-soft);
   border:1px solid rgba(255,255,255,.7);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
-  min-height:46px;font-size:15.5px;
+  min-height:46px;font-size:calc(15.5px * var(--fs));
 }
-.btn-sm{min-height:46px;font-size:15.5px;padding:10px 16px;}
+.btn-sm{min-height:46px;font-size:calc(15.5px * var(--fs));padding:10px 16px;}
 .btn-auto{width:auto;flex-shrink:0;}
 .soft-link{
   background:var(--g-sheen), rgba(255,255,255,.55);border:1px solid var(--g-edge);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);box-shadow:var(--g-shadow);
-  border-radius:999px;padding:9px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--navy-soft);
+  border-radius:999px;padding:9px 16px;cursor:pointer;font-weight:600;font-size:calc(14px * var(--fs));color:var(--navy-soft);
 }
 
 /* ---------- Vstupy ---------- */
@@ -283,22 +285,22 @@ button{touch-action:manipulation;}
   border:1px solid rgba(255,255,255,.75);
   background:rgba(255,255,255,.72);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  font-size:16px;color:var(--navy);
+  font-size:max(16px, calc(16px * var(--fs)));color:var(--navy);
   box-shadow:inset 0 1px 3px rgba(24,40,72,.08), 0 1px 0 rgba(255,255,255,.6);
 }
 .card-input::placeholder{color:rgba(52,69,106,.6);}
 .card-input:focus{outline:none;border-color:var(--navy);background:rgba(255,255,255,.85);}
 .code-input{text-transform:uppercase;letter-spacing:3px;text-align:center;font-weight:700;}
-.remove-btn{width:40px;height:40px;flex-shrink:0;border-radius:50%;background:rgba(255,255,255,.5);border:1px solid var(--g-edge);color:var(--red-dark);font-size:16px;cursor:pointer;}
+.remove-btn{width:40px;height:40px;flex-shrink:0;border-radius:50%;background:rgba(255,255,255,.5);border:1px solid var(--g-edge);color:var(--red-dark);font-size:calc(16px * var(--fs));cursor:pointer;}
 
 /* ---------- Místnost ---------- */
-.code-display{font-family:'Baloo 2',sans-serif;font-size:38px;font-weight:800;letter-spacing:8px;text-align:center;border-radius:var(--radius);padding:16px;}
+.code-display{font-family:'Baloo 2',sans-serif;font-size:calc(38px * var(--fs));font-weight:800;letter-spacing:8px;text-align:center;border-radius:var(--radius);padding:16px;}
 .share-row{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-.share-btn{flex:1;max-width:200px;border-radius:999px;padding:11px 10px;font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.share-btn{flex:1;max-width:200px;border-radius:999px;padding:11px 10px;font-family:'Baloo 2',sans-serif;font-size:calc(15px * var(--fs));font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .share-btn.done{background:rgba(36,140,170,.85);color:#fff;}
 .player-chip{display:flex;align-items:center;justify-content:space-between;border-radius:20px;padding:12px 16px;}
 .player-chip .name{font-weight:700;}
-.badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;}
+.badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:calc(12px * var(--fs));font-weight:700;}
 .badge.you{background:var(--navy);color:#fff;}
 .badge.host{background:var(--navy-soft);color:#fff;}
 
@@ -310,7 +312,7 @@ button{touch-action:manipulation;}
   box-shadow:inset 0 0 0 2px var(--navy), var(--g-shadow);
 }
 .score-chip.offline{opacity:.55;}
-.score-chip .pname{font-weight:700;font-size:13px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.score-chip .pname{font-weight:700;font-size:calc(13px * var(--fs));margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .score-dots{display:flex;gap:8px;align-items:center;flex-wrap:wrap;row-gap:4px;}
 .score-color{display:flex;gap:3px;align-items:center;}
 .score-color .slot{width:11px;height:15px;border-radius:4px;border:2px solid var(--c);opacity:.32;position:relative;overflow:hidden;}
@@ -339,7 +341,7 @@ button{touch-action:manipulation;}
 @keyframes die-roll{0%{transform:rotate(0) scale(1) translateY(0);}25%{transform:rotate(90deg) scale(1.08) translateY(-8px);}50%{transform:rotate(180deg) scale(.96) translateY(0);}75%{transform:rotate(270deg) scale(1.08) translateY(-5px);}100%{transform:rotate(360deg) scale(1) translateY(0);}}
 .die.landed{animation:die-land .5s cubic-bezier(.2,1.5,.4,1) 1;}
 @keyframes die-land{0%{transform:scale(1.18);}45%{transform:scale(.94);}75%{transform:scale(1.04);}100%{transform:scale(1);}}
-.roll-summary{display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;color:var(--navy-soft);font-weight:600;margin:0 0 12px;}
+.roll-summary{display:flex;align-items:center;justify-content:center;gap:6px;font-size:calc(14px * var(--fs));color:var(--navy-soft);font-weight:600;margin:0 0 12px;}
 .roll-dot{display:inline-block;width:14px;height:14px;border-radius:5px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.12);}
 .roll-note{font-weight:500;}
 
@@ -354,27 +356,27 @@ button{touch-action:manipulation;}
 .qcard .wave-band{position:absolute;left:0;width:100%;height:56px;display:block;pointer-events:none;}
 .qcard .wave-band.top{top:0;}
 .qcard .wave-band.bottom{bottom:0;transform:scaleY(-1);}
-.qcard-text{font-family:'Baloo 2',sans-serif;font-size:23px;font-weight:700;line-height:1.32;position:relative;z-index:2;color:var(--navy);overflow-wrap:anywhere;}
+.qcard-text{font-family:'Baloo 2',sans-serif;font-size:calc(23px * var(--fs));font-weight:700;line-height:1.32;position:relative;z-index:2;color:var(--navy);overflow-wrap:anywhere;}
 @media (max-width:380px){
   .qcard{padding:50px 18px;min-height:180px;}
   .qcard .wave-band{height:48px;}
-  .qcard-text{font-size:20px;}
+  .qcard-text{font-size:calc(20px * var(--fs));}
 }
 .qcard-final{padding:96px 24px;min-height:310px;}
 .qcard-final .wave-band{height:80px;}
-.qcard-final .qcard-text{font-size:21px;}
-.qcard-note{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;color:var(--navy-soft);line-height:1.5;margin-top:12px;}
+.qcard-final .qcard-text{font-size:calc(21px * var(--fs));}
+.qcard-note{font-family:'Inter',sans-serif;font-size:calc(13.5px * var(--fs));font-weight:500;color:var(--navy-soft);line-height:1.5;margin-top:12px;}
 
 /* ---------- Informační bloky a panely ---------- */
-.banner-info{border-radius:22px;padding:14px 18px;font-size:14.5px;color:var(--navy-soft);line-height:1.5;}
+.banner-info{border-radius:22px;padding:14px 18px;font-size:calc(14.5px * var(--fs));color:var(--navy-soft);line-height:1.5;}
 .banner-info b{color:var(--navy);}
 .panel{border-radius:var(--radius);padding:16px 18px;}
 .panel-accent{box-shadow:inset 0 0 0 2px rgba(243,135,63,.6), var(--g-shadow);}
-.panel-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;}
+.panel-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(17px * var(--fs));}
 .panel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.panel-row .subtitle{font-size:13.5px;}
-.guess-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:20px;padding:11px 16px;font-weight:600;}
-.round-status{font-size:13.5px;color:var(--navy-soft);font-weight:600;white-space:nowrap;}
+.panel-row .subtitle{font-size:calc(13.5px * var(--fs));}
+.guess-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:20px;padding:11px 16px;font-weight:600;font-size:calc(15.5px * var(--fs));}
+.round-status{font-size:calc(13.5px * var(--fs));color:var(--navy-soft);font-weight:600;white-space:nowrap;}
 .round-row.now{box-shadow:inset 0 0 0 2px var(--c), var(--g-shadow);}
 .round-row.now .round-status{color:var(--navy);}
 .round-row.ok .round-status{color:#2F8A4E;}
@@ -382,16 +384,16 @@ button{touch-action:manipulation;}
 .reveal-row.ok{box-shadow:inset 0 0 0 2px var(--blue-dark), var(--g-shadow);}
 .reveal-row.ok .round-status{color:var(--blue-dark);}
 .reveal-name{font-weight:700;}
-.reveal-guess{font-size:13px;font-weight:500;color:var(--navy-soft);margin-top:2px;}
+.reveal-guess{font-size:calc(13px * var(--fs));font-weight:500;color:var(--navy-soft);margin-top:2px;}
 .award-pick{padding:0 0 4px;}
-.option-btn{display:flex;align-items:center;gap:12px;width:100%;border-radius:22px;padding:12px 16px;cursor:pointer;text-align:left;font-size:16px;font-weight:600;color:var(--navy);transition:transform .12s ease, box-shadow .15s ease;}
+.option-btn{display:flex;align-items:center;gap:12px;width:100%;border-radius:22px;padding:12px 16px;cursor:pointer;text-align:left;font-size:calc(16px * var(--fs));font-weight:600;color:var(--navy);transition:transform .12s ease, box-shadow .15s ease;}
 .option-btn:active{transform:scale(.98);}
 .option-btn.selected{box-shadow:inset 0 0 0 2.5px var(--blue-dark), var(--g-shadow);}
-.opt-num{width:32px;height:32px;flex-shrink:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--g-sheen), rgba(36,140,170,.85);color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5);}
+.opt-num{width:32px;height:32px;flex-shrink:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--g-sheen), rgba(36,140,170,.85);color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(15px * var(--fs));box-shadow:inset 0 1px 0 rgba(255,255,255,.5);}
 .option-btn.selected .opt-num{background:var(--navy);}
 .opt-text{flex:1;overflow-wrap:anywhere;}
 .handoff{border-radius:var(--radius);padding:22px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.handoff-ico{font-size:34px;line-height:1;margin-bottom:6px;}
+.handoff-ico{font-size:calc(34px * var(--fs));line-height:1;margin-bottom:6px;}
 
 /* výběr barvy — lesklé kuličky */
 .color-pick{display:flex;gap:14px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
@@ -406,6 +408,75 @@ button{touch-action:manipulation;}
 .color-dot-btn.c-yellow{background:var(--yellow);}
 .color-dot-btn.c-blue{background:var(--blue);}
 
+
+/* ---------- Velikost písma: tlačítko Aa a panel s posuvníkem ---------- */
+.pill-aa{
+  height:32px;min-width:32px;padding:0 4px;border:0;border-radius:999px;cursor:pointer;background:transparent;
+  display:inline-flex;align-items:baseline;justify-content:center;gap:1px;color:var(--navy);
+  font-family:'Baloo 2',sans-serif;font-weight:700;line-height:1;
+  transition:transform .12s ease;
+}
+.pill-aa:active{transform:scale(.88);}
+/* jemný fokus uvnitř bubliny nastavení (ovládání klávesnicí) */
+.settings-pill button:focus-visible{outline:2px solid rgba(46,151,179,.7);outline-offset:-2px;}
+.pill-aa .aa-small{font-size:12px;}
+.pill-aa .aa-big{font-size:18px;}
+.ts-catcher{position:fixed;inset:0;z-index:89;}
+.ts-pop{
+  position:fixed;z-index:90;right:12px;width:min(320px, calc(100vw - 24px));
+  border-radius:26px;padding:16px 16px 14px;
+  background:var(--g-sheen), rgba(255,255,255,.86) !important;
+  box-shadow:inset 0 1.5px 0 #fff, 0 20px 50px rgba(24,40,72,.25), 0 2px 8px rgba(24,40,72,.10) !important;
+  transform-origin:top right;animation:ts-in .22s cubic-bezier(.2,1.2,.4,1) both;
+}
+.ts-pop.closing{animation:ts-out .16s ease both;}
+@keyframes ts-in{from{opacity:0;transform:scale(.85) translateY(-6px);}to{opacity:1;transform:none;}}
+@keyframes ts-out{from{opacity:1;}to{opacity:0;transform:scale(.94);}}
+.ts-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+.ts-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;color:var(--navy);}
+.ts-pct{font-size:13px;font-weight:600;color:var(--navy-soft);}
+.ts-row{display:flex;align-items:center;gap:10px;}
+.ts-a{
+  flex-shrink:0;width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;background:transparent;
+  font-family:'Baloo 2',sans-serif;font-weight:700;color:var(--navy);line-height:1;
+}
+.ts-a:active{background:rgba(24,40,72,.08);}
+.ts-small{font-size:14px;}
+.ts-large{font-size:26px;}
+.ts-track{position:relative;flex:1;height:34px;display:flex;align-items:center;}
+.ts-ticks{position:absolute;left:11px;right:11px;top:50%;height:12px;margin-top:-6px;display:flex;justify-content:space-between;pointer-events:none;}
+.ts-ticks span{width:2px;height:12px;border-radius:2px;background:rgba(24,40,72,.25);}
+/* posuvník ve stylu iOS: tenká dráha, bílý kulatý jezdec */
+.ts-range{
+  -webkit-appearance:none;appearance:none;position:relative;width:100%;height:34px;margin:0;background:transparent;cursor:pointer;
+}
+.ts-range:focus{outline:none;}
+.ts-range::-webkit-slider-runnable-track{
+  height:4px;border-radius:4px;
+  background:linear-gradient(90deg, var(--blue-dark) 0 var(--p,25%), rgba(24,40,72,.16) var(--p,25%) 100%);
+}
+.ts-range::-moz-range-track{height:4px;border-radius:4px;background:rgba(24,40,72,.16);}
+.ts-range::-moz-range-progress{height:4px;border-radius:4px;background:var(--blue-dark);}
+.ts-range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-11px;border-radius:50%;
+  background:#fff;border:.5px solid rgba(24,40,72,.12);
+  box-shadow:0 3px 8px rgba(24,40,72,.25), 0 0 0 .5px rgba(24,40,72,.06);
+}
+.ts-range::-moz-range-thumb{
+  width:26px;height:26px;border-radius:50%;background:#fff;border:.5px solid rgba(24,40,72,.12);
+  box-shadow:0 3px 8px rgba(24,40,72,.25);
+}
+.ts-range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(46,151,179,.45), 0 3px 8px rgba(24,40,72,.25);}
+.ts-preview{
+  margin:12px 0 12px;padding:10px 12px;border-radius:16px;background:rgba(95,196,220,.12);
+  font-size:calc(14.5px * var(--fs));line-height:1.45;color:var(--navy-soft);text-align:center;
+}
+@media (max-width:360px){
+  .pill-aa{height:28px;min-width:28px;}
+  .pill-aa .aa-small{font-size:11px;}
+  .pill-aa .aa-big{font-size:16px;}
+}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;
@@ -413,7 +484,7 @@ button{touch-action:manipulation;}
   border:2px solid #fff;
   box-shadow:0 8px 20px rgba(24,40,72,.25), inset 0 -3px 0 rgba(0,0,0,.08);
   display:flex;align-items:flex-end;justify-content:center;padding-bottom:1px;
-  font-family:'Baloo 2',sans-serif;font-weight:800;font-size:15px;color:#fff;line-height:1;
+  font-family:'Baloo 2',sans-serif;font-weight:800;font-size:calc(15px * var(--fs));color:#fff;line-height:1;
   will-change:transform,opacity;
 }
 .fly-card.half{width:34px;}
@@ -438,8 +509,8 @@ button{touch-action:manipulation;}
   box-shadow:inset 0 1.5px 0 #fff, 0 24px 60px rgba(24,40,72,.28), 0 2px 8px rgba(24,40,72,.10) !important;
   animation:dlg-pop .26s cubic-bezier(.2,1.25,.4,1) both;
 }
-.dialog-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;line-height:1.25;color:var(--navy);}
-.dialog-msg{margin-top:8px;font-size:15px;line-height:1.5;color:var(--navy-soft);}
+.dialog-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(21px * var(--fs));line-height:1.25;color:var(--navy);}
+.dialog-msg{margin-top:8px;font-size:calc(15px * var(--fs));line-height:1.5;color:var(--navy-soft);}
 .dialog-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
 .dialog-actions .btn{min-height:50px;}
 .dialog-overlay.closing{animation:dlg-fade-out .17s ease both;}
@@ -451,7 +522,7 @@ button{touch-action:manipulation;}
 
 /* ---------- Modrá: shodné odpovědi ---------- */
 .card-input.dup{border-color:var(--red);background:rgba(255,236,230,.85);box-shadow:0 0 0 3px rgba(233,80,46,.18);}
-.dup-warn{margin-top:10px;text-align:center;font-size:14px;font-weight:600;color:var(--red-dark);}
+.dup-warn{margin-top:10px;text-align:center;font-size:calc(14px * var(--fs));font-weight:600;color:var(--red-dark);}
 .dup-warn[hidden]{display:none;}
 
 /* ---------- Modrá online: průběh psaní a tipy ---------- */
@@ -464,55 +535,55 @@ button{touch-action:manipulation;}
 .cstep-true{
   width:20px;height:20px;border-radius:50%;margin-left:4px;
   display:inline-flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;color:rgba(36,140,170,.45);
+  font-size:calc(11px * var(--fs));font-weight:700;color:rgba(36,140,170,.45);
 }
 .cstep-true.on{background:var(--navy);color:#fff;}
 .tip-panel .btn-auto{min-width:96px;}
 .tip-saved{
   margin:12px 0 10px;padding:11px 16px;border-radius:18px;
   background:rgba(95,196,220,.18);border:1px solid rgba(46,151,179,.35);
-  font-size:15px;color:var(--navy-soft);
+  font-size:calc(15px * var(--fs));color:var(--navy-soft);
 }
 .tip-saved b{color:var(--navy);}
 .reveal-tip{font-style:italic;}
 .tip-hit{
   display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-style:normal;
-  background:rgba(47,138,78,.14);color:#2F8A4E;font-weight:700;font-size:12px;
+  background:rgba(47,138,78,.14);color:#2F8A4E;font-weight:700;font-size:calc(12px * var(--fs));
 }
 
 /* ---------- Pravidla ---------- */
 .rules{margin-top:12px;}
-.rules-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:none;border:none;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;color:var(--navy-soft);padding:12px;cursor:pointer;}
-.rules-chevron{display:inline-block;font-size:19px;line-height:1;transition:transform .22s ease;}
+.rules-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:none;border:none;font-family:'Baloo 2',sans-serif;font-size:calc(16px * var(--fs));font-weight:700;color:var(--navy-soft);padding:12px;cursor:pointer;}
+.rules-chevron{display:inline-block;font-size:calc(19px * var(--fs));line-height:1;transition:transform .22s ease;}
 .rules-toggle.open .rules-chevron{transform:rotate(180deg);}
 .rules-body{border-radius:var(--radius);padding:16px 18px;animation:rules-in .22s ease both;}
 @keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
 .rules-step{display:flex;gap:12px;align-items:flex-start;}
 .rules-step + .rules-step{margin-top:13px;}
-.rules-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:#fff;}
-.rules-step-title{font-weight:700;font-size:14.5px;color:var(--navy);}
-.rules-step-text{font-size:13.5px;line-height:1.45;color:var(--navy-soft);margin-top:2px;}
+.rules-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(14px * var(--fs));color:#fff;}
+.rules-step-title{font-weight:700;font-size:calc(14.5px * var(--fs));color:var(--navy);}
+.rules-step-text{font-size:calc(13.5px * var(--fs));line-height:1.45;color:var(--navy-soft);margin-top:2px;}
 
-.win-crown{font-size:60px;line-height:1;}
+.win-crown{font-size:calc(60px * var(--fs));line-height:1;}
 
 /* ---------- Hra pro jednoho ---------- */
 .solo-head{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 12px;}
-.solo-kind{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;border-radius:999px;padding:6px 13px 6px 9px;}
+.solo-kind{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:calc(14px * var(--fs));border-radius:999px;padding:6px 13px 6px 9px;}
 .solo-kind::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c);}
-.solo-count{font-size:14px;font-weight:600;color:var(--navy-soft);}
+.solo-count{font-size:calc(14px * var(--fs));font-weight:600;color:var(--navy-soft);}
 .solo-nav > .btn{flex:1;}
 .solo-chips{margin-top:10px;gap:8px;}
 .solo-chip{
   flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;
   min-height:46px;padding:8px 6px;border-radius:999px;cursor:pointer;white-space:nowrap;
-  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--navy);
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(15px * var(--fs));color:var(--navy);
   background:rgba(255,255,255,.6);border:1.5px solid var(--c);
   transition:background-color .15s ease, transform .12s ease;
 }
 .solo-chip:active{transform:scale(.96);}
 .solo-chip.on{background:var(--c);color:#fff;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.5), 0 6px 16px rgba(24,40,72,.16);}
 .solo-chip.on[style*="yellow"]{color:var(--navy);}
-@media (max-width:360px){ .solo-chip{font-size:14px;} }
+@media (max-width:360px){ .solo-chip{font-size:calc(14px * var(--fs));} }
 
 /* ---------- Nápověda „roluj níž" ---------- */
 .scroll-hint{
@@ -520,11 +591,11 @@ button{touch-action:manipulation;}
   transform:translate(-50%, 16px);opacity:0;pointer-events:none;
   display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
   border-radius:999px;padding:9px 16px 9px 10px;cursor:pointer;
-  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14.5px;color:var(--navy);
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(14.5px * var(--fs));color:var(--navy);
   transition:opacity .2s ease, transform .2s ease;
 }
 .scroll-hint.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
-.scroll-hint-arrow{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;animation:hint-bob 1.6s ease-in-out infinite;}
+.scroll-hint-arrow{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:calc(15px * var(--fs));animation:hint-bob 1.6s ease-in-out infinite;}
 @keyframes hint-bob{0%,100%{transform:translateY(-1px);}50%{transform:translateY(3px);}}
 
 .waiting-dots span{animation:blink 1.4s infinite;opacity:.2;}
@@ -551,9 +622,11 @@ button{touch-action:manipulation;}
 /* kolečko s 5+ hráči: dva sloupce, stav pod jménem */
 .round-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .round-grid .guess-row{flex-direction:column;align-items:flex-start;gap:1px;padding:8px 12px;}
-.round-grid .guess-row > span:first-child{font-size:14px;line-height:1.25;}
-.round-grid .round-status{font-size:12.5px;}
+.round-grid .guess-row > span:first-child{font-size:calc(14px * var(--fs));line-height:1.25;}
+.round-grid .round-status{font-size:calc(12.5px * var(--fs));}
 .drew-mark{display:none;color:var(--orange);}
+.drew-full{font-size:.78em;font-weight:500;color:var(--navy-soft);}
+.guess-row > span:first-child{min-width:0;}
 .round-grid .drew-full{display:none;}
 .round-grid .drew-mark{display:inline;}
 /* karta s pravdivou odpovědí u modré bývá krátká */
@@ -566,42 +639,42 @@ button{touch-action:manipulation;}
 #app.fit-1 .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px;}
 #app.fit-1 .qcard{padding:44px 20px;min-height:150px;}
 #app.fit-1 .qcard .wave-band{height:42px;}
-#app.fit-1 .qcard-text{font-size:20px;}
+#app.fit-1 .qcard-text{font-size:calc(20px * var(--fs));}
 #app.fit-1 .qcard-final{padding:76px 20px;min-height:250px;}
 #app.fit-1 .qcard-final .wave-band{height:64px;}
 #app.fit-1 .die{width:66px;height:66px;border-radius:21px;}
 #app.fit-1 .die .dot{width:30px;height:30px;}
 #app.fit-1 .die-area{gap:14px;}
 #app.fit-1 .btn{min-height:48px;padding-top:10px;padding-bottom:10px;}
-#app.fit-1 .banner-info{padding:11px 15px;font-size:14px;}
+#app.fit-1 .banner-info{padding:11px 15px;font-size:calc(14px * var(--fs));}
 #app.fit-1 .guess-row{padding:8px 14px;}
 #app.fit-1 .option-btn{padding:9px 14px;}
 #app.fit-1 .stack{gap:9px;}
 #app.fit-1 .stack-tight{gap:8px;}
 #app.fit-1 .score-chip{padding:6px 10px 7px;}
 #app.fit-1 .roll-summary{margin-bottom:8px;}
-#app.fit-1 .subtitle{font-size:14px;margin-top:4px;}
+#app.fit-1 .subtitle{font-size:calc(14px * var(--fs));margin-top:4px;}
 #app.fit-1 .hero-band .hero-waves{height:58px;}
 #app.fit-1 .hero-middle{padding:10px 16px 8px;}
-#app.fit-1 .win-crown{font-size:44px;}
+#app.fit-1 .win-crown{font-size:calc(44px * var(--fs));}
 
 #app.fit-2{--gap-scale:.35;}
 #app.fit-2 .qcard{padding:34px 16px;min-height:120px;}
 #app.fit-2 .qcard .wave-band{height:32px;}
-#app.fit-2 .qcard-text{font-size:18px;line-height:1.28;}
+#app.fit-2 .qcard-text{font-size:calc(18px * var(--fs));line-height:1.28;}
 #app.fit-2 .qcard-final{padding:60px 16px;min-height:200px;}
 #app.fit-2 .qcard-final .wave-band{height:50px;}
 #app.fit-2 .die{width:54px;height:54px;border-radius:18px;}
 #app.fit-2 .die .dot{width:24px;height:24px;}
-#app.fit-2 .btn{min-height:44px;font-size:16px;padding-top:8px;padding-bottom:8px;}
-#app.fit-2 .banner-info{padding:9px 13px;font-size:13.5px;line-height:1.4;}
+#app.fit-2 .btn{min-height:44px;font-size:calc(16px * var(--fs));padding-top:8px;padding-bottom:8px;}
+#app.fit-2 .banner-info{padding:9px 13px;font-size:calc(13.5px * var(--fs));line-height:1.4;}
 #app.fit-2 .guess-row{padding:7px 12px;}
-#app.fit-2 .option-btn{padding:7px 12px;font-size:15px;}
+#app.fit-2 .option-btn{padding:7px 12px;font-size:calc(15px * var(--fs));}
 #app.fit-2 .opt-num{width:28px;height:28px;}
 #app.fit-2 .stack{gap:7px;}
 #app.fit-2 .stack-tight{gap:6px;}
 #app.fit-2 .score-grid{gap:5px;}
-#app.fit-2 .score-chip .pname{margin-bottom:3px;font-size:12.5px;}
+#app.fit-2 .score-chip .pname{margin-bottom:3px;font-size:calc(12.5px * var(--fs));}
 #app.fit-2 .slot{width:9px;height:12px;}
 #app.fit-2 .glass-circle{width:40px;height:40px;}
 #app.fit-2 .bar-title{padding:3px 14px;}
@@ -613,8 +686,8 @@ button{touch-action:manipulation;}
 #app.fit-2 .fit-hide{display:none;}
 #app.fit-2 .award-pick .color-pick{margin-top:4px;gap:12px;}
 #app.fit-2 .award-pick .color-dot-btn{width:36px;height:36px;}
-#app.fit-2 .reveal-guess{font-size:12.5px;}
-#app.fit-2 .title-md{font-size:18px;}
+#app.fit-2 .reveal-guess{font-size:calc(12.5px * var(--fs));}
+#app.fit-2 .title-md{font-size:calc(18px * var(--fs));}
 #app.fit-1 .qcard.qcard-answer{padding:34px 16px;min-height:104px;}
 #app.fit-1 .qcard.qcard-answer .wave-band{height:32px;}
 #app.fit-2 .round-grid .guess-row{padding:6px 10px;}

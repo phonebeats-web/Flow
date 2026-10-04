@@ -349,9 +349,85 @@ function soundBtn(){
       if(Sound.isEnabled()) Sound.click();
     }});
 }
-/* Skleněná bublina „nastavení": zvuk | čeština / angličtina */
+
+/* ---------- VELIKOST PÍSMA (jako „Velikost textu" v iOS) ----------
+   Pět stupňů; mění se jen písmo (CSS proměnná --fs), rozložení hry zůstává.
+   Volba se pamatuje pro dané zařízení. */
+const TEXT_SIZES = [0.9, 1, 1.12, 1.25, 1.4];
+const TS_KEY = 'flou_textsize';
+let textSizeIdx = (()=>{
+  try{ const v = parseInt(localStorage.getItem(TS_KEY), 10); if(v>=0 && v<TEXT_SIZES.length) return v; }catch(e){}
+  return 1;
+})();
+function applyTextSize(){
+  document.documentElement.style.setProperty('--fs', String(TEXT_SIZES[textSizeIdx]));
+}
+applyTextSize();
+function setTextSize(i){
+  const ni = Math.max(0, Math.min(TEXT_SIZES.length-1, i));
+  if(ni===textSizeIdx) return;
+  textSizeIdx = ni;
+  try{ localStorage.setItem(TS_KEY, String(ni)); }catch(e){}
+  applyTextSize();
+  fitToScreen();
+  scheduleScrollHint();
+}
+
+let tsClose = null;
+function openTextSize(anchor){
+  if(tsClose){ tsClose(); return; }
+  const prevFocus = document.activeElement;
+  const range = el('input',{type:'range', class:'ts-range', min:'0', max:String(TEXT_SIZES.length-1), step:'1',
+    value:String(textSizeIdx), 'aria-label':t('text_size'),
+    oninput:(e)=>{ setTextSize(parseInt(e.target.value,10)); upd(); }});
+  const ticks = el('div',{class:'ts-ticks','aria-hidden':'true'}, ...TEXT_SIZES.map(()=>el('span',{})));
+  const pct = el('span',{class:'ts-pct'});
+  const upd = ()=>{
+    range.value = String(textSizeIdx);
+    range.style.setProperty('--p', (textSizeIdx/(TEXT_SIZES.length-1)*100)+'%');
+    pct.textContent = Math.round(TEXT_SIZES[textSizeIdx]*100)+' %';
+  };
+  const pop = el('div',{class:'ts-pop glass', role:'dialog', 'aria-label':t('text_size')},
+    el('div',{class:'ts-head'}, el('span',{class:'ts-title'}, t('text_size')), pct),
+    el('div',{class:'ts-row'},
+      el('button',{class:'ts-a ts-small', 'aria-label':t('text_smaller'), onclick:()=>{ setTextSize(textSizeIdx-1); upd(); }}, 'A'),
+      el('div',{class:'ts-track'}, ticks, range),
+      el('button',{class:'ts-a ts-large', 'aria-label':t('text_larger'), onclick:()=>{ setTextSize(textSizeIdx+1); upd(); }}, 'A')
+    ),
+    el('div',{class:'ts-preview'}, t('text_size_hint')),
+    button(t('done'),'btn-glass btn-sm', ()=>close())
+  );
+  // průhledná vrstva: klepnutí mimo panel ho zavře
+  const catcher = el('div',{class:'ts-catcher', onclick:()=>close()});
+  const onKey = (e)=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } };
+  const close = ()=>{
+    if(!tsClose) return;
+    tsClose = null;
+    document.removeEventListener('keydown', onKey, true);
+    pop.classList.add('closing');
+    setTimeout(()=>{ pop.remove(); catcher.remove(); }, 160);
+    if(prevFocus && prevFocus.focus && document.body.contains(prevFocus)){ try{ prevFocus.focus({preventScroll:true}); }catch(e){} }
+  };
+  // umístění pod tlačítkem Aa (zarovnané k pravému okraji)
+  const r = anchor.getBoundingClientRect();
+  pop.style.top = Math.round(r.bottom + 10)+'px';
+  upd();
+  document.body.appendChild(catcher);
+  document.body.appendChild(pop);
+  document.addEventListener('keydown', onKey, true);
+  tsClose = close;
+  setTimeout(()=>{ try{ range.focus({preventScroll:true}); }catch(e){} }, 30);
+}
+function textSizeBtn(){
+  return el('button',{class:'pill-aa', 'aria-label':t('text_size'), title:t('text_size'),
+    onclick:(e)=>openTextSize(e.currentTarget.closest('.settings-pill') || e.currentTarget)},
+    el('span',{class:'aa-small'},'A'), el('span',{class:'aa-big'},'A'));
+}
+
+/* Skleněná bublina „nastavení": velikost písma | zvuk | čeština / angličtina */
 function settingsPill(extraCls=''){
   return el('div',{class:'settings-pill glass '+extraCls},
+    textSizeBtn(),
     soundBtn(),
     el('span',{class:'pill-divider','aria-hidden':'true'}),
     langSwitch('in-pill')
@@ -568,7 +644,7 @@ function renderSetupHost(s){
   s.appendChild(gap(16));
   s.appendChild(el('input',{class:'card-input', 'data-fk':'host-name', placeholder:t('your_name'), value:state.myName, maxlength:'24',
     oninput:(e)=>{state.myName=e.target.value;}}));
-  s.appendChild(el('div',{class:'subtitle', style:'font-size:13.5px'}, t('lang_hint')));
+  s.appendChild(el('div',{class:'subtitle', style:'font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
   s.appendChild(el('div',{class:'spacer'}));
   s.appendChild(button(state.busy ? t('host_busy') : t('host_btn'),'btn-primary', ()=>{
     const name = state.myName.trim();
@@ -588,7 +664,7 @@ function renderJoinRoom(s){
     el('input',{class:'card-input', 'data-fk':'join-name', placeholder:t('your_name'), value:state.myName, maxlength:'24',
       oninput:(e)=>{state.myName=e.target.value;}}),
   ));
-  s.appendChild(el('div',{class:'subtitle', style:'font-size:13.5px'}, t('lang_hint')));
+  s.appendChild(el('div',{class:'subtitle', style:'font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
   s.appendChild(el('div',{class:'spacer'}));
   s.appendChild(button(state.busy ? t('join_busy') : t('join_btn'),'btn-primary', ()=>{
     const code = state.joinCode.trim();
@@ -1403,7 +1479,7 @@ function renderBlueWaiting(s, room, ap){
       button(t('tip_save'),'btn-blue btn-sm btn-auto', save)
     ));
   }
-  box.appendChild(el('div',{class:'subtitle', style:'margin-top:8px;font-size:13px'}, t('tip_note')));
+  box.appendChild(el('div',{class:'subtitle', style:'margin-top:8px;font-size:calc(13px * var(--fs))'}, t('tip_note')));
   s.appendChild(box);
 }
 
@@ -1488,7 +1564,7 @@ function renderBlueGuessing(s, room, mine){
     return;
   }
   const myTip = (room.tips||{})[state.myPlayerId];
-  if(myTip) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 4px;font-size:13.5px'}, ...tn('tip_reminder', b(myTip))));
+  if(myTip) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 4px;font-size:calc(13.5px * var(--fs))'}, ...tn('tip_reminder', b(myTip))));
   s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:12px'}, t('guess_q')));
   s.appendChild(optionButtons(card.options, i=>{ Online.pushVote(room.code, state.myPlayerId, i); }));
 }
@@ -1684,7 +1760,7 @@ function renderSolo(s){
         );
       })
     ),
-    el('div',{class:'subtitle', style:'margin-top:8px;font-size:13.5px'},
+    el('div',{class:'subtitle', style:'margin-top:8px;font-size:calc(13.5px * var(--fs))'},
       filter.length ? t('solo_filter_some') : t('solo_filter_all'))
   );
   s.appendChild(gap(18));

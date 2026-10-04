@@ -38,6 +38,7 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   odhalení pravdivé odpovědi u modré, další otázka v sólo hře), ťuknutí při stisku
   tlačítek, přiletění karty k hráči a vítězná fanfára na konci hry.
 - Vytvářejí se přímo v prohlížeči (Web Audio API) — žádné zvukové soubory ke stažení.
+  Jsou záměrně měkké: teplý filtr bez ostrých výšek, jemný dozvuk místnosti, pomalejší náběh tónů.
 - Reproduktor ve skleněné bublině vpravo nahoře (vedle vlajek) zvuky vypne/zapne;
   volba se pamatuje pro dané zařízení. Online slyší otočení karty i fanfáru všichni.
 - Prohlížeče pustí zvuk až po prvním dotyku na stránku; na iPhonu může zvuk ztlumit
@@ -47,6 +48,11 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
   a jeho kartička se krátce rozzáří (animace jen transform/opacity — nezpomaluje).
 - Všechna potvrzovací a informační okna jsou vlastní, ve stylu hry (žádná
   systémová okna prohlížeče); zavírají se i klávesou Esc nebo klepnutím vedle.
+
+- Velikost písma (tlačítko „Aa" v bublině vpravo nahoře) — jako „Velikost textu" v iOS:
+  posuvník s 5 stupni (90 %, 100 %, 112 %, 125 %, 140 %), změna se projeví hned.
+  Mění se jen písmo (CSS proměnná `--fs`), rozložení hry zůstává; volba se pamatuje
+  pro dané zařízení. Vstupní pole nikdy nejsou pod 16 px (iPhone by jinak přibližoval).
 
 ## Jazyky (čeština / angličtina)
 
