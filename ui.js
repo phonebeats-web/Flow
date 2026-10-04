@@ -952,17 +952,28 @@ function renderTradeUI(s, room, ap, nextLabel){
   ));
 }
 
+/* Karta šance „Na otázku odpovídá hráč po tvé pravici".
+   Odpoví-li soused, kartu té barvy získává hráč, který kartu šance vytáhl.
+   Neodpoví-li, soused ztrácí kartu té barvy (má-li ji). */
 function renderRightNeighbor(s, room, mine){
-  const nb = playerById(room, room.currentCard.forId);
+  const card = room.currentCard;
+  const ap = activePlayer(room);
+  const nb = playerById(room, card.forId);
   const nbName = nb ? nb.name : '?';
   s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(nbName))));
-  s.appendChild(cardEl(room.currentCard));
-  s.appendChild(gap(22));
+  s.appendChild(cardEl(card));
+  s.appendChild(gap(16));
+  s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(nbName), b(ap.name), colorAcc(card.color))));
+  s.appendChild(gap(14));
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
-    button(t('answered'),'btn-primary', ()=>{ advanceTurn(room); saveAndRender(); }),
-    button(t('not_answered_loses'),'btn-glass', ()=>{
-      if(nb) loseColor(nb, room.currentCard.color);
+    button(t('rn_answered', ap.name),'btn-primary', ()=>{
+      addFull(ap, card.color);
+      if(!resolveWin(room, ap)) advanceTurn(room);
+      saveAndRender();
+    }),
+    button(t('rn_not_answered', nbName),'btn-glass', ()=>{
+      if(nb) loseColor(nb, card.color);
       advanceTurn(room); saveAndRender();
     })
   ));

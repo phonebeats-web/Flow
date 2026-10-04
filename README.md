@@ -69,7 +69,8 @@ firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahr
 - **Oranžová** (šance) po dvojitém hodu:
   „Jedeš ještě jednou" → odpovíš na otázku a hraješ znovu;
   „Změň barvu" → vybereš barvu otázky;
-  „Odpovídá hráč po pravici" → odpovídá na otázku padlé barvy;
+  „Odpovídá hráč po pravici" → odpovídá na otázku padlé barvy; když odpoví,
+  kartu získává hráč, který kartu šance vytáhl; když ne, soused kartu ztrácí;
   „Teď nehraješ" → tah končí bez otázky;
   „Všichni odpovídají na červenou" → kolečko místo otázky z hodu;
   „Vyměň jednu kartu" → dobrovolná výměna 1 karty za 1 jiné barvy;

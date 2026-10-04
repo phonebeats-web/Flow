@@ -81,6 +81,8 @@ cs: {
   answering:'Odpovídá {0}.', answering_first:'Odpovídá {0} (jako první).', answering_wait:'Odpovídá {0}',
   not_answered_loses_col:'Neodpověděl/a — ztrácí {0} kartu', not_answered_has_none:'Neodpověděl/a ({0} kartu nemá)',
   drawer_skip_note:'Když neodpoví ten, kdo kartu vytáhl, kolečko končí.',
+  rn_note:'Když {0} odpoví, {2} kartu získává {1}. Když neodpoví, {0} ztrácí {2} kartu (má-li ji).',
+  rn_answered:'Odpověděl/a — kartu získává {0}', rn_not_answered:'Neodpověděl/a — {0} ztrácí kartu',
 
   then_question:'Potom následuje {0} otázka.', chance_resolving:'Kartu šance řeší {0}',
   continue:'Pokračovat', continue_to_q:'Pokračovat na otázku',
@@ -208,6 +210,8 @@ en: {
   answering:'{0} is answering.', answering_first:'{0} is answering (first).', answering_wait:'{0} is answering',
   not_answered_loses_col:'Didn\'t answer — loses a {0} card', not_answered_has_none:'Didn\'t answer (has no {0} card)',
   drawer_skip_note:'If the player who drew the card doesn\'t answer, the round ends.',
+  rn_note:'If {0} answers, {1} gets a {2} card. If they don\'t, {0} loses a {2} card (if they have one).',
+  rn_answered:'Answered — {0} gets the card', rn_not_answered:'Didn\'t answer — {0} loses a card',
 
   then_question:'Then comes a {0} question.', chance_resolving:'{0} is resolving the chance card',
   continue:'Continue', continue_to_q:'Continue to the question',
@@ -302,9 +306,16 @@ function tn(key, ...args){
   if(s===undefined) return [key];
   const out = [];
   let last = 0;
+  const used = new Set();
   s.replace(/\{(\d)\}/g, (m,i,off)=>{
     if(off>last) out.push(s.slice(last, off));
-    out.push(args[i]);
+    // Tentýž DOM uzel nemůže být na stránce dvakrát — při opakování se zkopíruje.
+    let a = args[i];
+    if(a && typeof a==='object' && a.nodeType){
+      if(used.has(i)) a = a.cloneNode(true);
+      used.add(i);
+    }
+    out.push(a);
     last = off + m.length;
     return m;
   });
