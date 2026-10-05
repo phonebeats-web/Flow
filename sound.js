@@ -196,18 +196,20 @@ const Sound = (function(){
     },
 
     /* karta přilétá k hráči: vánek a měkký zvoneček při dosednutí (~0,6 s) */
+    /* Karta přilétá k hráči: tichý vzdušný švih a při dosednutí měkké
+       dvoutónové zazvonění (D – G, jako drobná „odměna"), bez ťuknutí.
+       Dosednutí je načasované na konec animace (cca 0,6 s). */
     collect(delay=0){
       play(t=>{
         t += delay;
-        burst(t, 0.5, {freq:420, q:0.7, vol:0.07, sweepTo:1400, attack:0.05});
-        const land = t + 0.58;
-        tone(440, land, 0.12, {type:'sine', vol:0.11, attack:0.01, glideTo:360});
-        bell(659.25, land+0.02, 0.55, 0.065);
-        bell(987.77, land+0.09, 0.5, 0.035);
+        burst(t, 0.5, {freq:320, q:0.6, vol:0.045, sweepTo:900, type:'lowpass', attack:0.12});
+        const land = t + 0.56;
+        tone(587.33, land, 0.55, {type:'sine', vol:0.055, attack:0.025});        // D
+        tone(783.99, land+0.09, 0.7, {type:'sine', vol:0.045, attack:0.03});     // G
+        tone(392.0, land, 0.6, {type:'sine', vol:0.022, attack:0.035});          // měkký spodní tón
       });
     },
 
-    /* vítězná fanfára: měkká zvonkohra C–E–G–C a teplý závěrečný akord */
     fanfare(){
       play(t=>{
         const notes = [523.25, 659.25, 783.99, 1046.5];

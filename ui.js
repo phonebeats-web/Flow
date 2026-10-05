@@ -1081,12 +1081,10 @@ function finalCardEl(title, note){
 
 function qcardEl(color, text){
   const cssColor = colorVar(color);
-  // karta na výšku jako tištěná: vlny, logo FLOU v protilehlých rozích
-  return el('div',{class:'qcard', style:'--card:'+cssColor},
+  // karta na šířku, u všech barev stejná
+  return el('div',{class:'qcard'},
     htmlToNode(cardWave(cssColor, 'top')),
     htmlToNode(cardWave(cssColor, 'bottom')),
-    el('span',{class:'qcard-corner tl','aria-hidden':'true'}, 'FLOU'),
-    el('span',{class:'qcard-corner br','aria-hidden':'true'}, 'FLOU'),
     el('div',{class:'qcard-text'}, text)
   );
 }
@@ -1722,7 +1720,6 @@ function renderBlueReveal(s, room, mine){
 
   s.appendChild(el('div',{class:'title-md center-text', style:'margin-bottom:10px'}, t('true_answer')));
   const answerCard = qcardEl('blue', (card.options||[])[card.correct] || '—');
-  answerCard.classList.add('qcard-answer');
   s.appendChild(answerCard);
   s.appendChild(gap(16));
 

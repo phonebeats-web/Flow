@@ -347,22 +347,15 @@ button{touch-action:manipulation;}
 
 /* ---------- Karta otázky (podle tištěného originálu) ---------- */
 .qcard{
-  /* na výšku jako hrací karta (poměr ~ 63 : 82); delší text kartu prodlouží */
-  width:min(100%, 292px);margin:0 auto;aspect-ratio:63 / 82;
-  border-radius:24px;padding:64px 22px;min-height:0;
+  /* na šířku jako ležící hrací karta (88 : 63); stejná velikost všude a u všech barev */
+  width:min(100%, 340px);margin:0 auto;aspect-ratio:88 / 63;
+  border-radius:24px;padding:50px 22px;min-height:0;
   display:flex;align-items:center;justify-content:center;text-align:center;
   background:#fff;position:relative;overflow:hidden;
   border:1px solid rgba(255,255,255,.95);
   box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 0 7px rgba(255,255,255,.5), 0 18px 40px rgba(24,40,72,.16);
 }
-.qcard .wave-band{position:absolute;left:0;width:100%;height:62px;display:block;pointer-events:none;}
-/* logo v rozích jako na tištěné kartě */
-.qcard-corner{
-  position:absolute;z-index:2;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:12px;
-  letter-spacing:1.5px;color:#fff;opacity:.95;pointer-events:none;line-height:1;
-}
-.qcard-corner.tl{top:12px;left:16px;}
-.qcard-corner.br{bottom:12px;right:16px;transform:rotate(180deg);}
+.qcard .wave-band{position:absolute;left:0;width:100%;height:46px;display:block;pointer-events:none;}
 /* otočení karty při vytažení (souhlasí se zvukem) */
 .screen.anim .qcard{animation:card-deal .55s cubic-bezier(.2,.9,.3,1.15) both;transform-origin:50% 60%;}
 @keyframes card-deal{
@@ -374,10 +367,23 @@ button{touch-action:manipulation;}
 .qcard .wave-band.bottom{bottom:0;transform:scaleY(-1);}
 .qcard-text{font-family:'Baloo 2',sans-serif;font-size:calc(21px * var(--fs));font-weight:700;line-height:1.32;position:relative;z-index:2;color:var(--navy);overflow-wrap:anywhere;}
 @media (max-width:380px){
-  .qcard{padding:56px 18px;}
-  .qcard .wave-band{height:54px;}
-  .qcard-text{font-size:calc(20px * var(--fs));}
+  .qcard{padding:44px 18px;}
+  .qcard .wave-band{height:40px;}
+  .qcard-text{font-size:calc(19px * var(--fs));}
 }
+/* nižší displeje: karta je celkově menší — ale na daném zařízení vždy stejná,
+   u všech barev i obrazovek (řídí se výškou displeje, ne obsahem obrazovky) */
+@media (max-height:780px){
+  .qcard{width:min(100%, 290px);padding:40px 18px;}
+  .qcard .wave-band{height:36px;}
+  .qcard-text{font-size:calc(19px * var(--fs));}
+}
+@media (max-height:680px){
+  .qcard{width:min(100%, 250px);padding:32px 14px;}
+  .qcard .wave-band{height:30px;}
+  .qcard-text{font-size:calc(17px * var(--fs));line-height:1.28;}
+}
+
 .qcard-final{width:min(100%, 300px);padding:92px 22px;}
 .qcard-final .wave-band{height:80px;}
 .qcard-final .qcard-text{font-size:calc(21px * var(--fs));}
@@ -783,16 +789,11 @@ button.cc-tile:active{transform:scale(.97);}
 .round-grid .drew-full{display:none;}
 .round-grid .drew-mark{display:inline;}
 /* karta s pravdivou odpovědí u modré bývá krátká */
-.qcard.qcard-answer{aspect-ratio:auto;width:min(100%, 260px);padding:50px 20px;min-height:150px;}
-.qcard.qcard-answer .wave-band{height:44px;}
 
 /* ---------- Přizpůsobení obrazovce (fit-1, fit-2) ----------
    Přidává se automaticky, jen když se obsah nevejde na displej. */
 #app.fit-1{--gap-scale:.6;}
 #app.fit-1 .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px;}
-#app.fit-1 .qcard{width:min(100%, 250px);padding:52px 18px;}
-#app.fit-1 .qcard .wave-band{height:50px;}
-#app.fit-1 .qcard-text{font-size:calc(19px * var(--fs));}
 #app.fit-1 .qcard-final{padding:76px 20px;}
 #app.fit-1 .qcard-final .wave-band{height:64px;}
 #app.fit-1 .die{width:66px;height:66px;border-radius:21px;}
@@ -812,11 +813,6 @@ button.cc-tile:active{transform:scale(.97);}
 #app.fit-1 .win-crown{font-size:calc(44px * var(--fs));}
 
 #app.fit-2{--gap-scale:.35;}
-#app.fit-2 .qcard{width:min(100%, 236px);aspect-ratio:auto;min-height:132px;padding:36px 16px;}
-#app.fit-2 .qcard .wave-band{height:32px;}
-#app.fit-2 .qcard-corner{font-size:10px;top:8px;}
-#app.fit-2 .qcard-corner.br{top:auto;bottom:8px;}
-#app.fit-2 .qcard-text{font-size:calc(18px * var(--fs));line-height:1.28;}
 #app.fit-2 .qcard-final{padding:62px 16px;min-height:220px;}
 #app.fit-2 .qcard-final .wave-band{height:50px;}
 #app.fit-2 .die{width:54px;height:54px;border-radius:18px;}
@@ -843,8 +839,6 @@ button.cc-tile:active{transform:scale(.97);}
 #app.fit-2 .award-pick .color-dot-btn{width:36px;height:36px;}
 #app.fit-2 .reveal-guess{font-size:calc(12.5px * var(--fs));}
 #app.fit-2 .title-md{font-size:calc(18px * var(--fs));}
-#app.fit-1 .qcard.qcard-answer{padding:34px 16px;min-height:104px;}
-#app.fit-1 .qcard.qcard-answer .wave-band{height:32px;}
 #app.fit-2 .round-grid .guess-row{padding:6px 10px;}
 
 @media (prefers-reduced-motion:reduce){
@@ -891,8 +885,9 @@ button.cc-tile:active{transform:scale(.97);}
 [data-theme="dark"] .score-chip.active{background:var(--g-sheen), rgba(44,58,90,.95);box-shadow:inset 0 0 0 2px var(--navy), 0 5px 14px rgba(0,0,0,.3);}
 /* tlačítka */
 [data-theme="dark"] .btn-primary{
-  background:linear-gradient(180deg, #FFFFFF 0%, #E3E9F3 100%);color:#0F1524;border-color:rgba(255,255,255,.6);
-  box-shadow:inset 0 1px 0 #fff, 0 10px 24px rgba(0,0,0,.35);
+  /* tlumené tmavé sklo místo bílé — výrazné, ale v noci nesvítí */
+  background:linear-gradient(180deg, #46598A 0%, #33446B 100%);color:#F2F5FB;border-color:rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 10px 24px rgba(0,0,0,.40);
 }
 [data-theme="dark"] .btn-glass{background:var(--g-sheen), rgba(40,53,82,.78);color:var(--navy);border-color:rgba(255,255,255,.12);}
 [data-theme="dark"] .btn-ghost{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:var(--navy-soft);box-shadow:none;}
