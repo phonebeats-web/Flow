@@ -102,7 +102,7 @@ const Online = {
   async createRoom(hostName){
     const myUid = await FlowNet.ready();
     const code = await FlowNet.createRoom(
-      ()=>uid(5),
+      ()=>uid(6),   // 6 znaků = přes miliardu kombinací, kód nejde uhádnout
       (code, hostUid)=>{
         const host = newPlayer(hostUid, hostName);
         host.joinedAt = Date.now();
@@ -327,9 +327,17 @@ const Online = {
   /* Hráč opustí místnost. */
   async leaveRoom(){
     const code = Store.roomCode;
+    const room = state.room;
     Online.stopSync();
     Online.forgetSession();
+    if(!code) return;
+    // Hostitel, který odchází z čekárny nebo z dohrané hry, místnost smaže —
+    // jména hráčů tak nezůstávají v databázi.
+    if(room && room.hostId===state.myPlayerId && (room.phase==='lobby' || room.phase==='finished')){
+      await FlowNet.deleteRoom(code).catch(()=>{});
+      return;
+    }
     // Ostatní uvidí, že hráč odešel (host ho pak může přeskočit).
-    if(code) await FlowNet.markOffline(code).catch(()=>{});
+    await FlowNet.markOffline(code).catch(()=>{});
   }
 };

@@ -363,10 +363,29 @@ function setTextSize(i){
    Jazyk, zvuky a velikost písma jsou v jednom skleněném panelu, aby
    lišta zůstala čistá. Panel je mimo #app — překreslení hry ho nezavře. */
 const ICON_SETTINGS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h8.6M17.4 7H20M4 17h2.6M11.4 17H20"/></g><circle cx="15" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+/* ---------- NOČNÍ REŽIM ---------- */
+const THEME_KEY = 'flou_theme';
+function currentTheme(){ return document.documentElement.getAttribute('data-theme')==='dark' ? 'dark' : 'light'; }
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', t==='dark' ? '#0F1524' : '#E9502E');
+}
+// bez ruční volby sleduje režim zařízení i za běhu
+try{
+  const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+  if(mq && mq.addEventListener) mq.addEventListener('change', (e)=>{
+    let saved = null; try{ saved = localStorage.getItem(THEME_KEY); }catch(_){}
+    if(saved!=='dark' && saved!=='light') document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+  });
+}catch(e){}
+
 let setClose = null, doneBtnRef = null;
 const CC_ICONS = {
   soundOn:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9.6h2.6L12 6v12l-4.4-3.6H5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6M18.2 6.8a7.4 7.4 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>',
   soundOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9.6h2.6L12 6v12l-4.4-3.6H5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M16 10l4 4M20 10l-4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  moon:     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a.6.6 0 0 0-.8-.7A8.6 8.6 0 1 0 20.2 15.4a.6.6 0 0 0-.7-.8z" fill="currentColor"/></svg>',
   globe:    '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/></g></svg>',
   // „AA" pro velikost písma — geometricky vycentrované
   textSize: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 19 6.1 10.5 9.6 19M3.9 16h4.4"/><path d="M10.4 19 15.6 5 20.8 19M12.3 14.4h6.6"/></g></svg>'
@@ -414,6 +433,7 @@ function openSettings(anchor){
   // --- dlaždice zvuků a jazyka (sestaví se znovu po změně) ---
   const soundTile = el('button',{class:'cc-tile cc-wide cc-sound bar-sound'});
   const langTile = el('div',{class:'cc-tile cc-wide cc-lang', role:'group'});
+  const darkTile = el('button',{class:'cc-tile cc-wide cc-dark'});
   const fill = ()=>{
     const on = Sound.isEnabled();
     grid.setAttribute('aria-label', t('settings'));
@@ -426,6 +446,15 @@ function openSettings(anchor){
         el('span',{class:'cc-state'}, t(on ? 'state_on' : 'state_off')))
     );
     if(typeof doneBtnRef!=='undefined' && doneBtnRef) doneBtnRef.textContent = t('done');
+    const dark = currentTheme()==='dark';
+    darkTile.className = 'cc-tile cc-wide cc-dark'+(dark?' on':'');
+    darkTile.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    darkTile.replaceChildren(
+      el('span',{class:'cc-circle', html:CC_ICONS.moon}),
+      el('span',{class:'cc-text'},
+        el('span',{class:'cc-name'}, t('dark_title')),
+        el('span',{class:'cc-state'}, t(dark ? 'state_on' : 'state_off')))
+    );
     langTile.setAttribute('aria-label', t('lang_label'));
     langTile.replaceChildren(
       el('span',{class:'cc-text'},
@@ -437,11 +466,12 @@ function openSettings(anchor){
           onclick:()=>{ if(LANG!==l){ setLang(l); render(); fill(); updSize(); } }})))
     );
   };
+  darkTile.addEventListener('click', ()=>{ setTheme(currentTheme()==='dark' ? 'light' : 'dark'); fill(); });
   soundTile.addEventListener('click', ()=>{ Sound.setEnabled(!Sound.isEnabled()); if(Sound.isEnabled()) Sound.click(); fill(); });
 
   const doneBtn = el('button',{class:'cc-done', onclick:()=>close()});
   doneBtnRef = doneBtn;
-  grid.append(soundTile, slider, langTile);
+  grid.append(soundTile, slider, darkTile, langTile);
   const wrap = el('div',{class:'cc-wrap'}, grid, doneBtn);
   const overlay = el('div',{class:'cc-overlay', onclick:(e)=>{ if(e.target===overlay) close(); }}, wrap);
 
@@ -456,6 +486,9 @@ function openSettings(anchor){
   };
   const r = anchor.getBoundingClientRect();
   wrap.style.top = Math.round(r.bottom + 12)+'px';
+  // zarovnat k pravému okraji hry (na notebooku je hra uprostřed obrazovky)
+  const appR = (document.getElementById('app') || document.body).getBoundingClientRect();
+  wrap.style.right = Math.max(12, Math.round(window.innerWidth - appR.right + 12))+'px';
   fill(); updSize();
   doneBtn.textContent = t('done');
   document.body.appendChild(overlay);
@@ -1048,9 +1081,12 @@ function finalCardEl(title, note){
 
 function qcardEl(color, text){
   const cssColor = colorVar(color);
-  return el('div',{class:'qcard'},
+  // karta na výšku jako tištěná: vlny, logo FLOU v protilehlých rozích
+  return el('div',{class:'qcard', style:'--card:'+cssColor},
     htmlToNode(cardWave(cssColor, 'top')),
     htmlToNode(cardWave(cssColor, 'bottom')),
+    el('span',{class:'qcard-corner tl','aria-hidden':'true'}, 'FLOU'),
+    el('span',{class:'qcard-corner br','aria-hidden':'true'}, 'FLOU'),
     el('div',{class:'qcard-text'}, text)
   );
 }

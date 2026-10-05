@@ -1,4 +1,4 @@
-# FLOU — online verze (V6)
+# FLOU — online verze (V7)
 
 Karetní diskusní hra FLOU jako webová aplikace. Funguje lokálně na jednom
 zařízení i online mezi více zařízeními přes kód místnosti.
@@ -11,6 +11,7 @@ style.css             vzhled
 data.js               karty česky: 101 červených, 101 modrých, 101 žlutých, 23 šancí
 data_en.js            tytéž karty anglicky (stejné pořadí)
 i18n.js               texty rozhraní CZ/EN, volba jazyka, texty karet
+theme.js              noční režim — nastaví se před vykreslením (bez probliknutí)
 sound.js              zvuky (kostka, karta, klik, fanfára) — vytvářené v prohlížeči, bez souborů
 engine.js             ČISTÁ herní logika — bez DOM, bez Firebase, běží i offline
 firebase.js           JEDINÉ místo, které zná Firebase API
@@ -20,8 +21,43 @@ app.js                stav aplikace, local mode, herní akce
 firebase-rules.json   bezpečnostní pravidla databáze (po každé změně nahrát do konzole!)
 ```
 
+## Zabezpečení
+
+**Pravidla databáze (`firebase-rules.json`):**
+- Místnost smí číst jen hráči v ní; kdo zná kód, zjistí jen fázi místnosti.
+- Založit místnost jde jen s platným kódem; zakladatel je hostitel a jediný hráč.
+- Nový hráč se smí zapsat jen do místnosti v čekárně; mimo svůj tah smí hráč
+  svoje karty jen ubírat (prohra v kolečku), jméno nejde po připojení změnit.
+- Hlasovat / tipovat / volit barvu půlkarty jde jen ve správné fázi; barvu
+  si volí jen ten, kdo uhodl. V kolečku smí hráč zapsat jen svou odpověď.
+- Karta, balíčky, hod, kolečko a průběh psaní mají pevnou strukturu a rozsahy.
+- Záznam hráče smí smazat jen hráč sám; místnost smí smazat jen hostitel
+  (hra ji maže, když hostitel opouští čekárnu nebo dohranou hru).
+
+**Ve hře:** text od hráčů (jména, odpovědi, tipy) se vkládá jen jako čistý text
+(žádné HTML), kód místnosti se před použitím ověřuje, Content Security Policy
+povoluje skripty jen z webu hry a Firebase.
+
+**Doporučená nastavení v konzolích (jednorázově):**
+1. Firebase → Realtime Database → Rules: vložit `firebase-rules.json` → Publish.
+2. Firebase → Authentication → Settings → Authorized domains: ponechat jen
+   `hraflou.cz` (a případně `localhost` pro vývoj).
+3. Google Cloud Console → APIs & Services → Credentials → API key („Browser key"):
+   Application restrictions → Websites → `https://hraflou.cz/*`;
+   API restrictions → jen Identity Toolkit API, Token Service API
+   a Firebase Realtime Database API.
+4. (Volitelné) Firebase → App Check → zaregistrovat web s reCAPTCHA v3, „site key"
+   vložit do `APP_CHECK_SITE_KEY` ve `firebase.js`, po ověření zapnout Enforce.
+5. Firebase → Usage and billing: nastavit upozornění na rozpočet.
+
+**Co pravidla neumí:** ověřit celý herní tah (např. že hráč na tahu nepřidá
+kartu navíc) — to by vyžadovalo server (Cloud Functions). Pro hru s přáteli
+to není potřeba.
+
 ## Ovládání a zobrazení
 
+- Karty jsou na výšku jako tištěné (logo FLOU v rozích) a při vytažení se otočí.
+- Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
   kdo je na tahu, vpravo tlačítko Nastavení a křížek. Nastavení se otevře jako
   ovládací centrum v iOS: dlaždice Zvuky, Jazyk a svislý posuvník velikosti písma.
@@ -147,34 +183,8 @@ Nahraj obsah celé složky na libovolný statický hosting:
    kde bude hra běžet (např. `tvujucet.github.io`), jinak anonymní
    přihlášení z té domény selže.
 
-## Co pravidla chrání a co ne
+## Zabezpečení
 
-**Chrání:**
-- Bez přihlášení (byť anonymního) nelze číst ani zapisovat nic.
-- Do sdíleného stavu hry (fáze, tah, karty, balíčky, vítěz) může zapisovat
-  jen hráč, který je právě na tahu.
-- Hráč může měnit svůj vlastní záznam; cizí záznamy jen tehdy, když je na tahu
-  (nutné pro udělování půlkaret a efekty karet šance).
-- Hlasovat u modré a volit barvu půlkarty může každý jen za sebe.
-- U žluté otázky smí hráč, který je právě na řadě, zapsat jen svou odpověď
-  a posun kola.
-- Host smí přeskočit tah hráče, který odešel (aby hra nestála).
-- Místnost lze založit jen jako vlastní (hostId = moje uid) a hráč se může
-  připojit jen do existující místnosti.
-- Struktura dat je omezená — nelze do místnosti ukládat libovolná data,
-  počty karet mají povolený rozsah, fáze musí být z povoleného seznamu.
-- Nelze zapisovat mimo `/rooms`.
+Podrobný popis a kontrolní seznam nastavení ve Firebase / Google konzoli je v
+**`SECURITY.md`** (pravidla databáze, CSP, App Check, omezení API klíče).
 
-**Nechrání (a proč):**
-- Kdo je na tahu, může technicky zapsat i tah, který by podle pravidel hry
-  nebyl legální (např. udělit si víc karet). Realtime Database pravidla neumí
-  ověřit celý herní tah — musela by k tomu znát pravidla hry.
-- Vyhodnocení „kdo uhodl správně" je ve Flow **sociální, ne technické** — hráči
-  se dohadují nahlas a aktivní hráč rozhoduje. Žádný server tohle ověřit nemůže,
-  protože sám neví, co bylo řečeno u stolu.
-- Kdokoli, kdo zná kód místnosti, se do ní může připojit.
-
-**Kdy by byl potřeba backend (Cloud Functions):** pokud by hra měla být odolná
-proti hráči, který si upraví kód ve svém prohlížeči — tedy házení kostkou,
-míchání balíčku a přidělování karet by musel provádět server. Pro hraní
-s kamarády to považuji za zbytečné; pro veřejnou soutěžní verzi by to bylo nutné.
