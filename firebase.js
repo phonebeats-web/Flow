@@ -118,11 +118,17 @@ const FlowNet = (function(){
     for(let attempt=0; attempt<8; attempt++){
       const candidate = makeCode();
       const room = buildRoom(candidate, myUid);
-      const res = await db.ref('rooms/'+safeCode(candidate)).transaction(current=>{
-        if(current === null) return room;   // volné -> zabereme
-        return undefined;                    // obsazené -> zrušíme a zkusíme jiný kód
-      });
-      if(res.committed) return candidate;
+      let res;
+      try{
+        res = await db.ref('rooms/'+safeCode(candidate)).transaction(current=>{
+          if(current === null) return room;   // volné -> zabereme
+          return undefined;                    // obsazené -> zrušíme a zkusíme jiný kód
+        });
+      }catch(e){
+        // obsazený kód cizí místnosti nejde číst -> pravidla odmítnou; zkusíme jiný
+        continue;
+      }
+      if(res && res.committed) return candidate;
     }
     throw new Error('Nepodařilo se vygenerovat volný kód místnosti');
   }

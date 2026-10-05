@@ -614,27 +614,25 @@ button.cc-tile:active{transform:scale(.97);}
 .cc-flag.active{opacity:1;filter:none;background:#fff;box-shadow:0 3px 10px rgba(24,40,72,.18);}
 .cc-flag:active{transform:scale(.9);}
 /* svislý posuvník přes celou dlaždici */
-.cc-slider{grid-column:2;grid-row:1 / span 3;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;}
+.cc-slider{grid-column:2;grid-row:1 / span 3;background:linear-gradient(180deg,#E6E9EF,#DCE1E9) !important;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;}
 .cc-fill{
   position:absolute;left:0;right:0;bottom:0;
-  /* výrazná barevná výplň (modrá FLOU) */
-  background:linear-gradient(180deg, #6CCBE2 0%, #2E97B3 100%);
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.45);
+  /* jako v iOS: bílá výplň na jemně šedé dráze */
+  background:#fff;
+  box-shadow:0 -1px 0 rgba(24,40,72,.08), 0 -4px 12px rgba(24,40,72,.06);
   transition:height .18s cubic-bezier(.3,1.2,.5,1);
 }
 .cc-slider.active .cc-fill{transition:height .06s linear;}
-.cc-slider-icon{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;color:#fff;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(10,60,80,.35));}
+.cc-slider-icon{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;color:var(--navy-soft);pointer-events:none;}
 /* značky stupňů — vidět, kolik zbývá */
-.cc-ticks{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column-reverse;justify-content:space-evenly;align-items:center;pointer-events:none;padding:28px 0 56px;}
-.cc-ticks span{width:16px;height:2px;border-radius:2px;background:rgba(24,40,72,.16);}
-[data-theme="dark"] .cc-ticks span{background:rgba(255,255,255,.16);}
+.cc-ticks{position:absolute;inset:0;pointer-events:none;z-index:1;}
+.cc-ticks span{position:absolute;left:50%;width:14px;height:2px;border-radius:2px;transform:translate(-50%,50%);background:rgba(24,40,72,.14);}
+[data-theme="dark"] .cc-ticks span{background:rgba(255,255,255,.14);}
 .cc-slider-icon svg{width:28px;height:28px;display:block;}
 .cc-pct{
-  position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:2;pointer-events:none;
-  padding:3px 9px;border-radius:999px;background:rgba(24,40,72,.88);color:#fff;
-  font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(24,40,72,.2);
+  position:absolute;left:0;right:0;top:12px;z-index:2;pointer-events:none;text-align:center;
+  font-size:13px;font-weight:600;color:var(--navy-soft);white-space:nowrap;
 }
-[data-theme="dark"] .cc-pct{background:#E9EEF7;color:#0F1524;}
 .cc-slider:focus-visible,.cc-tile:focus-visible{outline:3px solid rgba(46,151,179,.6);outline-offset:2px;}
 .cc-done{
   border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:11px 26px;cursor:pointer;min-width:120px;
@@ -1022,7 +1020,9 @@ button.cc-tile:active{transform:scale(.97);}
 [data-theme="dark"] .cc-tile{background:linear-gradient(160deg, #2C3958, #1E283E);border-color:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.1), 0 10px 30px rgba(0,0,0,.4);}
 [data-theme="dark"] .cc-circle{background:rgba(255,255,255,.10);}
 [data-theme="dark"] .cc-flag{background:rgba(255,255,255,.08);}
-[data-theme="dark"] .cc-slider-icon{color:#fff;}
+[data-theme="dark"] .cc-slider{background:linear-gradient(180deg,#2A3550,#222C44) !important;}
+[data-theme="dark"] .cc-fill{background:#E9EEF7;}
+[data-theme="dark"] .cc-slider-icon{color:#1E283E;}
 [data-theme="dark"] .cc-done{background:linear-gradient(180deg, #46598A 0%, #33446B 100%);border-color:rgba(255,255,255,.16);color:#F2F5FB;box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px rgba(0,0,0,.40);}
 [data-theme="dark"] .cc-overlay{background:rgba(0,0,0,.35);}
 /* náhled při změně písma: bez rozmazání, ostatní dlaždice ustoupí */

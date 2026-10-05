@@ -2,7 +2,7 @@
   "rules": {
     "rooms": {
       "$code": {
-        ".read": "auth != null && data.child('players').child(auth.uid).exists()",
+        ".read": "auth != null && (!data.exists() || data.child('players').child(auth.uid).exists())",
         ".write": "auth != null && ((!data.exists() && $code.matches(/^[A-HJ-NP-Z2-9]{5,6}$/) && newData.child('hostId').val() == auth.uid && newData.child('code').val() == $code && newData.child('phase').val() == 'lobby' && newData.child('players').child(auth.uid).exists() && newData.child('turnPlayerId').val() == auth.uid) || (data.exists() && !newData.exists() && auth.uid == data.child('hostId').val()))",
         "players": {
           "$uid": {

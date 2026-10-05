@@ -403,7 +403,9 @@ function openSettings(anchor){
   const pctEl = el('div',{class:'cc-pct'});
   const slider = el('div',{class:'cc-tile cc-slider', role:'slider', tabindex:'0',
       'aria-valuemin':'0', 'aria-valuemax':String(n-1)},
-    pctEl, fillEl, el('div',{class:'cc-ticks','aria-hidden':'true'}, ...TEXT_SIZES.slice(1).map(()=>el('span',{}))),
+    pctEl, fillEl,
+    // značky přesně na hranicích stupňů (výplň má výšku (stupeň+1)/n)
+    el('div',{class:'cc-ticks','aria-hidden':'true'}, ...TEXT_SIZES.slice(1).map((_,i)=>el('span',{style:'bottom:'+((i+1)/n*100)+'%'}))),
     el('div',{class:'cc-slider-icon', html:CC_ICONS.textSize}));
   const updSize = ()=>{
     const frac = (textSizeIdx+1)/n;
