@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '36';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '37';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -907,7 +907,7 @@ function renderIdle(s, room, mine){
   if(mine){
     const btn = button(t('roll_btn'),'btn-primary', ()=>{ animateRoll([die1, die2], btn); });
     col.appendChild(btn);
-    col.appendChild(el('div',{class:'subtitle center-text'}, t('roll_hint')));
+    if(noCardsYet()) col.appendChild(el('div',{class:'subtitle center-text'}, t('roll_hint')));
   } else {
     col.appendChild(el('div',{class:'subtitle'}, ...tn('roll_wait', b(ap.name))));
   }
@@ -1107,6 +1107,10 @@ function qcardEl(color, text){
    vidět pod kartou. Potřetí se ukáže naposledy a animací se „schová"
    na rub karty; pak je vždy k dispozici pod otazníkem — karta se otočí. */
 let lastHintCardKey = null;
+/* Vysvětlující texty („co má hráč dělat") se ukazují jen u první karty
+   dané barvy — pak je nápověda pod otazníkem na kartě. */
+function firstTime(kind){ return ((state.hintSeen && state.hintSeen[kind]) || 0) <= 1; }
+function noCardsYet(){ const h = state.hintSeen || {}; return !Object.keys(h).some(k=>h[k]>0); }
 function hintKind(card, colorOverride){
   return card.type==='chance' ? 'chance' : (colorOverride || card.color);
 }
@@ -1180,12 +1184,12 @@ function renderQuestionPhase(s, room, mine){
   s.appendChild(gap(22));
   if(!mine){
     s.appendChild(el('div',{class:'subtitle center-text'}, ...tn('answers', b(ap.name))));
-    if(card.color==='red'){
+    if(card.color==='red' && firstTime('red')){
       s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:6px'}, t('red_ask_others')));
     }
     return;
   }
-  if(card.color==='red'){
+  if(card.color==='red' && firstTime('red')){
     s.appendChild(el('div',{class:'banner-info glass'}, ...tn('red_banner', b(ap.name))));
     s.appendChild(gap(12));
   }
@@ -1219,7 +1223,7 @@ function renderRound(s, room, mine){
   const btnCls = col==='red' ? 'btn-red' : col==='blue' ? 'btn-blue' : 'btn-yellow';
 
   if(card.everyone){
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, t('everyone_red_note')));
+    if(firstTime('chance')) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, t('everyone_red_note')));
   }
 
   const answered = r.answered || {};
@@ -1283,7 +1287,7 @@ function renderRound(s, room, mine){
         'btn-glass', ()=>{ roundAnswer(current.id, false); })
     ));
     if(isDrawer){
-      s.appendChild(el('div',{class:'subtitle center-text fit-hide', style:'margin-top:8px'}, t('drawer_skip_note')));
+      if(firstTime(card.everyone ? 'chance' : col)) s.appendChild(el('div',{class:'subtitle center-text fit-hide', style:'margin-top:8px'}, t('drawer_skip_note')));
     }
   } else {
     s.appendChild(waiting(...tn('answering_wait', b(current.name))));
@@ -1481,8 +1485,10 @@ function renderRightNeighbor(s, room, mine){
   s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(nbName))));
   s.appendChild(cardEl(card));
   s.appendChild(gap(16));
-  s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(nbName), b(ap.name), colorAcc(card.color))));
-  s.appendChild(gap(14));
+  if(firstTime('chance')){
+    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(nbName), b(ap.name), colorAcc(card.color))));
+    s.appendChild(gap(14));
+  }
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
     button(t('rn_answered', ap.name), colorBtnCls(card.color), ()=>{
@@ -1508,7 +1514,7 @@ function renderBlueCompose(s, room, mine){
   if(viaNeighbor) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(author.name))));
   s.appendChild(cardEl(card));
   s.appendChild(gap(viaNeighbor ? 14 : 20));
-  if(viaNeighbor){
+  if(viaNeighbor && firstTime('chance')){
     s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(author.name), b(ap.name), colorAcc('blue'))));
     s.appendChild(gap(14));
   }
@@ -1528,11 +1534,13 @@ function renderBlueCompose(s, room, mine){
   const local = Store.mode==='local';
 
   if(bc.step!==2){
-    s.appendChild(el('div',{class:'banner-info glass'},
-      b(t('blue_intro_head')+' '),
-      local ? tn('blue_intro_local', b(author.name)) : null
-    ));
-    s.appendChild(gap(14));
+    if(firstTime('blue')){
+      s.appendChild(el('div',{class:'banner-info glass'},
+        b(t('blue_intro_head')+' '),
+        local ? tn('blue_intro_local', b(author.name)) : null
+      ));
+      s.appendChild(gap(14));
+    }
     const list = el('div',{class:'stack stack-tight'});
     const inputs = [];
     // Kontrola při psaní: shodné odpovědi se zvýrazní a „Dále" se zablokuje.

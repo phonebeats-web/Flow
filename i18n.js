@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '36';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '37';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
