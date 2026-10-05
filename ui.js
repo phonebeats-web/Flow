@@ -1,3 +1,4 @@
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -716,7 +717,8 @@ function renderSetupLocal(s){
     const names = state.setupNames.map(n=>n.trim()).filter(Boolean);
     if(duplicateAnswerIdx(names).size){ refreshDup(); return; }
     if(names.length<2){ uiAlert(t('setup_min2')); return; }
-    startLocalGame(names);
+    try{ startLocalGame(names); }
+    catch(e){ console.error(e); showRuntimeError((e && e.message) || String(e)); }
   });
   s.appendChild(startBtn);
   refreshDup();

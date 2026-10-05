@@ -1,3 +1,4 @@
+(window.FLOU_FILES = window.FLOU_FILES || {})['firebase.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    FIREBASE LAYER — JEDINÉ místo v aplikaci, které ví o Firebase.
    Nikde jinde (engine.js, ui.js) se Firebase API nesmí volat.

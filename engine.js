@@ -1,3 +1,4 @@
+(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    GAME ENGINE — čistá herní logika.
    Žádná závislost na DOM, na Firebase, ani na síti.
@@ -13,6 +14,17 @@ function uid(n=6){
   let s='';for(let i=0;i<n;i++)s+=chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
+
+/* Očištění jména: pryč s neviditelnými a řídicími znaky (např. obrácení směru
+   textu U+202E, kterým by šlo podvrhnout, jak jméno vypadá), sloučí mezery,
+   ořízne na 24 znaků. */
+function cleanName(s){
+  return String(s||'')
+    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g,'')
+    .replace(/\s+/g,' ').trim().slice(0,24);
+}
+/* Kód místnosti: jen znaky, které nejdou splést (bez I, O, 0, 1). */
+const ROOM_CODE_RE = /^[A-HJ-NP-Z2-9]{5,6}$/;
 
 function shuffle(arr){
   const a=arr.slice();

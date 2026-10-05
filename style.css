@@ -750,7 +750,7 @@ button.cc-tile:active{transform:scale(.97);}
   animation:dlg-pop .26s cubic-bezier(.2,1.25,.4,1) both;
 }
 .dialog-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(21px * var(--fs));line-height:1.25;color:var(--navy);}
-.dialog-msg{margin-top:8px;font-size:calc(15px * var(--fs));line-height:1.5;color:var(--navy-soft);}
+.dialog-msg{margin-top:8px;font-size:calc(15px * var(--fs));line-height:1.5;color:var(--navy-soft);;white-space:pre-line;overflow-wrap:anywhere}
 .dialog-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
 .dialog-actions .btn{min-height:50px;}
 .dialog-overlay.closing{animation:dlg-fade-out .17s ease both;}

@@ -1,3 +1,4 @@
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -73,6 +74,10 @@ cs: {
   err_join:'Připojení se nezdařilo. Zkontroluj kód a připojení k internetu.',
   err_min2:'Jsou potřeba alespoň 2 hráči.',
   room_ended:'Místnost byla ukončena.',
+  err_versions_title:'Na webu jsou soubory z různých verzí',
+  err_versions:'Tyto soubory jsou zastaralé nebo chybí: {0}. Nahraj prosím na web znovu celou složku hry a stránku obnov.',
+  err_runtime_title:'Něco se pokazilo',
+  err_runtime:'Ve hře nastala chyba. Pošli prosím snímek tohoto okna — pomůže s opravou. Technický popis:',
 
   turn_of:'Na tahu: {0}', turn_label:'Na tahu', is_offline:'{0} je offline.',
   skip_turn_btn:'Přeskočit tah hráče {0}', skip_turn_confirm:'Přeskočit tah hráče {0}?',
@@ -226,6 +231,10 @@ en: {
   err_join:'Couldn\'t join. Please check the code and your internet connection.',
   err_min2:'At least 2 players are needed.',
   room_ended:'The room has been closed.',
+  err_versions_title:'The website has files from different versions',
+  err_versions:'These files are outdated or missing: {0}. Please upload the whole game folder again and reload the page.',
+  err_runtime_title:'Something went wrong',
+  err_runtime:'An error occurred in the game. Please send a screenshot of this window — it helps with fixing it. Technical details:',
 
   turn_of:'Turn: {0}', turn_label:'Now playing', is_offline:'{0} is offline.',
   skip_turn_btn:'Skip {0}\'s turn', skip_turn_confirm:'Skip {0}\'s turn?',

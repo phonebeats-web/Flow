@@ -1,3 +1,4 @@
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.
@@ -518,7 +519,44 @@ function codeFromUrl(){
   }
 })();
 
+/* ============ KONTROLA VERZÍ A ZACHYTÁVÁNÍ CHYB ============ */
+/* Když na webu zůstane některý starší soubor, hra by tiše selhala.
+   Proto: 1) každý soubor nese číslo verze — při nesouladu se ukáže hláška,
+   2) neočekávaná chyba se zobrazí v okně (snímek pomůže s opravou). */
+const FLOU_EXPECTED_FILES = ['theme.js','data.js','data_en.js','i18n.js','sound.js','engine.js','firebase.js','online.js','ui.js','app.js'];
+function checkFileVersions(){
+  const v = window.FLOU_FILES || {};
+  const mine = v['app.js'];
+  const bad = FLOU_EXPECTED_FILES.filter(f=> v[f] !== mine);
+  if(bad.length){
+    const msg = (typeof t==='function' ? t('err_versions', bad.join(', ')) : 'Zastaralé soubory: '+bad.join(', '));
+    if(typeof uiAlert==='function') uiAlert(msg, typeof t==='function' ? t('err_versions_title') : 'Nesoulad verzí');
+    else alert(msg);
+    return false;
+  }
+  return true;
+}
+let lastErrorShown = 0;
+function showRuntimeError(detail){
+  const now = Date.now();
+  if(now - lastErrorShown < 5000) return;      // ne víc oken najednou
+  lastErrorShown = now;
+  try{
+    const box = (typeof t==='function') ? t('err_runtime') : 'Něco se pokazilo.';
+    const title = (typeof t==='function') ? t('err_runtime_title') : 'Chyba';
+    if(typeof uiAlert==='function') uiAlert(box+'\n\n'+detail, title);
+  }catch(e){}
+}
+window.addEventListener('error', (e)=>{
+  const src = String(e.filename||'');
+  // jen chyby z kódu hry (ne z rozšíření prohlížeče apod.)
+  if(src && !/\/(app|ui|engine|online|firebase|i18n|sound|data|data_en|theme)\.js/.test(src)) return;
+  const file = src.split('/').pop().split('?')[0];
+  showRuntimeError((e.message||'Error') + (file ? ' ('+file+':'+e.lineno+')' : ''));
+});
+
 (async function boot(){
+  checkFileVersions();
   const invited = codeFromUrl();
   if(invited){
     state.joinCode = invited;
