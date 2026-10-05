@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['sound.js'] = '38';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['sound.js'] = '39';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    ZVUKY — vytvářené přímo v prohlížeči (Web Audio API).
    Žádné zvukové soubory: nic se nestahuje, hra zůstává rychlá.

@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '38';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '39';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    GAME ENGINE — čistá herní logika.
    Žádná závislost na DOM, na Firebase, ani na síti.
@@ -39,12 +39,23 @@ function indexList(n){
   const a=[]; for(let i=0;i<n;i++) a.push(i);
   return shuffle(a);
 }
+/* Balíček karet šance: „tvrdé" karty (přijít o všechny karty) jsou v něm
+   jen jednou, ostatní dvakrát — padají tak zhruba o polovinu méně často. */
+const RARE_CHANCE = ['lose_all', 'lose_all_unless_red'];
+function chanceDeck(){
+  const a = [];
+  CHANCE_CARDS.forEach((c,i)=>{
+    const copies = RARE_CHANCE.indexOf(c.key) >= 0 ? 1 : 2;
+    for(let k=0;k<copies;k++) a.push(i);
+  });
+  return shuffle(a);
+}
 function freshDecks(){
   return {
     red: indexList(QUESTIONS.red.length),
     blue: indexList(QUESTIONS.blue.length),
     yellow: indexList(QUESTIONS.yellow.length),
-    chance: indexList(CHANCE_CARDS.length)
+    chance: chanceDeck()
   };
 }
 
@@ -54,7 +65,7 @@ function drawIndex(room, colorKey){
   const len = colorKey==='chance' ? CHANCE_CARDS.length : QUESTIONS[colorKey].length;
   let deck = room.decks[colorKey];
   if(!deck || deck.length===0){
-    deck = indexList(len);
+    deck = colorKey==='chance' ? chanceDeck() : indexList(len);
   }
   const idx = deck[deck.length-1];
   room.decks[colorKey] = deck.slice(0, deck.length-1);

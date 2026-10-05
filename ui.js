@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '38';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '39';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -877,6 +877,10 @@ function renderGame(s){
   // Výsledek hodu vidí všichni, dokud se hraje daný tah.
   if(room.lastRoll) s.appendChild(rollSummary(room));
 
+  // první karta dané barvy: nejdřív pravidla na rubu karty
+  const ik = introKind(room);
+  if(ik){ renderIntro(s, room, ik); return; }
+
   const phases = {
     'rolled-question': renderQuestionPhase,
     'answer-round':    renderRound,
@@ -907,7 +911,13 @@ function renderIdle(s, room, mine){
   if(mine){
     const btn = button(t('roll_btn'),'btn-primary', ()=>{ animateRoll([die1, die2], btn); });
     col.appendChild(btn);
-    if(noCardsYet()) col.appendChild(el('div',{class:'subtitle center-text'}, t('roll_hint')));
+    if(noCardsYet()){
+      col.appendChild(el('div',{class:'subtitle center-text'}, t('roll_hint')));
+      col.appendChild(el('div',{class:'color-legend', 'aria-label':t('rules_toggle')},
+        ...[['red','red'],['blue','blue'],['yellow','yellow'],['chance','chance']].map(([k,c])=>
+          el('span',{class:'legend-item'}, el('span',{class:'legend-dot', style:'background:'+colorVar(c)}), t('legend_'+k)))
+      ));
+    }
   } else {
     col.appendChild(el('div',{class:'subtitle'}, ...tn('roll_wait', b(ap.name))));
   }
@@ -1128,6 +1138,9 @@ function trackHintCard(){
 }
 function flipCard(inner, on){
   state.cardFlipped = on;
+  // rub se natáhne podle délky pravidel; po otočení zpět se karta srovná
+  if(on) inner.classList.add('grow');
+  else setTimeout(()=>{ if(!inner.classList.contains('flipped')) inner.classList.remove('grow'); }, 620);
   inner.classList.toggle('flipped', on);
   const front = inner.querySelector('.qcard'), back = inner.querySelector('.qcard-back');
   if(front) front.setAttribute('aria-hidden', on ? 'true' : 'false');
@@ -1136,25 +1149,23 @@ function flipCard(inner, on){
   Sound.flip();
   setTimeout(()=>{ const f = inner.querySelector(on ? '.hint-x' : '.hint-q'); try{ f && f.focus({preventScroll:true}); }catch(e){} }, 320);
 }
-/* Karta z herního stavu — text v jazyce tohoto zařízení, s otazníkem a nápovědou. */
-function cardEl(card, colorOverride){
+/* Karta z herního stavu — text v jazyce tohoto zařízení, s otazníkem a pravidly na rubu. */
+function cardEl(card, colorOverride, opts={}){
   const color = colorOverride || (card.type==='chance' ? 'chance' : card.color);
   const kind = hintKind(card, colorOverride);
   const front = qcardEl(color, cardText(card));
-  const seen = (state.hintSeen && state.hintSeen[kind]) || 0;
-  // 1. karta dané barvy: nápověda pod kartou; 2. karta: otazník zabliká s bublinou
-  const remind = seen === 2 && !(state.hintTuckShown && state.hintTuckShown[kind]);
-  if(remind){ state.hintTuckShown = state.hintTuckShown || {}; state.hintTuckShown[kind] = true; }
-
-  const inner = el('div',{class:'card3d-inner'+(state.cardFlipped ? ' flipped' : '')});
-  const qBtn = el('button',{class:'hint-q'+(remind ? ' hint-pulse' : ''), 'aria-label':t('hint_btn'), title:t('hint_btn'),
-    'aria-expanded': state.cardFlipped ? 'true' : 'false', onclick:(e)=>{ e.stopPropagation(); flipCard(inner, true); }}, '?');
+  const showBack = !!opts.intro || state.cardFlipped;
+  const inner = el('div',{class:'card3d-inner'+(showBack || state.unflipNext ? ' flipped grow' : '')+(opts.intro ? ' intro' : '')});
+  const qBtn = el('button',{class:'hint-q', 'aria-label':t('hint_btn'), title:t('hint_btn'),
+    'aria-expanded': showBack ? 'true' : 'false', onclick:(e)=>{ e.stopPropagation(); flipCard(inner, true); }}, '?');
   front.appendChild(qBtn);
-  if(remind) front.appendChild(el('span',{class:'hint-bubble','aria-hidden':'true'}, t('hint_label')));
-  front.setAttribute('aria-hidden', state.cardFlipped ? 'true' : 'false');
-  const back = el('div',{class:'qcard-back', style:'--c:'+colorVar(color), 'aria-hidden': state.cardFlipped ? 'false' : 'true'},
+  front.setAttribute('aria-hidden', showBack ? 'true' : 'false');
+  const back = el('div',{class:'qcard-back', style:'--c:'+colorVar(color), 'aria-hidden': showBack ? 'false' : 'true'},
     el('div',{class:'qcard-back-band'}),
-    el('button',{class:'hint-x', 'aria-label':t('hint_close'), title:t('hint_close'), onclick:(e)=>{ e.stopPropagation(); flipCard(inner, false); }}, '×'),
+    el('button',{class:'hint-x', 'aria-label':t('hint_close'), title:t('hint_close'), onclick:(e)=>{
+      e.stopPropagation();
+      if(opts.intro) introAccept(kind); else flipCard(inner, false);
+    }}, '×'),
     el('div',{class:'qcard-back-body'},
       el('div',{class:'qcard-back-label'}, t('hint_label')),
       el('div',{class:'qcard-back-title'}, t('hint_title_'+kind)),
@@ -1162,18 +1173,37 @@ function cardEl(card, colorOverride){
     )
   );
   inner.append(front, back);
-  const frag = document.createDocumentFragment();
-  frag.appendChild(el('div',{class:'card3d'}, inner));
-  // nápověda pod kartou jen u první karty dané barvy (s poznámkou, kde ji najít příště)
-  if(seen <= 1){
-    frag.appendChild(el('div',{class:'hint-inline glass', role:'note'},
-      el('span',{class:'hint-ico','aria-hidden':'true', style:'--c:'+colorVar(color)}, '?'),
-      el('div',{class:'hint-inline-text'},
-        el('b',{}, t('hint_title_'+kind)), ' ', t('hint_'+kind),
-        el('div',{class:'hint-moved'}, t('hint_moved')))
-    ));
+  // po „Rozumím": karta se plynule otočí z rubu na otázku
+  if(state.unflipNext && !opts.intro){
+    state.unflipNext = false;
+    raf(()=>raf(()=>{ inner.classList.remove('flipped'); setTimeout(()=>inner.classList.remove('grow'), 620); }));
   }
-  return frag;
+  return el('div',{class:'card3d'}, inner);
+}
+
+/* První karta dané barvy: karta přiletí rubem nahoru (pravidla) s tlačítkem
+   „Rozumím". Teprve pak se otočí na otázku a ukáže se zbytek obrazovky. */
+const INTRO_PHASES = ['rolled-question','answer-round','chance','right-neighbor','blue-compose','blue-guessing'];
+function introKind(room){
+  if(!room || !room.currentCard || INTRO_PHASES.indexOf(room.phase) < 0) return null;
+  const kind = hintKind(room.currentCard, room.round && room.phase==='answer-round' ? room.round.color : null);
+  if(window.__skipIntro) return null;   // jen pro automatické testy
+  return (state.introDone && state.introDone[kind]) ? null : kind;
+}
+function introAccept(kind){
+  state.introDone = state.introDone || {};
+  state.introDone[kind] = true;
+  state.cardFlipped = false;
+  state.unflipNext = true;
+  Sound.flip();
+  render();
+}
+function renderIntro(s, room, kind){
+  const card = room.currentCard;
+  const colorOverride = (room.round && room.phase==='answer-round') ? room.round.color : null;
+  s.appendChild(cardEl(card, colorOverride, {intro:true}));
+  s.appendChild(gap(20));
+  s.appendChild(button(t('intro_ok'), 'btn-primary', ()=>introAccept(kind)));
 }
 
 /* ---------- ČERVENÁ OTÁZKA (odpovídá jen hráč, který ji vytáhl) ---------- */
@@ -1183,16 +1213,11 @@ function renderQuestionPhase(s, room, mine){
   s.appendChild(cardEl(card));
   s.appendChild(gap(22));
   if(!mine){
-    s.appendChild(el('div',{class:'subtitle center-text'}, ...tn('answers', b(ap.name))));
-    if(card.color==='red' && firstTime('red')){
-      s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:6px'}, t('red_ask_others')));
-    }
+    s.appendChild(el('div',{class:'subtitle center-text'}, ...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
     return;
   }
-  if(card.color==='red' && firstTime('red')){
-    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('red_banner', b(ap.name))));
-    s.appendChild(gap(12));
-  }
+  s.appendChild(el('div',{class:'step-line'}, ...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
+  s.appendChild(gap(12));
   s.appendChild(el('div',{class:'stack stack-tight'},
     button(t('answered_gets'), colorBtnCls(card.color), ()=>{
       addFull(ap, card.color);
@@ -1223,7 +1248,7 @@ function renderRound(s, room, mine){
   const btnCls = col==='red' ? 'btn-red' : col==='blue' ? 'btn-blue' : 'btn-yellow';
 
   if(card.everyone){
-    if(firstTime('chance')) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, t('everyone_red_note')));
+    s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, t('everyone_red_note')));
   }
 
   const answered = r.answered || {};
@@ -1287,7 +1312,6 @@ function renderRound(s, room, mine){
         'btn-glass', ()=>{ roundAnswer(current.id, false); })
     ));
     if(isDrawer){
-      if(firstTime(card.everyone ? 'chance' : col)) s.appendChild(el('div',{class:'subtitle center-text fit-hide', style:'margin-top:8px'}, t('drawer_skip_note')));
     }
   } else {
     s.appendChild(waiting(...tn('answering_wait', b(current.name))));
@@ -1485,10 +1509,6 @@ function renderRightNeighbor(s, room, mine){
   s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(nbName))));
   s.appendChild(cardEl(card));
   s.appendChild(gap(16));
-  if(firstTime('chance')){
-    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(nbName), b(ap.name), colorAcc(card.color))));
-    s.appendChild(gap(14));
-  }
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
     button(t('rn_answered', ap.name), colorBtnCls(card.color), ()=>{
@@ -1514,10 +1534,7 @@ function renderBlueCompose(s, room, mine){
   if(viaNeighbor) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(author.name))));
   s.appendChild(cardEl(card));
   s.appendChild(gap(viaNeighbor ? 14 : 20));
-  if(viaNeighbor && firstTime('chance')){
-    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('rn_note', b(author.name), b(ap.name), colorAcc('blue'))));
-    s.appendChild(gap(14));
-  }
+
 
   if(!isBlueAuthorHere(room)){
     renderBlueWaiting(s, room, author);
@@ -1534,13 +1551,8 @@ function renderBlueCompose(s, room, mine){
   const local = Store.mode==='local';
 
   if(bc.step!==2){
-    if(firstTime('blue')){
-      s.appendChild(el('div',{class:'banner-info glass'},
-        b(t('blue_intro_head')+' '),
-        local ? tn('blue_intro_local', b(author.name)) : null
-      ));
-      s.appendChild(gap(14));
-    }
+    s.appendChild(el('div',{class:'step-line'}, t('blue_write'), local ? ' '+t('blue_write_local') : ''));
+    s.appendChild(gap(12));
     const list = el('div',{class:'stack stack-tight'});
     const inputs = [];
     // Kontrola při psaní: shodné odpovědi se zvýrazní a „Dále" se zablokuje.
@@ -1578,7 +1590,7 @@ function renderBlueCompose(s, room, mine){
   }
 
   // Krok 2 — označení pravdivé odpovědi.
-  s.appendChild(el('div',{class:'banner-info glass'}, ...tn('blue_mark', b(t('blue_true_word')))));
+  s.appendChild(el('div',{class:'step-line'}, t('blue_mark')));
   s.appendChild(gap(12));
   const list = el('div',{class:'stack stack-tight'});
   keys.forEach((k,i)=>{

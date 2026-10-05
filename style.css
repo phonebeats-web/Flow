@@ -661,10 +661,17 @@ button.cc-tile:active{transform:scale(.97);}
   display:flex;flex-direction:column;
 }
 .qcard-back-band{height:12px;background:var(--c);flex-shrink:0;}
-.qcard-back-body{flex:1;overflow:auto;padding:16px 20px 16px;text-align:left;}
+.qcard-back-body{flex:1;overflow:auto;padding:14px 18px 14px;text-align:left;}
+/* první setkání s barvou: rub v toku stránky — natáhne se podle délky pravidel */
+.card3d-inner.intro > .qcard,.card3d-inner.grow > .qcard{position:absolute;inset:0;aspect-ratio:auto;}
+.card3d-inner.intro > .qcard-back,.card3d-inner.grow > .qcard-back{position:relative;inset:auto;aspect-ratio:88 / 63;min-height:auto;}
+.card3d-inner.intro .qcard-back-body,.card3d-inner.grow .qcard-back-body{overflow:visible;padding-bottom:18px;}
+/* natažený rub nesmí ořezávat obsah (jinak by nerostl) — zaoblení drží pruh sám */
+.card3d-inner.intro > .qcard-back,.card3d-inner.grow > .qcard-back{overflow:visible;}
+.card3d-inner.intro .qcard-back-band,.card3d-inner.grow .qcard-back-band{border-radius:24px 24px 0 0;}
 .qcard-back-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--navy-soft);}
-.qcard-back-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(18px * var(--fs));color:var(--navy);margin:2px 34px 6px 0;line-height:1.25;}
-.qcard-back-text{font-size:calc(14.5px * var(--fs));line-height:1.45;color:var(--navy-soft);}
+.qcard-back-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(16.5px * var(--fs));color:var(--navy);margin:2px 34px 6px 0;line-height:1.25;}
+.qcard-back-text{font-size:calc(13.5px * var(--fs));line-height:1.42;color:var(--navy-soft);}
 /* otazník na kartě a křížek na rubu */
 .hint-q,.hint-x{
   position:absolute;z-index:3;width:32px;height:32px;border-radius:50%;padding:0;cursor:pointer;
@@ -724,6 +731,17 @@ button.cc-tile:active{transform:scale(.97);}
   .hint-q.hint-pulse,.hint-inline.tuck{animation:none;}
   .hint-bubble{animation:none;opacity:0;}
 }
+
+/* ---------- Krátký pokyn pod kartou (co dělat teď) ---------- */
+.step-line{
+  text-align:center;font-size:calc(15px * var(--fs));line-height:1.4;color:var(--navy-soft);
+  padding:0 8px;
+}
+.step-line b{color:var(--navy);}
+/* legenda barev před prvním hodem */
+.color-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-top:-4px;}
+.legend-item{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px * var(--fs));font-weight:600;color:var(--navy-soft);}
+.legend-dot{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 -2px 2px rgba(0,0,0,.12);}
 
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{

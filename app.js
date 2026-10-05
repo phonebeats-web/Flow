@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '38';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '39';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.
@@ -35,6 +35,8 @@ function initialState(){
     hintSeen: {},        // nápověda: kolikrát už padla každá barva (red/blue/yellow/chance)
     hintTuckShown: {},   // nápověda: animace „schování na kartu" už proběhla
     cardFlipped: false,  // karta je otočená na stranu s nápovědou
+    introDone: {},       // u kterých barev už hráč viděl pravidla (karta rubem nahoru)
+    unflipNext: false,   // po „Rozumím" se karta plynule otočí na otázku
     solo: null,          // hra pro jednoho
   };
 }

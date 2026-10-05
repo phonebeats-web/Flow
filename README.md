@@ -58,9 +58,10 @@ to není potřeba.
 
 - Karty jsou na šířku (poměr ležící hrací karty 88 : 63), u všech barev a na všech
   obrazovkách stejně velké; na nižších displejích celkově menší. Při vytažení se otočí.
-- Nápověda: u první karty každé barvy (i šance) je pod kartou; u druhé otazník
-  zabliká s bublinou „Nápověda". Otazník na kartě kartu otočí, křížek ji vrátí.
-  Počítá se pro každou hru a každé zařízení zvlášť; hra o samotě nápovědu nemá.
+- Průvodce: před prvním hodem legenda barev; pod kartou vždy jen jeden krátký pokyn
+  (co dělat teď). Pravidla jsou na rubu karty — u první karty dané barvy karta přiletí
+  rubem nahoru s tlačítkem „Rozumím", pak jsou kdykoli pod otazníkem.
+- Karty šance „přijít o všechny karty" jsou v balíčku jednou, ostatní dvakrát (padají méně).
 - Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
   kdo je na tahu, vpravo tlačítko Nastavení a křížek. Nastavení se otevře jako
