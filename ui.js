@@ -420,14 +420,22 @@ function openSettings(anchor){
     updSize();
   };
   let dragging = false;
-  slider.addEventListener('pointerdown', (e)=>{ dragging = true; slider.classList.add('active'); try{ slider.setPointerCapture(e.pointerId); }catch(_){} setFromY(e.clientY); e.preventDefault(); });
+  // „náhled": při změně písma zmizí rozmazání a ostatní dlaždice se zprůhlední,
+  // aby byla vidět hra a jak se v ní mění text
+  let peekTimer = null;
+  const peek = (on, holdMs)=>{
+    clearTimeout(peekTimer);
+    overlay.classList.toggle('peek', on);
+    if(on && holdMs) peekTimer = setTimeout(()=>overlay.classList.remove('peek'), holdMs);
+  };
+  slider.addEventListener('pointerdown', (e)=>{ dragging = true; slider.classList.add('active'); peek(true); try{ slider.setPointerCapture(e.pointerId); }catch(_){} setFromY(e.clientY); e.preventDefault(); });
   slider.addEventListener('pointermove', (e)=>{ if(dragging) setFromY(e.clientY); });
-  const endDrag = ()=>{ dragging = false; slider.classList.remove('active'); };
+  const endDrag = ()=>{ dragging = false; slider.classList.remove('active'); peek(true, 900); };
   slider.addEventListener('pointerup', endDrag);
   slider.addEventListener('pointercancel', endDrag);
   slider.addEventListener('keydown', (e)=>{
-    if(e.key==='ArrowUp' || e.key==='ArrowRight'){ setTextSize(textSizeIdx+1); updSize(); e.preventDefault(); }
-    if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ setTextSize(textSizeIdx-1); updSize(); e.preventDefault(); }
+    if(e.key==='ArrowUp' || e.key==='ArrowRight'){ setTextSize(textSizeIdx+1); updSize(); peek(true, 1200); e.preventDefault(); }
+    if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ setTextSize(textSizeIdx-1); updSize(); peek(true, 1200); e.preventDefault(); }
   });
 
   // --- dlaždice zvuků a jazyka (sestaví se znovu po změně) ---

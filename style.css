@@ -561,8 +561,10 @@ button{touch-action:manipulation;}
    písma, aby se ovládání nerozpadlo při velkém písmu ve hře. */
 .cc-overlay{
   position:fixed;inset:0;z-index:95;
-  /* bez rozmazání: změny (velikost písma, noční režim) jsou hned vidět */
-  background:rgba(24,40,72,.06);
+  /* sklo: rozmazané pozadí — při změně písma se rozmazání vypne (.peek) */
+  background:rgba(24,40,72,.20);
+  -webkit-backdrop-filter:blur(14px) saturate(130%);backdrop-filter:blur(14px) saturate(130%);
+  transition:background-color .25s ease, -webkit-backdrop-filter .25s ease, backdrop-filter .25s ease;
   animation:cc-fade .22s ease both;
 }
 .cc-overlay.closing{animation:cc-fade-out .2s ease both;}
@@ -575,7 +577,7 @@ button{touch-action:manipulation;}
   border:1px solid rgba(255,255,255,.75);
   box-shadow:inset 0 1.5px 0 rgba(255,255,255,.9), 0 10px 30px rgba(24,40,72,.16);
   color:var(--navy);
-  animation:cc-pop .34s cubic-bezier(.2,1.25,.4,1) both;
+  animation:cc-pop .34s cubic-bezier(.2,1.25,.4,1) backwards;
 }
 .cc-tile:nth-child(2){animation-delay:.03s;}
 .cc-tile:nth-child(3){animation-delay:.06s;}
@@ -625,11 +627,11 @@ button.cc-tile:active{transform:scale(.97);}
 .cc-pct{position:absolute;left:0;right:0;top:14px;text-align:center;font-size:13px;font-weight:700;color:var(--navy-soft);pointer-events:none;z-index:1;}
 .cc-slider:focus-visible,.cc-tile:focus-visible{outline:3px solid rgba(46,151,179,.6);outline-offset:2px;}
 .cc-done{
-  border:1px solid rgba(255,255,255,.75);border-radius:999px;padding:9px 20px;cursor:pointer;
-  background:linear-gradient(160deg, #FFFFFF, #F7F3EC);
-  box-shadow:inset 0 1px 0 #fff, 0 6px 18px rgba(24,40,72,.14);
-  font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;color:var(--navy);
-  animation:cc-pop .34s .09s cubic-bezier(.2,1.25,.4,1) both;
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:11px 26px;cursor:pointer;min-width:120px;
+  background:linear-gradient(180deg,#2C4370 0%, #182848 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 8px 20px rgba(24,40,72,.30);
+  font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;color:#fff;
+  animation:cc-pop .34s .09s cubic-bezier(.2,1.25,.4,1) backwards;
 }
 @keyframes cc-fade{from{opacity:0;}to{opacity:1;}}
 @keyframes cc-fade-out{from{opacity:1;}to{opacity:0;}}
@@ -940,7 +942,11 @@ button.cc-tile:active{transform:scale(.97);}
 [data-theme="dark"] .cc-circle{background:rgba(255,255,255,.10);}
 [data-theme="dark"] .cc-flag{background:rgba(255,255,255,.08);}
 [data-theme="dark"] .cc-slider-icon{color:#0F1524;}
-[data-theme="dark"] .cc-done{background:linear-gradient(160deg, #2C3958, #1E283E);border-color:rgba(255,255,255,.12);color:var(--navy);box-shadow:inset 0 1px 0 rgba(255,255,255,.1), 0 6px 18px rgba(0,0,0,.35);}
-[data-theme="dark"] .cc-overlay{background:rgba(0,0,0,.18);}
+[data-theme="dark"] .cc-done{background:linear-gradient(180deg, #46598A 0%, #33446B 100%);border-color:rgba(255,255,255,.16);color:#F2F5FB;box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px rgba(0,0,0,.40);}
+[data-theme="dark"] .cc-overlay{background:rgba(0,0,0,.35);}
+/* náhled při změně písma: bez rozmazání, ostatní dlaždice ustoupí */
+.cc-overlay.peek,[data-theme="dark"] .cc-overlay.peek{background:rgba(24,40,72,.03);-webkit-backdrop-filter:none;backdrop-filter:none;}
+.cc-overlay .cc-tile:not(.cc-slider),.cc-overlay .cc-done{transition:opacity .25s ease, transform .14s ease;}
+.cc-overlay.peek .cc-tile:not(.cc-slider),.cc-overlay.peek .cc-done{opacity:.18;}
 /* plynulý přechod mezi režimy */
 body,.glass,.btn,.qcard,.score-chip,.cc-tile,.card-input{transition:background-color .3s ease, color .3s ease, border-color .3s ease;}
