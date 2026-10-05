@@ -56,7 +56,11 @@ to není potřeba.
 
 ## Ovládání a zobrazení
 
-- Karty jsou na výšku jako tištěné (logo FLOU v rozích) a při vytažení se otočí.
+- Karty jsou na šířku (poměr ležící hrací karty 88 : 63), u všech barev a na všech
+  obrazovkách stejně velké; na nižších displejích celkově menší. Při vytažení se otočí.
+- Nápověda: prvních 2× od každé barvy (i karet šance) je pod kartou; potřetí se
+  animací přesune na rub karty. Otazník na kartě kartu otočí, křížek ji vrátí.
+  Počítá se pro každou hru a každé zařízení zvlášť; hra o samotě nápovědu nemá.
 - Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed
   kdo je na tahu, vpravo tlačítko Nastavení a křížek. Nastavení se otevře jako

@@ -120,6 +120,7 @@ function render(){
   const selStart = focusKey && typeof ae.selectionStart==='number' ? ae.selectionStart : null;
   const selEnd   = focusKey && typeof ae.selectionEnd==='number' ? ae.selectionEnd : null;
 
+  trackHintCard();
   // Animace vstupu jen při změně obrazovky / fáze, ne při každém překreslení.
   const room = state.room;
   const animate = viewKey() !== lastViewKey;
@@ -402,7 +403,8 @@ function openSettings(anchor){
   const pctEl = el('div',{class:'cc-pct'});
   const slider = el('div',{class:'cc-tile cc-slider', role:'slider', tabindex:'0',
       'aria-valuemin':'0', 'aria-valuemax':String(n-1)},
-    pctEl, fillEl, el('div',{class:'cc-slider-icon', html:CC_ICONS.textSize}));
+    pctEl, fillEl, el('div',{class:'cc-ticks','aria-hidden':'true'}, ...TEXT_SIZES.slice(1).map(()=>el('span',{}))),
+    el('div',{class:'cc-slider-icon', html:CC_ICONS.textSize}));
   const updSize = ()=>{
     const frac = (textSizeIdx+1)/n;
     fillEl.style.height = (frac*100)+'%';
@@ -430,12 +432,12 @@ function openSettings(anchor){
   };
   slider.addEventListener('pointerdown', (e)=>{ dragging = true; slider.classList.add('active'); peek(true); try{ slider.setPointerCapture(e.pointerId); }catch(_){} setFromY(e.clientY); e.preventDefault(); });
   slider.addEventListener('pointermove', (e)=>{ if(dragging) setFromY(e.clientY); });
-  const endDrag = ()=>{ dragging = false; slider.classList.remove('active'); peek(true, 900); };
+  const endDrag = ()=>{ dragging = false; slider.classList.remove('active'); peek(false); };
   slider.addEventListener('pointerup', endDrag);
   slider.addEventListener('pointercancel', endDrag);
   slider.addEventListener('keydown', (e)=>{
-    if(e.key==='ArrowUp' || e.key==='ArrowRight'){ setTextSize(textSizeIdx+1); updSize(); peek(true, 1200); e.preventDefault(); }
-    if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ setTextSize(textSizeIdx-1); updSize(); peek(true, 1200); e.preventDefault(); }
+    if(e.key==='ArrowUp' || e.key==='ArrowRight'){ setTextSize(textSizeIdx+1); updSize(); peek(true, 450); e.preventDefault(); }
+    if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ setTextSize(textSizeIdx-1); updSize(); peek(true, 450); e.preventDefault(); }
   });
 
   // --- dlaždice zvuků a jazyka (sestaví se znovu po změně) ---
@@ -489,7 +491,7 @@ function openSettings(anchor){
     setClose = null;
     document.removeEventListener('keydown', onKey, true);
     overlay.classList.add('closing');
-    setTimeout(()=>overlay.remove(), 200);
+    setTimeout(()=>overlay.remove(), 130);
     if(prevFocus && prevFocus.focus && document.body.contains(prevFocus)){ try{ prevFocus.focus({preventScroll:true}); }catch(e){} }
   };
   const r = anchor.getBoundingClientRect();
@@ -1096,9 +1098,72 @@ function qcardEl(color, text){
     el('div',{class:'qcard-text'}, text)
   );
 }
-/* Karta z herního stavu — text v jazyce tohoto zařízení. */
+/* ---------- NÁPOVĚDA NA KARTĚ ----------
+   Prvních 2× od každé barvy (červená, modrá, žlutá, šance) je nápověda
+   vidět pod kartou. Potřetí se ukáže naposledy a animací se „schová"
+   na rub karty; pak je vždy k dispozici pod otazníkem — karta se otočí. */
+let lastHintCardKey = null;
+function hintKind(card, colorOverride){
+  return card.type==='chance' ? 'chance' : (colorOverride || card.color);
+}
+function trackHintCard(){
+  const r = state.room;
+  if(state.screen!=='game' || !r || !r.currentCard){ lastHintCardKey = null; return; }
+  const c = r.currentCard;
+  const key = [r.turnIndex, c.type, c.color||'', c.idx].join('|');
+  if(key === lastHintCardKey) return;
+  lastHintCardKey = key;
+  const kind = hintKind(c, r.round && r.phase==='answer-round' ? r.round.color : null);
+  state.hintSeen = state.hintSeen || {};
+  state.hintSeen[kind] = (state.hintSeen[kind]||0) + 1;
+  state.cardFlipped = false;
+}
+function flipCard(inner, on){
+  state.cardFlipped = on;
+  inner.classList.toggle('flipped', on);
+  const front = inner.querySelector('.qcard'), back = inner.querySelector('.qcard-back');
+  if(front) front.setAttribute('aria-hidden', on ? 'true' : 'false');
+  if(back) back.setAttribute('aria-hidden', on ? 'false' : 'true');
+  const q = inner.querySelector('.hint-q'); if(q) q.setAttribute('aria-expanded', on ? 'true' : 'false');
+  Sound.flip();
+  setTimeout(()=>{ const f = inner.querySelector(on ? '.hint-x' : '.hint-q'); try{ f && f.focus({preventScroll:true}); }catch(e){} }, 320);
+}
+/* Karta z herního stavu — text v jazyce tohoto zařízení, s otazníkem a nápovědou. */
 function cardEl(card, colorOverride){
-  return qcardEl(colorOverride || (card.type==='chance' ? 'chance' : card.color), cardText(card));
+  const color = colorOverride || (card.type==='chance' ? 'chance' : card.color);
+  const kind = hintKind(card, colorOverride);
+  const front = qcardEl(color, cardText(card));
+  const seen = (state.hintSeen && state.hintSeen[kind]) || 0;
+  const tuck = seen === 3 && !(state.hintTuckShown && state.hintTuckShown[kind]);
+  if(tuck){ state.hintTuckShown = state.hintTuckShown || {}; state.hintTuckShown[kind] = true; }
+
+  const inner = el('div',{class:'card3d-inner'+(state.cardFlipped ? ' flipped' : '')});
+  const qBtn = el('button',{class:'hint-q'+(tuck ? ' hint-pulse' : ''), 'aria-label':t('hint_btn'), title:t('hint_btn'),
+    'aria-expanded': state.cardFlipped ? 'true' : 'false', onclick:(e)=>{ e.stopPropagation(); flipCard(inner, true); }}, '?');
+  front.appendChild(qBtn);
+  front.setAttribute('aria-hidden', state.cardFlipped ? 'true' : 'false');
+  const back = el('div',{class:'qcard-back', style:'--c:'+colorVar(color), 'aria-hidden': state.cardFlipped ? 'false' : 'true'},
+    el('div',{class:'qcard-back-band'}),
+    el('button',{class:'hint-x', 'aria-label':t('hint_close'), title:t('hint_close'), onclick:(e)=>{ e.stopPropagation(); flipCard(inner, false); }}, '×'),
+    el('div',{class:'qcard-back-body'},
+      el('div',{class:'qcard-back-label'}, t('hint_label')),
+      el('div',{class:'qcard-back-title'}, t('hint_title_'+kind)),
+      el('div',{class:'qcard-back-text'}, t('hint_'+kind))
+    )
+  );
+  inner.append(front, back);
+  const frag = document.createDocumentFragment();
+  frag.appendChild(el('div',{class:'card3d'}, inner));
+  // nápověda pod kartou: prvních 2×, potřetí naposledy s animací přesunu na kartu
+  if(seen <= 2 || tuck){
+    frag.appendChild(el('div',{class:'hint-inline glass'+(tuck ? ' tuck' : ''), role:'note'},
+      el('span',{class:'hint-ico','aria-hidden':'true', style:'--c:'+colorVar(color)}, '?'),
+      el('div',{class:'hint-inline-text'},
+        el('b',{}, t('hint_title_'+kind)), ' ', t('hint_'+kind),
+        tuck ? el('div',{class:'hint-moved'}, t('hint_moved')) : null)
+    ));
+  }
+  return frag;
 }
 
 /* ---------- ČERVENÁ OTÁZKA (odpovídá jen hráč, který ji vytáhl) ---------- */
@@ -1459,8 +1524,7 @@ function renderBlueCompose(s, room, mine){
   if(bc.step!==2){
     s.appendChild(el('div',{class:'banner-info glass'},
       b(t('blue_intro_head')+' '),
-      local ? tn('blue_intro_local', b(author.name)) : null,
-      el('span',{class:'blue-intro-more'}, ' '+t('blue_intro'))
+      local ? tn('blue_intro_local', b(author.name)) : null
     ));
     s.appendChild(gap(14));
     const list = el('div',{class:'stack stack-tight'});

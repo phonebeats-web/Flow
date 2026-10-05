@@ -31,6 +31,9 @@ function initialState(){
     blueCompose: freshBlueCompose(), // rozepsané možnosti u modré karty
     secretCorrect: null, // online: správná odpověď — drží se lokálně do vyhodnocení
     handoff: null,       // jedno zařízení: kdo potvrdil, že drží zařízení
+    hintSeen: {},        // nápověda: kolikrát už padla každá barva (red/blue/yellow/chance)
+    hintTuckShown: {},   // nápověda: animace „schování na kartu" už proběhla
+    cardFlipped: false,  // karta je otočená na stranu s nápovědou
     solo: null,          // hra pro jednoho
   };
 }
@@ -106,7 +109,7 @@ async function undoStep(){
 
 /* ============ LOCAL MODE ============ */
 function startLocalGame(names){
-  names = names.slice(0, MAX_PLAYERS);
+  names = names.map(cleanName).filter(Boolean).slice(0, MAX_PLAYERS);
   const players = names.map(n=>newPlayer(uid(4), n));
   Store.mode='local';
   Store.roomCode=null;
@@ -189,6 +192,8 @@ function soloStep(delta){
 
 /* ============ ONLINE ENTRY POINTS ============ */
 async function hostCreateRoom(name){
+  name = cleanName(name);
+  if(!name){ uiAlert(t('err_name')); return; }
   if(!FlowNet.available()){
     uiAlert(t('err_offline'));
     return;
@@ -207,6 +212,10 @@ async function hostCreateRoom(name){
 }
 
 async function playerJoinRoom(code, name){
+  name = cleanName(name);
+  code = String(code||'').toUpperCase().replace(/\s+/g,'');
+  if(!name){ uiAlert(t('err_name')); return; }
+  if(!ROOM_CODE_RE.test(code)){ uiAlert(t('err_notfound')); return; }
   if(!FlowNet.available()){
     uiAlert(t('err_offline'));
     return;
@@ -215,7 +224,7 @@ async function playerJoinRoom(code, name){
   try{
     const res = await Online.joinRoom(code, name);
     if(!res.ok){
-      uiAlert(t(res.reason==='name-taken' ? 'err_name_taken' : res.reason==='room-full' ? 'err_room_full' : 'err_notfound', MAX_PLAYERS));
+      uiAlert(t(res.reason==='name-taken' ? 'err_name_taken' : res.reason==='room-full' ? 'err_room_full' : res.reason==='started' ? 'err_started' : 'err_notfound', MAX_PLAYERS));
       state.screen='joinRoom';
     }
   }catch(e){
@@ -493,9 +502,21 @@ function forgetSecret(){
 function codeFromUrl(){
   try{
     const m = location.search.match(/[?&]kod=([^&]+)/i);
-    return m ? decodeURIComponent(m[1]).toUpperCase().trim() : null;
+    if(!m) return null;
+    const c = decodeURIComponent(m[1]).toUpperCase().replace(/\s+/g,'');
+    return ROOM_CODE_RE.test(c) ? c : null;   // jen platný formát kódu
   }catch(e){ return null; }
 }
+
+/* Ochrana proti vložení hry do cizí stránky (clickjacking). */
+(function frameGuard(){
+  try{
+    if(window.top !== window.self){ window.top.location.replace(window.location.href); }
+  }catch(e){
+    // cizí stránka nás nepustí ven -> hru nezobrazíme
+    document.documentElement.style.display = 'none';
+  }
+})();
 
 (async function boot(){
   const invited = codeFromUrl();
