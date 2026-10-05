@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '39';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '40';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -163,7 +163,7 @@ cs: {
 
   solo_kind_red:'Hluboká otázka', solo_kind_blue:'Otázka o tobě', solo_kind_yellow:'Názorová otázka',
   solo_btn_red:'Hluboké', solo_btn_blue:'O mně', solo_btn_yellow:'Názorové',
-  solo_count:'{0}. otázka', solo_hint:'Odpověz si v klidu v duchu, klidně i nahlas, nebo si odpověď zapiš, ať se k ní můžeš později vrátit.',
+  solo_count:'{0}. otázka', solo_hint:'V klidu si odpověz – v duchu, nahlas nebo na papír, abys odpověď měl/a po ruce i později.',
   solo_prev:'‹ Předchozí', solo_next:'Další ›', solo_new:'Další otázka ›', solo_pick:'Nebo si vyber, na co máš chuť:',
   solo_filter_title:'Jaké otázky chceš?',
   solo_filter_all:'Padají otázky všech barev. Klepnutím na barvu budou padat jen otázky té barvy.',
@@ -323,7 +323,7 @@ en: {
 
   solo_kind_red:'Deep question', solo_kind_blue:'Question about you', solo_kind_yellow:'Opinion question',
   solo_btn_red:'Deep', solo_btn_blue:'About me', solo_btn_yellow:'Opinion',
-  solo_count:'Question {0}', solo_hint:'Take your time and answer in your head — or out loud, or write it down so you can come back to it later.',
+  solo_count:'Question {0}', solo_hint:'Take your time to answer – in your head, out loud or on paper, so you have your answer to hand later too.',
   solo_prev:'‹ Previous', solo_next:'Next ›', solo_new:'Next question ›', solo_pick:'Or pick what you\'re in the mood for:',
   solo_filter_title:'Which questions would you like?',
   solo_filter_all:'You\'re getting questions of all colours. Tap a colour to get only questions of that colour.',
