@@ -3,7 +3,7 @@
     "rooms": {
       "$code": {
         ".read": "auth != null && (!data.exists() || data.child('players').child(auth.uid).exists())",
-        ".write": "auth != null && ((!data.exists() && $code.matches(/^[A-HJ-NP-Z2-9]{5,6}$/) && newData.child('hostId').val() == auth.uid && newData.child('code').val() == $code && newData.child('phase').val() == 'lobby' && newData.child('players').child(auth.uid).exists() && newData.child('turnPlayerId').val() == auth.uid) || (data.exists() && !newData.exists() && auth.uid == data.child('hostId').val()))",
+        ".write": "auth != null && ((!data.exists() && $code.matches(/^[A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9]?$/) && newData.child('hostId').val() == auth.uid && newData.child('code').val() == $code && newData.child('phase').val() == 'lobby' && newData.child('players').child(auth.uid).exists() && newData.child('turnPlayerId').val() == auth.uid) || (data.exists() && !newData.exists() && auth.uid == data.child('hostId').val()))",
         "players": {
           "$uid": {
             ".read": "auth != null && auth.uid == $uid",
@@ -23,13 +23,13 @@
             },
             "halves": {
               "red": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "blue": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "yellow": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "$other": {
                 ".validate": false
@@ -37,13 +37,13 @@
             },
             "full": {
               "red": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "blue": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "yellow": {
-                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 == 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() <= data.val()) || (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val()))"
               },
               "$other": {
                 ".validate": false
@@ -70,7 +70,7 @@
         },
         "turnIndex": {
           ".write": "auth != null && (auth.uid == root.child('rooms').child($code).child('turnPlayerId').val() || auth.uid == root.child('rooms').child($code).child('hostId').val())",
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 8 && newData.val() % 1 == 0"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 8"
         },
         "turnPlayerId": {
           ".write": "auth != null && (auth.uid == data.val() || auth.uid == root.child('rooms').child($code).child('hostId').val())",

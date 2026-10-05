@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '35';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -25,13 +25,13 @@ cs: {
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
   hint_btn:'Zobrazit nápovědu', hint_close:'Zpět na otázku', hint_label:'Nápověda',
-  hint_moved:'Příště najdeš nápovědu pod otazníkem na kartě.',
+  hint_moved:'Příště ji najdeš pod otazníkem na kartě.',
   hint_title_red:'Červená = hluboká otázka', hint_title_blue:'Modrá = hádání',
   hint_title_yellow:'Žlutá = názor', hint_title_chance:'Oranžová = karta šance',
   hint_red:'Odpovídá jen hráč, který kartu vytáhl. Ostatní se mohou doptat. Když odpoví, získá celou červenou kartu; když neodpoví, o červenou kartu přijde.',
   hint_blue:'Kdo kartu vytáhl, napíše tři odpovědi — jednu pravdivou a dvě vymyšlené — a označí pravdivou. Ostatní hádají. Kdo uhodne, bere půl karty barvy podle výběru; autor dostane celou modrou kartu.',
   hint_yellow:'Odpovídají postupně všichni, začíná ten, kdo kartu vytáhl. Kdo neodpoví, ztrácí žlutou kartu (má-li ji). Když se kolečko vrátí k tomu, kdo kartu vytáhl, získává celou žlutou kartu.',
-  hint_chance:'Proveď, co je na kartě napsáno. Pokud to karta dovolí, potom následuje otázka barvy, která padla dvakrát.',
+  hint_chance:'Šance, která umí pěkně zamíchat hrou. Potom následuje otázka podle barvy, která padla.',
   settings:'Nastavení', dark_title:'Noční režim', sound_title:'Zvuky', state_on:'Zapnuto', state_off:'Vypnuto', text_size:'Velikost písma', text_smaller:'Menší písmo', text_larger:'Větší písmo', done:'Hotovo',
   text_size_hint:'Posuň jezdec — písmo ve hře se hned přizpůsobí.',
   confirm_leave_room:'Z místnosti odejdeš a vrátíš se do hlavní nabídky.',
@@ -182,13 +182,13 @@ en: {
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
   hint_btn:'Show help', hint_close:'Back to the question', hint_label:'Help',
-  hint_moved:'Next time you\'ll find the help under the question mark on the card.',
+  hint_moved:'Next time you\'ll find it under the question mark on the card.',
   hint_title_red:'Red = deep question', hint_title_blue:'Blue = guessing',
   hint_title_yellow:'Yellow = opinion', hint_title_chance:'Orange = chance card',
   hint_red:'Only the player who drew the card answers. The others may ask follow-up questions. If they answer, they get a whole red card; if not, they lose a red card.',
   hint_blue:'The player who drew the card writes three answers — one true and two made up — and marks the true one. The others guess. Whoever guesses right gets half a card in a colour of their choice; the author gets a whole blue card.',
   hint_yellow:'Everyone answers in turn, starting with the player who drew the card. Anyone who doesn\'t answer loses a yellow card (if they have one). When the round gets back to the player who drew the card, they get a whole yellow card.',
-  hint_chance:'Do what the card says. If the card allows it, a question follows in the colour that came up twice.',
+  hint_chance:'A chance card that can really shake up the game. Then comes a question in the colour that came up.',
   settings:'Settings', dark_title:'Dark mode', sound_title:'Sounds', state_on:'On', state_off:'Off', text_size:'Text size', text_smaller:'Smaller text', text_larger:'Larger text', done:'Done',
   text_size_hint:'Drag the slider — the text in the game adjusts right away.',
   confirm_leave_room:'You will leave the room and return to the main menu.',

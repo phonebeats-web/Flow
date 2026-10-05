@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '34';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '35';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1138,13 +1138,15 @@ function cardEl(card, colorOverride){
   const kind = hintKind(card, colorOverride);
   const front = qcardEl(color, cardText(card));
   const seen = (state.hintSeen && state.hintSeen[kind]) || 0;
-  const tuck = seen === 3 && !(state.hintTuckShown && state.hintTuckShown[kind]);
-  if(tuck){ state.hintTuckShown = state.hintTuckShown || {}; state.hintTuckShown[kind] = true; }
+  // 1. karta dané barvy: nápověda pod kartou; 2. karta: otazník zabliká s bublinou
+  const remind = seen === 2 && !(state.hintTuckShown && state.hintTuckShown[kind]);
+  if(remind){ state.hintTuckShown = state.hintTuckShown || {}; state.hintTuckShown[kind] = true; }
 
   const inner = el('div',{class:'card3d-inner'+(state.cardFlipped ? ' flipped' : '')});
-  const qBtn = el('button',{class:'hint-q'+(tuck ? ' hint-pulse' : ''), 'aria-label':t('hint_btn'), title:t('hint_btn'),
+  const qBtn = el('button',{class:'hint-q'+(remind ? ' hint-pulse' : ''), 'aria-label':t('hint_btn'), title:t('hint_btn'),
     'aria-expanded': state.cardFlipped ? 'true' : 'false', onclick:(e)=>{ e.stopPropagation(); flipCard(inner, true); }}, '?');
   front.appendChild(qBtn);
+  if(remind) front.appendChild(el('span',{class:'hint-bubble','aria-hidden':'true'}, t('hint_label')));
   front.setAttribute('aria-hidden', state.cardFlipped ? 'true' : 'false');
   const back = el('div',{class:'qcard-back', style:'--c:'+colorVar(color), 'aria-hidden': state.cardFlipped ? 'false' : 'true'},
     el('div',{class:'qcard-back-band'}),
@@ -1158,13 +1160,13 @@ function cardEl(card, colorOverride){
   inner.append(front, back);
   const frag = document.createDocumentFragment();
   frag.appendChild(el('div',{class:'card3d'}, inner));
-  // nápověda pod kartou: prvních 2×, potřetí naposledy s animací přesunu na kartu
-  if(seen <= 2 || tuck){
-    frag.appendChild(el('div',{class:'hint-inline glass'+(tuck ? ' tuck' : ''), role:'note'},
+  // nápověda pod kartou jen u první karty dané barvy (s poznámkou, kde ji najít příště)
+  if(seen <= 1){
+    frag.appendChild(el('div',{class:'hint-inline glass', role:'note'},
       el('span',{class:'hint-ico','aria-hidden':'true', style:'--c:'+colorVar(color)}, '?'),
       el('div',{class:'hint-inline-text'},
         el('b',{}, t('hint_title_'+kind)), ' ', t('hint_'+kind),
-        tuck ? el('div',{class:'hint-moved'}, t('hint_moved')) : null)
+        el('div',{class:'hint-moved'}, t('hint_moved')))
     ));
   }
   return frag;

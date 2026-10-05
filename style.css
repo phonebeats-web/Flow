@@ -130,11 +130,6 @@ button{touch-action:manipulation;}
 .lang-switch.in-pill{padding:0;background:none !important;border:0;box-shadow:none;}
 .lang-switch.in-pill .lang-thumb{top:0;left:0;}
 /* úvodní obrazovka: bublina vpravo nahoře, o kousek výraznější */
-.settings-hero{
-  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;
-  background:var(--g-sheen), rgba(255,255,255,.72) !important;
-  box-shadow:inset 0 1.5px 0 #fff, 0 6px 18px rgba(24,40,72,.18), 0 0 0 .5px rgba(24,40,72,.06) !important;
-}
 .bar-title{
   min-width:0;max-width:100%;border-radius:999px;padding:5px 16px;
   display:flex;flex-direction:column;align-items:center;line-height:1.15;
@@ -505,7 +500,9 @@ button{touch-action:manipulation;}
 /* ---------- Panel nastavení (jazyk, zvuky, velikost písma) ---------- */
 .settings-btn svg{width:22px;height:22px;}
 .settings-hero{
-  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:5;
+  /* stejné místo jako v liště hry: u pravého okraje hry (na počítači je hra uprostřed) */
+  position:absolute !important;top:calc(env(safe-area-inset-top,0px) + 10px);
+  right:calc(max(0px, (100vw - 520px) / 2) + 14px);z-index:5;
   width:44px;height:44px;
   background:var(--g-sheen), rgba(255,255,255,.72) !important;
   box-shadow:inset 0 1.5px 0 #fff, 0 6px 18px rgba(24,40,72,.18), 0 0 0 .5px rgba(24,40,72,.06) !important;
@@ -681,7 +678,17 @@ button.cc-tile:active{transform:scale(.97);}
 .hint-q{top:8px;right:10px;font-size:18px;}
 .hint-x{top:20px;right:12px;font-size:22px;background:rgba(24,40,72,.06);border-color:rgba(24,40,72,.08);box-shadow:none;}
 .hint-q:active,.hint-x:active{transform:scale(.9);}
-.hint-q.hint-pulse{animation:hint-pulse 1.1s ease-in-out 2.5s 3;}
+.hint-q.hint-pulse{animation:hint-pulse 1.1s ease-in-out .5s 3;}
+/* připomínka u 2. karty barvy: bublina „Nápověda" u otazníku, pak zmizí */
+.hint-bubble{
+  position:absolute;z-index:4;top:12px;right:48px;padding:4px 10px;border-radius:999px;
+  background:rgba(24,40,72,.9);color:#fff;font-size:12px;font-weight:700;white-space:nowrap;pointer-events:none;
+  animation:hint-bubble 4s ease both;
+}
+.hint-bubble::after{content:"";position:absolute;right:-5px;top:50%;margin-top:-5px;border:5px solid transparent;border-right:0;border-left-color:rgba(24,40,72,.9);}
+@keyframes hint-bubble{0%{opacity:0;transform:translateX(6px);}10%,80%{opacity:1;transform:none;}100%{opacity:0;}}
+[data-theme="dark"] .hint-bubble{background:#E9EEF7;color:#0F1524;}
+[data-theme="dark"] .hint-bubble::after{border-left-color:#E9EEF7;}
 @keyframes hint-pulse{
   0%,100%{transform:scale(1);box-shadow:0 3px 10px rgba(24,40,72,.22);}
   50%{transform:scale(1.25);box-shadow:0 0 0 6px rgba(255,255,255,.55), 0 4px 14px rgba(24,40,72,.3);}
@@ -715,6 +722,7 @@ button.cc-tile:active{transform:scale(.97);}
 @media (prefers-reduced-motion:reduce){
   .card3d-inner{transition:none;}
   .hint-q.hint-pulse,.hint-inline.tuck{animation:none;}
+  .hint-bubble{animation:none;opacity:0;}
 }
 
 /* ---------- Karta přilétá k hráči ---------- */
