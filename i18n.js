@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '37';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '38';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -14,7 +14,7 @@ cs: {
   doc_title:'FLOU — karetní diskusní hra',
   tagline:'KARETNÍ DISKUSNÍ HRA',
   lang_label:'Jazyk',
-  lang_hint:'Jazyk si každý volí vlajkou nahoře na svém zařízení — karty uvidí ve svém jazyce.',
+  lang_hint:'Jazyk si každý volí v nastavení (tlačítko vpravo nahoře) na svém zařízení — karty pak uvidí ve svém jazyce.',
   you:'ty',
 
   c_red:'červená', c_blue:'modrá', c_yellow:'žlutá',
@@ -45,7 +45,7 @@ cs: {
   home_local:'Hrát na jednom zařízení', home_create:'Vytvořit online místnost',
   home_join:'Připojit se ke kódu', home_solo:'Hrát o samotě',
   rules_toggle:'Jak se hraje?',
-  r1_t:'Hoď dvakrát kostkou', r1_x:'Rozhoduje první barva. Padnou-li dvě stejné, táhneš nejdřív kartu šance a pak otázku té barvy.',
+  r1_t:'Hoď kostkami', r1_x:'Rozhoduje barva na první kostce. Padnou-li dvě stejné, táhneš nejdřív kartu šance a pak otázku té barvy.',
   r2_t:'Červená = hluboká otázka', r2_x:'Odpovídá jen ten, kdo kartu vytáhl. Ostatní se mohou doptat.',
   r3_t:'Modrá = hádání', r3_x:'Napíšeš tři odpovědi, jedna je pravdivá. Kdo ji uhodne, bere půl karty barvy dle výběru.',
   r4_t:'Žlutá = názor', r4_x:'Odpovídají postupně všichni. Kdo neodpoví, ztrácí žlutou kartu.',
@@ -81,9 +81,9 @@ cs: {
 
   turn_of:'Na tahu: {0}', turn_label:'Na tahu', is_offline:'{0} je offline.',
   skip_turn_btn:'Přeskočit tah hráče {0}', skip_turn_confirm:'Přeskočit tah hráče {0}?',
-  roll_btn:'Hodit kostkou', rolling:'Kostka se točí…',
-  roll_hint:'Házíš dvakrát. Rozhoduje první barva, dvě stejné znamenají kartu šance.',
-  roll_wait:'Čeká se na hod hráče {0}', roll_label:'Hod:', roll_double:'dvě stejné — karta šance',
+  roll_btn:'Hodit kostkami', rolling:'Kostky se točí…',
+  roll_hint:'Rozhoduje barva na první kostce. Dvě stejné barvy znamenají kartu šance.',
+  roll_wait:'Čeká se, až {0} hodí kostkami', roll_label:'Hod:', roll_double:'dvě stejné — karta šance',
   leave_q:'Někdo odchází ze hry?', leave_title:'Kdo odchází?',
   leave_sub:'Hra pokračuje dál a karty tohoto hráče ze hry odcházejí.',
   leave_confirm:'{0} opouští hru?', leave_cancel:'Nikdo, zpět',
@@ -160,7 +160,7 @@ cs: {
 
   solo_kind_red:'Hluboká otázka', solo_kind_blue:'Otázka o tobě', solo_kind_yellow:'Názorová otázka',
   solo_btn_red:'Hluboké', solo_btn_blue:'O mně', solo_btn_yellow:'Názorové',
-  solo_count:'{0}. otázka', solo_hint:'Odpověz si v klidu nahlas nebo si odpověď zapiš.',
+  solo_count:'{0}. otázka', solo_hint:'Odpověz si v klidu v duchu, klidně i nahlas, nebo si odpověď zapiš, ať se k ní můžeš později vrátit.',
   solo_prev:'‹ Předchozí', solo_next:'Další ›', solo_new:'Další otázka ›', solo_pick:'Nebo si vyber, na co máš chuť:',
   solo_filter_title:'Jaké otázky chceš?',
   solo_filter_all:'Padají otázky všech barev. Klepnutím na barvu budou padat jen otázky té barvy.',
@@ -171,7 +171,7 @@ en: {
   doc_title:'FLOU — the conversation card game',
   tagline:'CONVERSATION CARD GAME',
   lang_label:'Language',
-  lang_hint:'Everyone picks their language with the flag at the top of their own device — cards appear in that language.',
+  lang_hint:'Everyone picks their language in the settings (the button at the top right) on their own device — the cards then appear in that language.',
   you:'you',
 
   c_red:'red', c_blue:'blue', c_yellow:'yellow',
@@ -202,7 +202,7 @@ en: {
   home_local:'Play on one device', home_create:'Create an online room',
   home_join:'Join with a code', home_solo:'Play solo — food for thought',
   rules_toggle:'How to play',
-  r1_t:'Roll the die twice', r1_x:'The first colour decides. If both rolls are the same colour, you first draw a chance card and then a question of that colour.',
+  r1_t:'Roll the dice', r1_x:'The colour on the first die decides. If both dice show the same colour, you first draw a chance card and then a question of that colour.',
   r2_t:'Red = deep questions', r2_x:'Only the player who drew the card answers. The others may ask follow-up questions.',
   r3_t:'Blue = guessing', r3_x:'You write three answers, one of them true. Whoever guesses it gets half a card in a colour of their choice.',
   r4_t:'Yellow = opinions', r4_x:'Everyone answers in turn. Anyone who doesn\'t answer loses a yellow card.',
@@ -238,9 +238,9 @@ en: {
 
   turn_of:'Turn: {0}', turn_label:'Now playing', is_offline:'{0} is offline.',
   skip_turn_btn:'Skip {0}\'s turn', skip_turn_confirm:'Skip {0}\'s turn?',
-  roll_btn:'Roll the die', rolling:'Rolling…',
-  roll_hint:'You roll twice. The first colour decides; two of the same colour mean a chance card.',
-  roll_wait:'Waiting for {0} to roll', roll_label:'Roll:', roll_double:'a double — chance card',
+  roll_btn:'Roll the dice', rolling:'Rolling…',
+  roll_hint:'The colour on the first die decides. A double means a chance card.',
+  roll_wait:'Waiting for {0} to roll the dice', roll_label:'Roll:', roll_double:'a double — chance card',
   leave_q:'Is someone leaving the game?', leave_title:'Who is leaving?',
   leave_sub:'The game continues without them; their cards leave with them.',
   leave_confirm:'Is {0} leaving the game?', leave_cancel:'Nobody — go back',
@@ -317,7 +317,7 @@ en: {
 
   solo_kind_red:'Deep question', solo_kind_blue:'Question about you', solo_kind_yellow:'Opinion question',
   solo_btn_red:'Deep', solo_btn_blue:'About me', solo_btn_yellow:'Opinion',
-  solo_count:'Question {0}', solo_hint:'Take your time — answer out loud or write your answer down.',
+  solo_count:'Question {0}', solo_hint:'Take your time and answer in your head — or out loud, or write it down so you can come back to it later.',
   solo_prev:'‹ Previous', solo_next:'Next ›', solo_new:'Next question ›', solo_pick:'Or pick what you\'re in the mood for:',
   solo_filter_title:'Which questions would you like?',
   solo_filter_all:'You\'re getting questions of all colours. Tap a colour to get only questions of that colour.',
