@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['firebase.js'] = '35';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['firebase.js'] = '36';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    FIREBASE LAYER — JEDINÉ místo v aplikaci, které ví o Firebase.
    Nikde jinde (engine.js, ui.js) se Firebase API nesmí volat.
@@ -88,6 +88,7 @@ const FlowNet = (function(){
       };
       if(firebase.appCheck) return go();
       const sc = document.createElement('script');
+      sc.crossOrigin = 'anonymous';
       sc.src = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js';
       sc.onload = go; sc.onerror = ()=>resolve();
       document.head.appendChild(sc);

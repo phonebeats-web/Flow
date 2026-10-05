@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '35';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '36';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    ONLINE MODE — most mezi herním stavem a Firebase vrstvou.
    Nezná Firebase API přímo, volá pouze FlowNet (js/firebase.js).

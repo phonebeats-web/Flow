@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '35';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '36';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.
@@ -549,8 +549,11 @@ function showRuntimeError(detail){
 }
 window.addEventListener('error', (e)=>{
   const src = String(e.filename||'');
-  // jen chyby z kódu hry (ne z rozšíření prohlížeče apod.)
-  if(src && !/\/(app|ui|engine|online|firebase|i18n|sound|data|data_en|theme)\.js/.test(src)) return;
+  // Okno jen pro chyby z kódu hry. Chyby z cizích skriptů (Firebase od Googlu,
+  // rozšíření prohlížeče) prohlížeč zamlží na „Script error." bez souboru —
+  // ty se nezobrazují (zapíší se jen do konzole).
+  if(!src || /^script error\.?$/i.test(String(e.message||'').trim())) return;
+  if(!/\/(app|ui|engine|online|firebase|i18n|sound|data|data_en|theme)\.js/.test(src)) return;
   const file = src.split('/').pop().split('?')[0];
   showRuntimeError((e.message||'Error') + (file ? ' ('+file+':'+e.lineno+')' : ''));
 });
