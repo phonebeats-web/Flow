@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '40';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '41';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1089,9 +1089,9 @@ function finalCardEl(title, note){
     <path d="M0,24 C40,36 90,47 140,34 C200,18 250,46 300,30 L300,54 C248,70 198,42 138,58 C88,71 40,60 0,48 Z" fill="var(--orange)"/>
     <path d="M0,48 C40,60 88,71 138,58 C198,42 248,70 300,54 L300,80 C246,96 196,66 136,82 C86,95 40,84 0,72 Z" fill="var(--yellow)"/>
   </svg>`;
-  const sea = `<svg class="wave-band bottom" viewBox="0 0 300 86" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,0 L300,0 L300,34 C248,52 198,22 138,40 C88,54 40,42 0,30 Z" fill="var(--blue)"/>
-    <path d="M0,30 C40,42 88,54 138,40 C198,22 248,52 300,34 L300,86 L0,86 Z" fill="var(--blue-light)"/>
+  const sea = `<svg class="wave-band bottom sea" viewBox="0 0 300 86" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,34 C48,18 98,46 158,30 C212,16 256,40 300,26 L300,86 L0,86 Z" fill="var(--blue-light)"/>
+    <path d="M0,56 C52,42 104,68 162,54 C214,42 258,62 300,50 L300,86 L0,86 Z" fill="var(--blue)"/>
   </svg>`;
   return el('div',{class:'qcard qcard-final'},
     htmlToNode(sunset),
@@ -1117,6 +1117,30 @@ function qcardEl(color, text){
    vidět pod kartou. Potřetí se ukáže naposledy a animací se „schová"
    na rub karty; pak je vždy k dispozici pod otazníkem — karta se otočí. */
 let lastHintCardKey = null;
+/* ---------- PANEL „POSTUP" POD KARTOU ----------
+   Kdo má teď co dělat — skleněný panel, který jde šipkou sbalit a rozbalit
+   (jako v iOS). Volba se pamatuje pro dané zařízení. */
+const STEPS_KEY = 'flou_steps_open';
+let stepsOpen = (()=>{ try{ return localStorage.getItem(STEPS_KEY) !== '0'; }catch(e){ return true; } })();
+const ICON_STEPS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6.5h11M9 12h11M9 17.5h11"/></g><g fill="currentColor"><circle cx="4.5" cy="6.5" r="1.5"/><circle cx="4.5" cy="12" r="1.5"/><circle cx="4.5" cy="17.5" r="1.5"/></g></svg>';
+const ICON_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5 12 15l5.5-5.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function stepPanel(...content){
+  const body = el('div',{class:'steps-body'}, el('div',{class:'steps-inner'}, el('div',{class:'steps-text'}, ...content)));
+  const head = el('button',{class:'steps-head', 'aria-expanded': stepsOpen ? 'true' : 'false'},
+    el('span',{class:'steps-ico', html:ICON_STEPS}),
+    el('span',{class:'steps-title'}, t('steps_title')),
+    el('span',{class:'steps-chev', html:ICON_CHEV}));
+  const panel = el('div',{class:'steps glass'+(stepsOpen ? ' open' : '')}, head, body);
+  head.addEventListener('click', ()=>{
+    stepsOpen = !stepsOpen;
+    try{ localStorage.setItem(STEPS_KEY, stepsOpen ? '1' : '0'); }catch(e){}
+    document.querySelectorAll('.steps').forEach(p=>p.classList.toggle('open', stepsOpen));
+    document.querySelectorAll('.steps-head').forEach(h=>h.setAttribute('aria-expanded', stepsOpen ? 'true' : 'false'));
+    setTimeout(()=>{ fitToScreen(); scheduleScrollHint(); }, 280);
+  });
+  return panel;
+}
+
 /* Vysvětlující texty („co má hráč dělat") se ukazují jen u první karty
    dané barvy — pak je nápověda pod otazníkem na kartě. */
 function firstTime(kind){ return ((state.hintSeen && state.hintSeen[kind]) || 0) <= 1; }
@@ -1212,11 +1236,8 @@ function renderQuestionPhase(s, room, mine){
   const ap = activePlayer(room);
   s.appendChild(cardEl(card));
   s.appendChild(gap(22));
-  if(!mine){
-    s.appendChild(el('div',{class:'subtitle center-text'}, ...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
-    return;
-  }
-  s.appendChild(el('div',{class:'step-line'}, ...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
+  s.appendChild(stepPanel(...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
+  if(!mine) return;
   s.appendChild(gap(12));
   s.appendChild(el('div',{class:'stack stack-tight'},
     button(t('answered_gets'), colorBtnCls(card.color), ()=>{
@@ -1300,10 +1321,8 @@ function renderRound(s, room, mine){
   const canDecideFor = Store.mode==='online' && mine && !canAnswer && current.online===false;
 
   if(canAnswer || canDecideFor){
-    s.appendChild(el('div',{class:'banner-info glass'},
-      ...(canDecideFor ? tn('decide_for', b(current.name))
-                       : tn(isDrawer ? 'answering_first' : 'answering', b(current.name)))
-    ));
+    s.appendChild(stepPanel(...(canDecideFor ? tn('decide_for', b(current.name))
+                       : tn(isDrawer ? 'answering_first' : 'answering', b(current.name)))));
     s.appendChild(gap(12));
     const has = current.full[col]>0 || current.halves[col]>0;
     s.appendChild(el('div',{class:'stack stack-tight'},
@@ -1326,12 +1345,11 @@ function renderChancePhase(s, room, mine){
   const ap = activePlayer(room);
   s.appendChild(cardEl(card));
   s.appendChild(gap(16));
-  if(room.pendingColor){
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 14px'},
-      ...tn('then_question', b(colorName(room.pendingColor)))));
-  }
+  const chanceSteps = [
+    ...(mine ? [] : [...tn('chance_resolving', b(ap.name)), '. ']),
+    ...(room.pendingColor ? tn('then_question', b(colorName(room.pendingColor))) : [])];
+  if(chanceSteps.length){ s.appendChild(stepPanel(...chanceSteps)); s.appendChild(gap(14)); }
   if(!mine){
-    s.appendChild(el('div',{class:'subtitle center-text'}, ...tn('chance_resolving', b(ap.name))));
     return;
   }
   const key = card.key;
@@ -1506,9 +1524,10 @@ function renderRightNeighbor(s, room, mine){
   const ap = activePlayer(room);
   const nb = playerById(room, card.forId);
   const nbName = nb ? nb.name : '?';
-  s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 10px'}, ...tn('answers', b(nbName))));
   s.appendChild(cardEl(card));
   s.appendChild(gap(16));
+  s.appendChild(stepPanel(...tn('answers', b(nbName))));
+  s.appendChild(gap(14));
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
     button(t('rn_answered', ap.name), colorBtnCls(card.color), ()=>{
@@ -1551,7 +1570,7 @@ function renderBlueCompose(s, room, mine){
   const local = Store.mode==='local';
 
   if(bc.step!==2){
-    s.appendChild(el('div',{class:'step-line'}, t('blue_write'), local ? ' '+t('blue_write_local') : ''));
+    s.appendChild(stepPanel(t('blue_write'), local ? ' '+t('blue_write_local') : ''));
     s.appendChild(gap(12));
     const list = el('div',{class:'stack stack-tight'});
     const inputs = [];
@@ -1590,7 +1609,7 @@ function renderBlueCompose(s, room, mine){
   }
 
   // Krok 2 — označení pravdivé odpovědi.
-  s.appendChild(el('div',{class:'step-line'}, t('blue_mark')));
+  s.appendChild(stepPanel(t('blue_mark')));
   s.appendChild(gap(12));
   const list = el('div',{class:'stack stack-tight'});
   keys.forEach((k,i)=>{

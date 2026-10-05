@@ -58,8 +58,8 @@ to není potřeba.
 
 - Karty jsou na šířku (poměr ležící hrací karty 88 : 63), u všech barev a na všech
   obrazovkách stejně velké; na nižších displejích celkově menší. Při vytažení se otočí.
-- Průvodce: před prvním hodem legenda barev; pod kartou vždy jen jeden krátký pokyn
-  (co dělat teď). Pravidla jsou na rubu karty — u první karty dané barvy karta přiletí
+- Průvodce: před prvním hodem legenda barev; pod kartou skleněný panel „Postup"
+  (kdo má co dělat), který jde šipkou sbalit/rozbalit (volba se pamatuje). Pravidla jsou na rubu karty — u první karty dané barvy karta přiletí
   rubem nahoru s tlačítkem „Rozumím", pak jsou kdykoli pod otazníkem.
 - Karty šance „přijít o všechny karty" jsou v balíčku jednou, ostatní dvakrát (padají méně).
 - Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.

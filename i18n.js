@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '40';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '41';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -24,7 +24,7 @@ cs: {
   bar_back:'Zpět', bar_leave:'Opustit', bar_exit_game:'Ukončit hru', bar_exit:'Ukončit',
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
-  intro_ok:'Rozumím — ukázat otázku',
+  intro_ok:'Rozumím — ukázat otázku', steps_title:'Postup',
   blue_write:'Napiš 3 odpovědi: 1 pravdivou a 2 vymyšlené.', blue_write_local:'Ostatní se nedívají.',
   legend_red:'Hluboké otázky', legend_blue:'Hádání', legend_yellow:'Názory', legend_chance:'Šance',
   hint_btn:'Zobrazit nápovědu', hint_close:'Zpět na otázku', hint_label:'Nápověda',
@@ -184,7 +184,7 @@ en: {
   bar_back:'Back', bar_leave:'Leave', bar_exit_game:'Exit game', bar_exit:'Exit',
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
-  intro_ok:'Got it — show the question',
+  intro_ok:'Got it — show the question', steps_title:'What to do',
   blue_write:'Write 3 answers: 1 true and 2 made up.', blue_write_local:'No peeking, everyone else.',
   legend_red:'Deep questions', legend_blue:'Guessing', legend_yellow:'Opinions', legend_chance:'Chance',
   hint_btn:'Show help', hint_close:'Back to the question', hint_label:'Help',

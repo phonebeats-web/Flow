@@ -652,6 +652,13 @@ button.cc-tile:active{transform:scale(.97);}
 }
 .card3d-inner > .qcard{width:100%;margin:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 .card3d-inner.flipped{transform:rotateY(180deg);}
+/* Pojistka proti prosvítání (Safari): odvrácená strana se v polovině otočení
+   (karta je z boku, nic není vidět) úplně skryje. */
+.card3d-inner > .qcard{visibility:visible;transition:visibility 0s linear .3s;}
+.card3d-inner.flipped > .qcard{visibility:hidden;}
+.card3d-inner > .qcard-back{visibility:hidden;transition:visibility 0s linear .3s;}
+.card3d-inner.flipped > .qcard-back{visibility:visible;}
+.card3d-inner > .qcard *,.card3d-inner > .qcard-back *{-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 .qcard-back{
   position:absolute;inset:0;transform:rotateY(180deg);
   -webkit-backface-visibility:hidden;backface-visibility:hidden;
@@ -742,6 +749,33 @@ button.cc-tile:active{transform:scale(.97);}
 .color-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-top:-4px;}
 .legend-item{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px * var(--fs));font-weight:600;color:var(--navy-soft);}
 .legend-dot{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 -2px 2px rgba(0,0,0,.12);}
+
+/* ---------- Panel „Postup" (skleněný, sbalitelný) ---------- */
+.steps{border-radius:20px;overflow:hidden;}
+.steps-head{
+  display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:0;background:transparent;cursor:pointer;
+  font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(14px * var(--fs));color:var(--navy-soft);text-align:left;
+}
+.steps-ico{display:inline-flex;color:var(--navy-soft);}
+.steps-ico svg{width:17px;height:17px;}
+.steps-title{flex:1;}
+.steps-chev{display:inline-flex;transition:transform .25s ease;transform:rotate(-90deg);}
+.steps-chev svg{width:18px;height:18px;}
+.steps.open .steps-chev{transform:rotate(0deg);}
+/* plynulé rozbalení (výška z 0 na obsah) */
+.steps-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s ease;}
+.steps.open .steps-body{grid-template-rows:1fr;}
+.steps-inner{overflow:hidden;}
+.steps-text{padding:0 16px 13px 39px;font-size:calc(15px * var(--fs));line-height:1.45;color:var(--navy);}
+.steps-text b{color:var(--navy);}
+@media (prefers-reduced-motion:reduce){ .steps-body,.steps-chev{transition:none;} }
+
+/* ---------- Karta vítězné otázky — text v bílé ploše ---------- */
+.qcard.qcard-final{aspect-ratio:auto;width:min(100%, 340px);padding:86px 26px 90px;min-height:0;}
+.qcard.qcard-final .wave-band{height:66px;}
+.qcard.qcard-final .wave-band.sea{transform:none;}
+.qcard.qcard-final .qcard-text{font-size:calc(21px * var(--fs));}
+.qcard.qcard-final .qcard-note{max-width:250px;margin:10px auto 0;}
 
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
@@ -901,8 +935,6 @@ button.cc-tile:active{transform:scale(.97);}
    Přidává se automaticky, jen když se obsah nevejde na displej. */
 #app.fit-1{--gap-scale:.6;}
 #app.fit-1 .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px;}
-#app.fit-1 .qcard-final{padding:76px 20px;}
-#app.fit-1 .qcard-final .wave-band{height:64px;}
 #app.fit-1 .die{width:66px;height:66px;border-radius:21px;}
 #app.fit-1 .die .dot{width:30px;height:30px;}
 #app.fit-1 .die-area{gap:14px;}
@@ -920,8 +952,6 @@ button.cc-tile:active{transform:scale(.97);}
 #app.fit-1 .win-crown{font-size:calc(44px * var(--fs));}
 
 #app.fit-2{--gap-scale:.35;}
-#app.fit-2 .qcard-final{padding:62px 16px;min-height:220px;}
-#app.fit-2 .qcard-final .wave-band{height:50px;}
 #app.fit-2 .die{width:54px;height:54px;border-radius:18px;}
 #app.fit-2 .die .dot{width:24px;height:24px;}
 #app.fit-2 .btn{min-height:44px;font-size:calc(16px * var(--fs));padding-top:8px;padding-bottom:8px;}
