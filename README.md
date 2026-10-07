@@ -58,9 +58,10 @@ to není potřeba.
 
 - Karty jsou na šířku (poměr ležící hrací karty 88 : 63), u všech barev a na všech
   obrazovkách stejně velké; na nižších displejích celkově menší. Při vytažení se otočí.
-- Průvodce: před prvním hodem legenda barev; pod kartou skleněný panel „Postup"
-  (kdo má co dělat), který jde šipkou sbalit/rozbalit (volba se pamatuje). Pravidla jsou na rubu karty — u první karty dané barvy karta přiletí
-  rubem nahoru s tlačítkem „Rozumím", pak jsou kdykoli pod otazníkem.
+- Průvodce: pod kartou (u hodu pod kostkami) je vždy skleněný panel „Postup" —
+  v záhlaví „Na řadě: jméno" (vidět i sbalený), pod ním jedna věta, co se děje.
+  Pravidla barev jsou jen na rubu karty pod otazníkem. Karta se otáčí 2D animací
+  („jako papír na stole"), plynulou i na starších telefonech.
 - Karty šance „přijít o všechny karty" jsou v balíčku jednou, ostatní dvakrát (padají méně).
 - Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed

@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '41';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '42';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -25,6 +25,16 @@ cs: {
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
   intro_ok:'Rozumím — ukázat otázku', steps_title:'Postup',
+  steps_turn:'Na řadě:', steps_others:'ostatní', steps_you:'ty', steps_guessed:'kdo uhodl',
+  step_roll:'Hází kostkami. Rozhoduje barva na první kostce, dvě stejné znamenají kartu šance.',
+  step_red:'Odpovídá na otázku. Ostatní se mohou doptat.', step_answers:'Odpovídá na otázku.',
+  step_chance:'Řeší kartu šance.', step_rn:'Odpovídá na otázku místo hráče na tahu.',
+  step_blue_write:'Píše 3 odpovědi: 1 pravdivou a 2 vymyšlené.', step_blue_mark:'Označuje pravdivou odpověď.',
+  step_round_first:'Odpovídá jako první, pak ostatní po řadě.', step_round:'Odpovídá na otázku.',
+  step_round_done:'Všichni se vystřídali — bere {0} kartu.', step_offline:'Je offline — rozhodne hráč na tahu.',
+  step_guess_all:'Hádají, která odpověď je pravdivá.', votes_count_short:'Hlasovalo {0}.',
+  step_guess_local:'Hádá, která odpověď je pravdivá.', step_evaluate:'Vyhodnocuje hádání.',
+  step_award:'Vybírá si barvu půlkarty.',
   blue_write:'Napiš 3 odpovědi: 1 pravdivou a 2 vymyšlené.', blue_write_local:'Ostatní se nedívají.',
   legend_red:'Hluboké otázky', legend_blue:'Hádání', legend_yellow:'Názory', legend_chance:'Šance',
   hint_btn:'Zobrazit nápovědu', hint_close:'Zpět na otázku', hint_label:'Nápověda',
@@ -185,6 +195,16 @@ en: {
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
   intro_ok:'Got it — show the question', steps_title:'What to do',
+  steps_turn:'Turn:', steps_others:'everyone else', steps_you:'you', steps_guessed:'whoever guessed right',
+  step_roll:'Rolls the dice. The colour on the first die decides; a double means a chance card.',
+  step_red:'Answers the question. The others may ask follow-up questions.', step_answers:'Answers the question.',
+  step_chance:'Resolves the chance card.', step_rn:'Answers the question instead of the player whose turn it is.',
+  step_blue_write:'Writes 3 answers: 1 true and 2 made up.', step_blue_mark:'Marks the true answer.',
+  step_round_first:'Answers first, then everyone else in turn.', step_round:'Answers the question.',
+  step_round_done:'Everyone has had their turn — takes a {0} card.', step_offline:'Is offline — the player whose turn it is decides.',
+  step_guess_all:'Guess which answer is true.', votes_count_short:'Votes in: {0}.',
+  step_guess_local:'Guesses which answer is true.', step_evaluate:'Reveals the answer.',
+  step_award:'Pick the colour of the half card.',
   blue_write:'Write 3 answers: 1 true and 2 made up.', blue_write_local:'No peeking, everyone else.',
   legend_red:'Deep questions', legend_blue:'Guessing', legend_yellow:'Opinions', legend_chance:'Chance',
   hint_btn:'Show help', hint_close:'Back to the question', hint_label:'Help',

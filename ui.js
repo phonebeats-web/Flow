@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '41';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '42';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -37,7 +37,7 @@ function colorVar(c){
 }
 function dots(){ return [el('span',{},'.'),el('span',{},'.'),el('span',{},'.')]; }
 function waiting(...parts){
-  return el('div',{class:'subtitle waiting-dots center-text'}, ...parts, dots());
+  return el('div',{class:'note glass waiting-dots'}, ...parts, dots());
 }
 function playerById(room, id){ return room.players.find(p=>p.id===id); }
 
@@ -658,19 +658,19 @@ function renderHome(s){
       el('span',{class:'rules-chevron'},'⌄')
     ),
     open ? el('div',{class:'rules-body glass'},
-      rulesStep('var(--navy-soft)','1', t('r1_t'), t('r1_x')),
+      rulesStep('#34456A','1', t('r1_t'), t('r1_x')),
       rulesStep('var(--red)','2', t('r2_t'), t('r2_x')),
-      rulesStep('var(--blue)','3', t('r3_t'), t('r3_x')),
-      rulesStep('var(--yellow)','4', t('r4_t'), t('r4_x')),
-      rulesStep('var(--orange)','5', t('r5_t'), t('r5_x')),
-      rulesStep('var(--navy)','6', t('r6_t'), t('r6_x'))
+      rulesStep('var(--blue)','3', t('r3_t'), t('r3_x'), true),
+      rulesStep('var(--yellow)','4', t('r4_t'), t('r4_x'), true),
+      rulesStep('var(--orange)','5', t('r5_t'), t('r5_x'), true),
+      rulesStep('#5B5FD6','6', t('r6_t'), t('r6_x'))
     ) : null
   ));
 }
 
-function rulesStep(color, num, title, text){
+function rulesStep(color, num, title, text, darkText){
   return el('div',{class:'rules-step'},
-    el('div',{class:'rules-num', style:'background:'+color}, num),
+    el('div',{class:'rules-num'+(darkText ? ' dark-text' : ''), style:'background:'+color}, num),
     el('div',{},
       el('div',{class:'rules-step-title'}, title),
       el('div',{class:'rules-step-text'}, text)
@@ -912,7 +912,7 @@ function renderIdle(s, room, mine){
     const btn = button(t('roll_btn'),'btn-primary', ()=>{ animateRoll([die1, die2], btn); });
     col.appendChild(btn);
     if(noCardsYet()){
-      col.appendChild(el('div',{class:'subtitle center-text'}, t('roll_hint')));
+      col.appendChild(stepPanel(ap.name, t('step_roll')));
       col.appendChild(el('div',{class:'color-legend', 'aria-label':t('rules_toggle')},
         ...[['red','red'],['blue','blue'],['yellow','yellow'],['chance','chance']].map(([k,c])=>
           el('span',{class:'legend-item'}, el('span',{class:'legend-dot', style:'background:'+colorVar(c)}), t('legend_'+k)))
@@ -1037,7 +1037,7 @@ function animateRoll(dice, btnEl){
 function rollSummary(room){
   const [a,c2] = room.lastRoll;
   const dot = c => el('span',{class:'roll-dot', style:'background:'+colorVar(c), title:colorName(c)});
-  return el('div',{class:'roll-summary'},
+  return el('div',{class:'roll-summary glass-pill'},
     t('roll_label')+' ', dot(a), dot(c2),
     a===c2 ? el('span',{class:'roll-note'}, ' '+t('roll_double')) : null
   );
@@ -1124,11 +1124,11 @@ const STEPS_KEY = 'flou_steps_open';
 let stepsOpen = (()=>{ try{ return localStorage.getItem(STEPS_KEY) !== '0'; }catch(e){ return true; } })();
 const ICON_STEPS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6.5h11M9 12h11M9 17.5h11"/></g><g fill="currentColor"><circle cx="4.5" cy="6.5" r="1.5"/><circle cx="4.5" cy="12" r="1.5"/><circle cx="4.5" cy="17.5" r="1.5"/></g></svg>';
 const ICON_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5 12 15l5.5-5.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function stepPanel(...content){
-  const body = el('div',{class:'steps-body'}, el('div',{class:'steps-inner'}, el('div',{class:'steps-text'}, ...content)));
-  const head = el('button',{class:'steps-head', 'aria-expanded': stepsOpen ? 'true' : 'false'},
+function stepPanel(who, ...desc){
+  const body = el('div',{class:'steps-body'}, el('div',{class:'steps-inner'}, el('div',{class:'steps-text'}, ...desc)));
+  const head = el('button',{class:'steps-head', 'aria-expanded': stepsOpen ? 'true' : 'false', 'aria-label':t('steps_title')},
     el('span',{class:'steps-ico', html:ICON_STEPS}),
-    el('span',{class:'steps-title'}, t('steps_title')),
+    el('span',{class:'steps-title'}, who ? [t('steps_turn')+' ', el('b',{}, who)] : t('steps_title')),
     el('span',{class:'steps-chev', html:ICON_CHEV}));
   const panel = el('div',{class:'steps glass'+(stepsOpen ? ' open' : '')}, head, body);
   head.addEventListener('click', ()=>{
@@ -1161,17 +1161,27 @@ function trackHintCard(){
   state.cardFlipped = false;
 }
 function flipCard(inner, on){
+  if(inner._turning) return;
   state.cardFlipped = on;
-  // rub se natáhne podle délky pravidel; po otočení zpět se karta srovná
-  if(on) inner.classList.add('grow');
-  else setTimeout(()=>{ if(!inner.classList.contains('flipped')) inner.classList.remove('grow'); }, 620);
-  inner.classList.toggle('flipped', on);
-  const front = inner.querySelector('.qcard'), back = inner.querySelector('.qcard-back');
-  if(front) front.setAttribute('aria-hidden', on ? 'true' : 'false');
-  if(back) back.setAttribute('aria-hidden', on ? 'false' : 'true');
-  const q = inner.querySelector('.hint-q'); if(q) q.setAttribute('aria-expanded', on ? 'true' : 'false');
+  const swap = ()=>{
+    inner.classList.toggle('flipped', on);
+    const front = inner.querySelector('.qcard'), back = inner.querySelector('.qcard-back');
+    if(front) front.setAttribute('aria-hidden', on ? 'true' : 'false');
+    if(back) back.setAttribute('aria-hidden', on ? 'false' : 'true');
+    const q = inner.querySelector('.hint-q'); if(q) q.setAttribute('aria-expanded', on ? 'true' : 'false');
+  };
+  const focusNext = ()=>{ const f = inner.querySelector(on ? '.hint-x' : '.hint-q'); try{ f && f.focus({preventScroll:true}); }catch(e){} };
   Sound.flip();
-  setTimeout(()=>{ const f = inner.querySelector(on ? '.hint-x' : '.hint-q'); try{ f && f.focus({preventScroll:true}); }catch(e){} }, 320);
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced || typeof inner.animate !== 'function'){ swap(); focusNext(); return; }
+  // otočení „jako papír": zúžit do čárky → vyměnit stranu → roztáhnout
+  inner._turning = true;
+  const out = inner.animate([{transform:'scaleX(1)'},{transform:'scaleX(0.02)'}], {duration:160, easing:'cubic-bezier(.5,0,.9,.4)'});
+  out.onfinish = ()=>{
+    swap();
+    const back = inner.animate([{transform:'scaleX(0.02)'},{transform:'scaleX(1.02)', offset:.8},{transform:'scaleX(1)'}], {duration:240, easing:'cubic-bezier(.1,.6,.3,1)'});
+    back.onfinish = ()=>{ inner._turning = false; focusNext(); fitToScreen(); scheduleScrollHint(); };
+  };
 }
 /* Karta z herního stavu — text v jazyce tohoto zařízení, s otazníkem a pravidly na rubu. */
 function cardEl(card, colorOverride, opts={}){
@@ -1179,7 +1189,7 @@ function cardEl(card, colorOverride, opts={}){
   const kind = hintKind(card, colorOverride);
   const front = qcardEl(color, cardText(card));
   const showBack = !!opts.intro || state.cardFlipped;
-  const inner = el('div',{class:'card3d-inner'+(showBack || state.unflipNext ? ' flipped grow' : '')+(opts.intro ? ' intro' : '')});
+  const inner = el('div',{class:'card3d-inner'+(showBack ? ' flipped' : '')});
   const qBtn = el('button',{class:'hint-q', 'aria-label':t('hint_btn'), title:t('hint_btn'),
     'aria-expanded': showBack ? 'true' : 'false', onclick:(e)=>{ e.stopPropagation(); flipCard(inner, true); }}, '?');
   front.appendChild(qBtn);
@@ -1197,11 +1207,6 @@ function cardEl(card, colorOverride, opts={}){
     )
   );
   inner.append(front, back);
-  // po „Rozumím": karta se plynule otočí z rubu na otázku
-  if(state.unflipNext && !opts.intro){
-    state.unflipNext = false;
-    raf(()=>raf(()=>{ inner.classList.remove('flipped'); setTimeout(()=>inner.classList.remove('grow'), 620); }));
-  }
   return el('div',{class:'card3d'}, inner);
 }
 
@@ -1211,8 +1216,7 @@ const INTRO_PHASES = ['rolled-question','answer-round','chance','right-neighbor'
 function introKind(room){
   if(!room || !room.currentCard || INTRO_PHASES.indexOf(room.phase) < 0) return null;
   const kind = hintKind(room.currentCard, room.round && room.phase==='answer-round' ? room.round.color : null);
-  if(window.__skipIntro) return null;   // jen pro automatické testy
-  return (state.introDone && state.introDone[kind]) ? null : kind;
+  return null;   // pravidla se samy neukazují — jsou jen pod otazníkem na kartě
 }
 function introAccept(kind){
   state.introDone = state.introDone || {};
@@ -1236,7 +1240,7 @@ function renderQuestionPhase(s, room, mine){
   const ap = activePlayer(room);
   s.appendChild(cardEl(card));
   s.appendChild(gap(22));
-  s.appendChild(stepPanel(...tn(card.color==='red' ? 'red_banner' : 'answers', b(ap.name))));
+  s.appendChild(stepPanel(ap.name, t(card.color==='red' ? 'step_red' : 'step_answers')));
   if(!mine) return;
   s.appendChild(gap(12));
   s.appendChild(el('div',{class:'stack stack-tight'},
@@ -1277,6 +1281,14 @@ function renderRound(s, room, mine){
   const current = playerById(room, r.current);
   const backToDrawer = started && r.current===ap.id;
 
+  // Postup — vždy hned pod kartou
+  const isDrawerNow = current && current.id===ap.id && !started;
+  s.appendChild(stepPanel(backToDrawer ? ap.name : (current ? current.name : ap.name),
+    backToDrawer ? t('step_round_done', colorAcc(col))
+    : (current && Store.mode==='online' && current.online===false) ? t('step_offline')
+    : isDrawerNow ? t('step_round_first') : t('step_round')));
+  s.appendChild(gap(12));
+
   // Přehled pořadí: kdo už odpověděl, kdo je na řadě.
   // Při 5 a více hráčích ve dvou sloupcích, ať se vše vejde na displej.
   const list = el('div',{class:'stack stack-tight'+(r.order.length>=5?' round-grid':'')});
@@ -1305,8 +1317,6 @@ function renderRound(s, room, mine){
 
   if(backToDrawer){
     if(mine){
-      s.appendChild(el('div',{class:'banner-info glass'}, ...tn('round_done', b(ap.name), colorAcc(col))));
-      s.appendChild(gap(12));
       s.appendChild(button(t('round_take'), btnCls, ()=>{ roundFinish(); }));
     } else {
       s.appendChild(waiting(...tn('round_taking', ap.name)));
@@ -1321,17 +1331,12 @@ function renderRound(s, room, mine){
   const canDecideFor = Store.mode==='online' && mine && !canAnswer && current.online===false;
 
   if(canAnswer || canDecideFor){
-    s.appendChild(stepPanel(...(canDecideFor ? tn('decide_for', b(current.name))
-                       : tn(isDrawer ? 'answering_first' : 'answering', b(current.name)))));
-    s.appendChild(gap(12));
     const has = current.full[col]>0 || current.halves[col]>0;
     s.appendChild(el('div',{class:'stack stack-tight'},
       button(t('answered'), btnCls, ()=>{ roundAnswer(current.id, true); }),
       button(has ? t('not_answered_loses_col', colorAcc(col)) : t('not_answered_has_none', colorAcc(col)),
         'btn-glass', ()=>{ roundAnswer(current.id, false); })
     ));
-    if(isDrawer){
-    }
   } else {
     s.appendChild(waiting(...tn('answering_wait', b(current.name))));
   }
@@ -1348,7 +1353,8 @@ function renderChancePhase(s, room, mine){
   const chanceSteps = [
     ...(mine ? [] : [...tn('chance_resolving', b(ap.name)), '. ']),
     ...(room.pendingColor ? tn('then_question', b(colorName(room.pendingColor))) : [])];
-  if(chanceSteps.length){ s.appendChild(stepPanel(...chanceSteps)); s.appendChild(gap(14)); }
+  s.appendChild(stepPanel(ap.name, t('step_chance'), room.pendingColor ? ' '+t('then_question', colorName(room.pendingColor)) : ''));
+  s.appendChild(gap(14));
   if(!mine){
     return;
   }
@@ -1526,7 +1532,7 @@ function renderRightNeighbor(s, room, mine){
   const nbName = nb ? nb.name : '?';
   s.appendChild(cardEl(card));
   s.appendChild(gap(16));
-  s.appendChild(stepPanel(...tn('answers', b(nbName))));
+  s.appendChild(stepPanel(nbName, t('step_rn')));
   s.appendChild(gap(14));
   if(!mine) return;
   s.appendChild(el('div',{class:'stack stack-tight'},
@@ -1570,7 +1576,7 @@ function renderBlueCompose(s, room, mine){
   const local = Store.mode==='local';
 
   if(bc.step!==2){
-    s.appendChild(stepPanel(t('blue_write'), local ? ' '+t('blue_write_local') : ''));
+    s.appendChild(stepPanel(author.name, t('step_blue_write'), local ? ' '+t('blue_write_local') : ''));
     s.appendChild(gap(12));
     const list = el('div',{class:'stack stack-tight'});
     const inputs = [];
@@ -1609,7 +1615,7 @@ function renderBlueCompose(s, room, mine){
   }
 
   // Krok 2 — označení pravdivé odpovědi.
-  s.appendChild(stepPanel(t('blue_mark')));
+  s.appendChild(stepPanel(blueAuthor(room).name, t('step_blue_mark')));
   s.appendChild(gap(12));
   const list = el('div',{class:'stack stack-tight'});
   keys.forEach((k,i)=>{
@@ -1657,7 +1663,9 @@ function renderBlueWaiting(s, room, ap){
   const line = !pr ? tn('progress_start', b(ap.name))
              : pr.step===2 ? tn('progress_marking', b(ap.name))
              : (pr.filled ? tn('progress_writing', b(ap.name), pr.filled) : tn('progress_start', b(ap.name)));
-  s.appendChild(el('div',{class:'center-col', style:'gap:10px'}, waiting(...line), composeSteps(pr)));
+  s.appendChild(stepPanel(ap.name, ...line));
+  s.appendChild(gap(10));
+  s.appendChild(el('div',{class:'center-col'}, composeSteps(pr)));
   s.appendChild(gap(18));
 
   // nový tah = prázdné políčko na tip
@@ -1734,7 +1742,7 @@ function renderBlueGuessing(s, room, mine){
   const waitingFor = others.filter(p=> !hasVoted(p) && p.online!==false);
 
   if(mine){
-    s.appendChild(el('div',{class:'banner-info glass'}, ...tn('votes_count', b(voted.length+' / '+others.length))));
+    s.appendChild(stepPanel(t('steps_others'), t('step_guess_all'), ' ', ...tn('votes_count_short', b(voted.length+' / '+others.length))));
     s.appendChild(gap(12));
     const list = el('div',{class:'stack stack-tight'});
     others.forEach(p=>{
@@ -1774,7 +1782,8 @@ function renderBlueGuessing(s, room, mine){
   }
   const myTip = (room.tips||{})[state.myPlayerId];
   if(myTip) s.appendChild(el('div',{class:'subtitle center-text', style:'margin:0 0 4px;font-size:calc(13.5px * var(--fs))'}, ...tn('tip_reminder', b(myTip))));
-  s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:12px'}, t('guess_q')));
+  s.appendChild(stepPanel(t('steps_you'), t('guess_q')));
+  s.appendChild(gap(12));
   s.appendChild(optionButtons(card.options, i=>{ Online.pushVote(room.code, state.myPlayerId, i); }));
 }
 
@@ -1790,6 +1799,10 @@ function optionButtons(options, onPick){
 }
 
 function renderBlueGuessingLocal(s, room, ap, card){
+  const btNow = room.blueTurn || {order:[], current:null};
+  const guesser = btNow.current ? playerById(room, btNow.current) : null;
+  s.appendChild(stepPanel(guesser ? guesser.name : ap.name, t(guesser ? 'step_guess_local' : 'step_evaluate')));
+  s.appendChild(gap(12));
   const bt = room.blueTurn || {order:[], current:null};
   if(bt.current){
     const p = playerById(room, bt.current);
@@ -1838,7 +1851,9 @@ function renderBlueReveal(s, room, mine){
   s.appendChild(el('div',{class:'title-md center-text', style:'margin-bottom:10px'}, t('true_answer')));
   const answerCard = qcardEl('blue', (card.options||[])[card.correct] || '—');
   s.appendChild(answerCard);
-  s.appendChild(gap(16));
+  s.appendChild(gap(14));
+  s.appendChild(stepPanel(t('steps_guessed'), t('step_award')));
+  s.appendChild(gap(12));
 
   const list = el('div',{class:'stack stack-tight'});
   others.forEach(p=>{
@@ -1887,9 +1902,10 @@ function renderBlueReveal(s, room, mine){
   if(pending.length){
     s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:8px'},
       t('award_pending', pending.map(p=>p.name).join(', '))));
+    s.lastChild.className = 'note glass';
   }
   if(!winners.length){
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:8px'}, t('nobody_guessed')));
+    s.appendChild(el('div',{class:'note glass', style:'margin-bottom:10px'}, t('nobody_guessed')));
   }
   s.appendChild(button(t('blue_continue', blueBeneficiary(room).name),'btn-primary', ()=>{ blueFinish(); }, pending.length>0));
 }
@@ -1948,7 +1964,7 @@ function renderSolo(s){
     el('span',{class:'solo-count'}, t('solo_count', so.pos+1))
   ));
   s.appendChild(qcardEl(cur.color, questionText(cur.color, cur.idx)));
-  s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:12px'}, t('solo_hint')));
+  s.appendChild(el('div',{class:'note glass', style:'margin-top:14px'}, t('solo_hint')));
   s.appendChild(gap(18));
 
   const atEnd = so.pos >= so.history.length-1;

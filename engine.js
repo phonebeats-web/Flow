@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '41';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '42';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    GAME ENGINE — čistá herní logika.
    Žádná závislost na DOM, na Firebase, ani na síti.

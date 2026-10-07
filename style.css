@@ -352,10 +352,9 @@ button{touch-action:manipulation;}
 }
 .qcard .wave-band{position:absolute;left:0;width:100%;height:46px;display:block;pointer-events:none;}
 /* otočení karty při vytažení (souhlasí se zvukem) */
-.screen.anim .qcard{animation:card-deal .55s cubic-bezier(.2,.9,.3,1.15) both;transform-origin:50% 60%;}
+.screen.anim .card3d-inner,.screen.anim > .qcard{animation:card-deal .42s cubic-bezier(.2,.8,.25,1) both;}
 @keyframes card-deal{
-  0%{opacity:0;transform:perspective(900px) rotateY(-75deg) translateY(10px) scale(.92);}
-  60%{opacity:1;}
+  0%{opacity:0;transform:translateY(14px) scale(.94);}
   100%{opacity:1;transform:none;}
 }
 .qcard .wave-band.top{top:0;}
@@ -645,37 +644,23 @@ button.cc-tile:active{transform:scale(.97);}
 
 
 /* ---------- Karta s rubem (nápověda) ---------- */
-.card3d{perspective:1200px;}
-.card3d-inner{
-  position:relative;width:min(100%, 340px);margin:0 auto;
-  transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.25,1);
-}
-.card3d-inner > .qcard{width:100%;margin:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
-.card3d-inner.flipped{transform:rotateY(180deg);}
-/* Pojistka proti prosvítání (Safari): odvrácená strana se v polovině otočení
-   (karta je z boku, nic není vidět) úplně skryje. */
-.card3d-inner > .qcard{visibility:visible;transition:visibility 0s linear .3s;}
-.card3d-inner.flipped > .qcard{visibility:hidden;}
-.card3d-inner > .qcard-back{visibility:hidden;transition:visibility 0s linear .3s;}
-.card3d-inner.flipped > .qcard-back{visibility:visible;}
-.card3d-inner > .qcard *,.card3d-inner > .qcard-back *{-webkit-backface-visibility:hidden;backface-visibility:hidden;}
-.qcard-back{
-  position:absolute;inset:0;transform:rotateY(180deg);
-  -webkit-backface-visibility:hidden;backface-visibility:hidden;
-  border-radius:24px;overflow:hidden;background:#fff;
+/* Karta s rubem: otočení „jako papír na stole" — karta se zúží do čárky,
+   vymění se strana a zase se roztáhne (2D, plynulé i na starších telefonech). */
+.card3d{}
+.card3d-inner{position:relative;width:min(100%, 340px);margin:0 auto;will-change:transform;}
+.card3d-inner > .qcard{width:100%;margin:0;}
+.card3d-inner > .qcard-back{
+  display:none;   /* rub je skrytý, dokud se karta neotočí */
+  position:relative;aspect-ratio:88 / 63;min-height:auto;
+  border-radius:24px;overflow:visible;background:#fff;
   border:1px solid rgba(255,255,255,.95);
   box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 0 7px rgba(255,255,255,.5), 0 18px 40px rgba(24,40,72,.16);
-  display:flex;flex-direction:column;
+  flex-direction:column;
 }
-.qcard-back-band{height:12px;background:var(--c);flex-shrink:0;}
-.qcard-back-body{flex:1;overflow:auto;padding:14px 18px 14px;text-align:left;}
-/* první setkání s barvou: rub v toku stránky — natáhne se podle délky pravidel */
-.card3d-inner.intro > .qcard,.card3d-inner.grow > .qcard{position:absolute;inset:0;aspect-ratio:auto;}
-.card3d-inner.intro > .qcard-back,.card3d-inner.grow > .qcard-back{position:relative;inset:auto;aspect-ratio:88 / 63;min-height:auto;}
-.card3d-inner.intro .qcard-back-body,.card3d-inner.grow .qcard-back-body{overflow:visible;padding-bottom:18px;}
-/* natažený rub nesmí ořezávat obsah (jinak by nerostl) — zaoblení drží pruh sám */
-.card3d-inner.intro > .qcard-back,.card3d-inner.grow > .qcard-back{overflow:visible;}
-.card3d-inner.intro .qcard-back-band,.card3d-inner.grow .qcard-back-band{border-radius:24px 24px 0 0;}
+.card3d-inner.flipped > .qcard{display:none;}
+.card3d-inner.flipped > .qcard-back{display:flex;}
+.qcard-back-band{height:12px;background:var(--c);flex-shrink:0;border-radius:24px 24px 0 0;}
+.qcard-back-body{flex:1;padding:14px 18px 16px;text-align:left;}
 .qcard-back-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--navy-soft);}
 .qcard-back-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(16.5px * var(--fs));color:var(--navy);margin:2px 34px 6px 0;line-height:1.25;}
 .qcard-back-text{font-size:calc(13.5px * var(--fs));line-height:1.42;color:var(--navy-soft);}
@@ -734,7 +719,6 @@ button.cc-tile:active{transform:scale(.97);}
 @media (max-height:780px){ .card3d-inner{width:min(100%, 290px);} }
 @media (max-height:680px){ .card3d-inner{width:min(100%, 250px);} .qcard-back-body{padding:12px 16px;} }
 @media (prefers-reduced-motion:reduce){
-  .card3d-inner{transition:none;}
   .hint-q.hint-pulse,.hint-inline.tuck{animation:none;}
   .hint-bubble{animation:none;opacity:0;}
 }
@@ -766,7 +750,7 @@ button.cc-tile:active{transform:scale(.97);}
 .steps-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s ease;}
 .steps.open .steps-body{grid-template-rows:1fr;}
 .steps-inner{overflow:hidden;}
-.steps-text{padding:0 16px 13px 39px;font-size:calc(15px * var(--fs));line-height:1.45;color:var(--navy);}
+.steps-text{text-align:left;padding:0 16px 13px 39px;font-size:calc(15px * var(--fs));line-height:1.45;color:var(--navy);}
 .steps-text b{color:var(--navy);}
 @media (prefers-reduced-motion:reduce){ .steps-body,.steps-chev{transition:none;} }
 
@@ -776,6 +760,30 @@ button.cc-tile:active{transform:scale(.97);}
 .qcard.qcard-final .wave-band.sea{transform:none;}
 .qcard.qcard-final .qcard-text{font-size:calc(21px * var(--fs));}
 .qcard.qcard-final .qcard-note{max-width:250px;margin:10px auto 0;}
+
+/* ---------- Poznámky a čekání: skleněná kapsle (liquid glass) ---------- */
+.note{
+  align-self:center;margin:0 auto;max-width:100%;padding:9px 16px;border-radius:18px;
+  text-align:center;font-size:calc(14.5px * var(--fs));line-height:1.45;color:var(--navy-soft);
+}
+.note b{color:var(--navy);}
+.die-area .steps,.center-col .steps{width:100%;}
+.steps-title b{color:var(--navy);}
+/* výsledek hodu jako malá skleněná kapsle */
+.roll-summary{
+  align-self:center;margin:0 auto 12px;padding:5px 14px;border-radius:999px;width:max-content;max-width:100%;
+  background:var(--g-sheen), rgba(255,255,255,.55);border:1px solid var(--g-edge);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+}
+[data-theme="dark"] .roll-summary{background:var(--g-sheen), rgba(32,43,68,.82);}
+[data-theme="dark"] .note.glass{background:var(--g-sheen), rgba(32,43,68,.82);}
+.note.glass{background:var(--g-sheen), rgba(255,255,255,.62);}
+/* noční režim: zaškrtnutá barva v sólo hře — barevné pozadí, čitelné písmo */
+[data-theme="dark"] .solo-chip.on{background:var(--c);color:#fff;border-color:var(--c);}
+[data-theme="dark"] .solo-chip.on[style*="yellow"]{color:#1A1F2B;}
+/* čísla kroků v pravidlech: písmo podle barvy kolečka */
+.rules-num{color:#fff;}
+.rules-num.dark-text{color:#182848;}
 
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
