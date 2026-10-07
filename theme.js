@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['theme.js'] = '42';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['theme.js'] = '43';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* Noční režim — nastaví se hned při načtení stránky (před vykreslením),
    aby neproblikl světlý vzhled. Bez ruční volby se řídí nastavením zařízení. */
 (function(){

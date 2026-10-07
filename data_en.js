@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['data_en.js'] = '42';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['data_en.js'] = '43';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============ CARD DATA — ENGLISH ============
    Stejné pořadí jako v data.js (index karty = stejná otázka).
    Karty šance jsou podle klíče efektu. */

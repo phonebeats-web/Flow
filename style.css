@@ -648,6 +648,10 @@ button.cc-tile:active{transform:scale(.97);}
    vymění se strana a zase se roztáhne (2D, plynulé i na starších telefonech). */
 .card3d{}
 .card3d-inner{position:relative;width:min(100%, 340px);margin:0 auto;will-change:transform;}
+/* během otáčení karta „nadzvednutá" — větší, měkčí stín */
+.card3d-inner.turning > .qcard,.card3d-inner.turning > .qcard-back{
+  box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 0 7px rgba(255,255,255,.5), 0 30px 60px rgba(24,40,72,.26);
+}
 .card3d-inner > .qcard{width:100%;margin:0;}
 .card3d-inner > .qcard-back{
   display:none;   /* rub je skrytý, dokud se karta neotočí */
