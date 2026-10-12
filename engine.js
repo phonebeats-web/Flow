@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['engine.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    GAME ENGINE — čistá herní logika.
    Žádná závislost na DOM, na Firebase, ani na síti.
@@ -50,11 +50,22 @@ function chanceDeck(){
   });
   return shuffle(a);
 }
-function freshDecks(){
+/* Balíček otázek s pamětí mezi hrami: `seen` = nedávno viděné indexy dané
+   barvy (od nejstarší po nejnovější). Karty se berou z konce pole, takže
+   nahoru jdou nejdřív dosud neviděné (zamíchané), pak dávno viděné
+   a nejčerstvěji viděné úplně naposled. */
+function questionDeck(color, seen){
+  const n = QUESTIONS[color].length;
+  const recent = ((seen && seen[color]) || []).filter((i,k,a)=> Number.isInteger(i) && i>=0 && i<n && a.indexOf(i)===k);
+  const was = {}; recent.forEach(i=>{ was[i]=true; });
+  const unseen = indexList(n).filter(i=>!was[i]);
+  return recent.slice().reverse().concat(unseen);
+}
+function freshDecks(seen){
   return {
-    red: indexList(QUESTIONS.red.length),
-    blue: indexList(QUESTIONS.blue.length),
-    yellow: indexList(QUESTIONS.yellow.length),
+    red: questionDeck('red', seen),
+    blue: questionDeck('blue', seen),
+    yellow: questionDeck('yellow', seen),
     chance: chanceDeck()
   };
 }

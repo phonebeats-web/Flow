@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    ONLINE MODE — most mezi herním stavem a Firebase vrstvou.
    Nezná Firebase API přímo, volá pouze FlowNet (js/firebase.js).
@@ -111,7 +111,7 @@ const Online = {
           code, hostId: hostUid, phase:'lobby',
           players:[host], turnIndex:0, direction:1,
           lastRolledColor:null, currentCard:null,
-          decks: freshDecks(), winnerId:null, createdAt: Date.now()
+          decks: freshDecks(typeof loadSeen==='function' ? loadSeen() : null), winnerId:null, createdAt: Date.now()
         };
         return roomToFirebase(room);
       }

@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1175,6 +1175,7 @@ function trackHintCard(){
   if(key === lastHintCardKey) return;
   lastHintCardKey = key;
   const kind = hintKind(c, r.round && r.phase==='answer-round' ? r.round.color : null);
+  if(c.type==='question' && typeof rememberCard==='function') rememberCard(c.color, c.idx);
   state.hintSeen = state.hintSeen || {};
   state.hintSeen[kind] = (state.hintSeen[kind]||0) + 1;
   state.cardFlipped = false;

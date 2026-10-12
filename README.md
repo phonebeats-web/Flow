@@ -63,6 +63,8 @@ to není potřeba.
   Pravidla barev jsou jen na rubu karty pod otazníkem. Karta se otáčí 3D animací ve dvou půlkách
   (vždy je vykreslená jen jedna strana — nic neprosvítá ani v Safari). U první karty ve hře
   otazník zabliká s bublinou „Nápověda".
+- Paměť otázek: zařízení si pamatuje ~70 % naposledy viděných otázek každé barvy;
+  nová hra dává přednost dosud neviděným (online podle hostitele, i hra o samotě).
 - Karty šance „přijít o všechny karty" jsou v balíčku jednou, ostatní dvakrát (padají méně).
 - Noční režim: dlaždice v ovládacím centru; bez volby se řídí nastavením zařízení.
 - Horní lišta jako v iOS: vlevo šipka zpět (ve hře = krok zpět), uprostřed

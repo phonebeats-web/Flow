@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.
@@ -112,6 +112,25 @@ async function undoStep(){
 }
 
 /* ============ LOCAL MODE ============ */
+/* ---------- PAMĚŤ VIDĚNÝCH OTÁZEK (mezi hrami, na tomto zařízení) ----------
+   Pamatuje se zhruba 70 % každé barvy; nové hry pak dávají přednost
+   otázkám, které ještě nepadly. */
+const SEEN_KEY = 'flou_seen';
+const SEEN_SHARE = 0.7;
+function loadSeen(){
+  try{ const v = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); return (v && typeof v==='object') ? v : {}; }
+  catch(e){ return {}; }
+}
+function rememberCard(color, idx){
+  if(!QUESTIONS[color] || !Number.isInteger(idx)) return;
+  const seen = loadSeen();
+  const list = (Array.isArray(seen[color]) ? seen[color] : []).filter(i=>i!==idx);
+  list.push(idx);
+  const cap = Math.floor(QUESTIONS[color].length * SEEN_SHARE);
+  seen[color] = list.slice(-cap);
+  try{ localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); }catch(e){}
+}
+
 function startLocalGame(names){
   names = names.map(cleanName).filter(Boolean).slice(0, MAX_PLAYERS);
   const players = names.map(n=>newPlayer(uid(4), n));
@@ -120,7 +139,7 @@ function startLocalGame(names){
   History.reset();
   const room = {
     code:null, phase:'idle', players, turnIndex:0, direction:1,
-    lastRolledColor:null, lastRoll:null, currentCard:null, decks:freshDecks(), winnerId:null, finalDone:false,
+    lastRolledColor:null, lastRoll:null, currentCard:null, decks:freshDecks(loadSeen()), winnerId:null, finalDone:false,
     pendingColor:null, extraTurn:false, round:null, blueTurn:null, votes:{}, awardColors:{},
     tips:{}, composeProgress:null
   };
@@ -157,7 +176,7 @@ async function removeLocalPlayer(id){
 function startSolo(){
   resetAppState();
   state.solo = {
-    decks: { red: indexList(QUESTIONS.red.length), blue: indexList(QUESTIONS.blue.length), yellow: indexList(QUESTIONS.yellow.length) },
+    decks: { red: questionDeck('red', loadSeen()), blue: questionDeck('blue', loadSeen()), yellow: questionDeck('yellow', loadSeen()) },
     history: [],
     pos: -1,
     filter: []   // zvolené barvy; prázdné = všechny barvy
@@ -170,6 +189,7 @@ function soloDraw(color){
   const pool = color ? [color] : (so.filter && so.filter.length ? so.filter : ['red','blue','yellow']);
   const c = pool[Math.floor(Math.random()*pool.length)];
   const idx = drawIndex(so, c);   // drawIndex potřebuje jen objekt s .decks
+  rememberCard(c, idx);
   // Kdo se vrátil o pár karet zpět a táhne novou, pokračuje od konce.
   so.history.push({color:c, idx});
   if(so.history.length > 100) so.history.shift();
