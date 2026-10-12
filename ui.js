@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '46';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1895,12 +1895,27 @@ function renderBlueReveal(s, room, mine){
   const tips = room.tips || {};
   const trueText = (card.options||[])[card.correct] || '';
 
-  s.appendChild(el('div',{class:'title-md center-text', style:'margin-bottom:10px'}, t('true_answer')));
-  const answerCard = qcardEl('blue', (card.options||[])[card.correct] || '—');
-  s.appendChild(answerCard);
+  // karta s otázkou a pod ní všechny 3 odpovědi — pravdivá zeleně zarámovaná,
+  // u každé odpovědi štítky se jmény těch, kdo ji tipli
+  s.appendChild(cardEl(card));
   s.appendChild(gap(14));
   s.appendChild(stepPanel(t('step_award')));
   s.appendChild(gap(12));
+  const opts = el('div',{class:'stack stack-tight reveal-opts', role:'list', 'aria-label':t('true_answer')});
+  (card.options||[]).forEach((txt, k)=>{
+    const isTrue = k===card.correct;
+    const voters = others.filter(p=>votes[p.id]===k);
+    opts.appendChild(el('div',{class:'reveal-opt glass'+(isTrue ? ' true' : ''), role:'listitem'},
+      el('span',{class:'opt-num'}, String(k+1)),
+      el('div',{class:'reveal-opt-body'},
+        el('div',{class:'reveal-opt-text'}, txt),
+        voters.length ? el('div',{class:'reveal-voters'}, ...voters.map(p=>el('span',{class:'voter-chip'}, p.name))) : null
+      ),
+      isTrue ? el('span',{class:'true-badge'}, '✓ '+t('true_label')) : null
+    ));
+  });
+  s.appendChild(opts);
+  s.appendChild(gap(16));
 
   const list = el('div',{class:'stack stack-tight'});
   others.forEach(p=>{

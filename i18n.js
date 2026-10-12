@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '45';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '46';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -24,7 +24,7 @@ cs: {
   bar_back:'Zpět', bar_leave:'Opustit', bar_exit_game:'Ukončit hru', bar_exit:'Ukončit',
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
-  intro_ok:'Rozumím — ukázat otázku', steps_title:'Postup',
+  intro_ok:'Rozumím — ukázat otázku', true_label:'Pravda', steps_title:'Postup',
   steps_turn:'Na řadě:', steps_others:'ostatní', steps_you:'ty', steps_guessed:'kdo uhodl',
   step_roll:'{0} hází kostkami. Rozhoduje barva na první kostce, dvě stejné znamenají kartu šance.',
   step_red:'{0} odpovídá na otázku. Ostatní se mohou doptat.', step_answers:'{0} odpovídá na otázku.',
@@ -194,7 +194,7 @@ en: {
   bar_back:'Back', bar_leave:'Leave', bar_exit_game:'Exit game', bar_exit:'Exit',
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
-  intro_ok:'Got it — show the question', steps_title:'What to do',
+  intro_ok:'Got it — show the question', true_label:'True', steps_title:'What to do',
   steps_turn:'Turn:', steps_others:'everyone else', steps_you:'you', steps_guessed:'whoever guessed right',
   step_roll:'{0} rolls the dice. The colour on the first die decides; a double means a chance card.',
   step_red:'{0} answers the question. The others may ask follow-up questions.', step_answers:'{0} answers the question.',
