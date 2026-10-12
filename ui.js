@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '43';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1033,6 +1033,25 @@ function animateRoll(dice, btnEl){
   }, reduced ? 300 : 1150);
 }
 
+/* Hod jednou kostkou (karta šance „Hoď o záchranu"): kostka se roztočí,
+   dopadne na výslednou barvu a pak se zavolá cb. */
+function rollOneDie(die, result, cb){
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const seq = ['red','blue','yellow'];
+  const dot = die.firstChild;
+  Sound.diceRoll(reduced ? 0.3 : 0.9);
+  die.classList.remove('landed'); if(!reduced) die.classList.add('rolling');
+  let i = 0;
+  const spin = setInterval(()=>{ dot.style.background = colorVar(seq[i++ % 3]); }, 90);
+  setTimeout(()=>{
+    clearInterval(spin);
+    die.classList.remove('rolling'); die.classList.add('landed');
+    dot.style.background = colorVar(result);
+    Sound.diceLand();
+    setTimeout(cb, reduced ? 200 : 650);
+  }, reduced ? 200 : 900);
+}
+
 /* Malý řádek „Hod: ● ●" nad kartou, ať i ostatní vidí, co padlo. */
 function rollSummary(room){
   const [a,c2] = room.lastRoll;
@@ -1213,7 +1232,7 @@ function cardEl(card, colorOverride, opts={}){
   if(firstCard) front.appendChild(el('span',{class:'hint-bubble','aria-hidden':'true'}, t('hint_label')));
   front.setAttribute('aria-hidden', showBack ? 'true' : 'false');
   const back = el('div',{class:'qcard-back', style:'--c:'+colorVar(color), 'aria-hidden': showBack ? 'false' : 'true'},
-    el('div',{class:'qcard-back-band'}),
+    htmlToNode(cardWave(colorVar(color), 'top')),
     el('button',{class:'hint-x', 'aria-label':t('hint_close'), title:t('hint_close'), onclick:(e)=>{
       e.stopPropagation();
       if(opts.intro) introAccept(kind); else flipCard(inner, false);
@@ -1387,13 +1406,22 @@ function renderChancePhase(s, room, mine){
     }));
   }
   else if(key==='lose_all_unless_red'){
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:10px'}, t('ch_save_hint')));
-    s.appendChild(button(t('ch_save_btn'),'btn-primary', ()=>{
-      const c=pickDieColor();
-      const lost = c!=='red';
-      if(lost){ ap.full={red:0,blue:0,yellow:0}; ap.halves={red:0,blue:0,yellow:0}; }
-      uiAlert(lost ? t('ch_save_fail', colorName(c)) : t('ch_save_ok'), t('ch_save_title')).then(()=>next());
-    }));
+    s.appendChild(el('div',{class:'note glass', style:'margin-bottom:12px'}, t('ch_save_hint')));
+    // kostka pro hod o záchranu — je vidět, jak se točí a co padlo
+    const saveDie = el('div',{class:'die'}, el('div',{class:'dot', style:'background:var(--navy-soft)'}));
+    s.appendChild(el('div',{class:'dice-pair save-die'}, saveDie));
+    s.appendChild(gap(14));
+    const saveBtn = button(t('ch_save_btn'),'btn-primary', ()=>{
+      if(saveBtn.disabled) return;
+      saveBtn.disabled = true; saveBtn.textContent = t('rolling_one');
+      const c = pickDieColor();
+      rollOneDie(saveDie, c, ()=>{
+        const lost = c!=='red';
+        if(lost){ ap.full={red:0,blue:0,yellow:0}; ap.halves={red:0,blue:0,yellow:0}; }
+        uiAlert(lost ? t('ch_save_fail', colorName(c)) : t('ch_save_ok'), t('ch_save_title')).then(()=>next());
+      });
+    });
+    s.appendChild(saveBtn);
   }
   else if(key==='go_again'){
     // Nejdřív se odpoví na otázku, pak hraje stejný hráč ještě jednou.

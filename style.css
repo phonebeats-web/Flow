@@ -652,6 +652,13 @@ button.cc-tile:active{transform:scale(.97);}
 .card3d-inner.turning > .qcard,.card3d-inner.turning > .qcard-back{
   box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 0 7px rgba(255,255,255,.5), 0 30px 60px rgba(24,40,72,.26);
 }
+[data-theme="dark"] .card3d-inner.turning > .qcard,[data-theme="dark"] .card3d-inner.turning > .qcard-back{
+  box-shadow:0 0 0 6px rgba(255,255,255,.04), 0 0 0 7px rgba(255,255,255,.08), 0 30px 60px rgba(0,0,0,.55);
+}
+/* mezera mezi kartou a panelem Postup — vždy stejná (vložené mezery se ignorují) */
+.card3d + .gap:has(+ .steps){display:none;}
+.card3d + .steps,.card3d + .gap + .steps{margin-top:20px;}
+.save-die{margin:4px 0 2px;}
 .card3d-inner > .qcard{width:100%;margin:0;}
 .card3d-inner > .qcard-back{
   display:none;   /* rub je skrytý, dokud se karta neotočí */
@@ -663,8 +670,8 @@ button.cc-tile:active{transform:scale(.97);}
 }
 .card3d-inner.flipped > .qcard{display:none;}
 .card3d-inner.flipped > .qcard-back{display:flex;}
-.qcard-back-band{height:12px;background:var(--c);flex-shrink:0;border-radius:24px 24px 0 0;}
-.qcard-back-body{flex:1;padding:14px 18px 16px;text-align:left;}
+.qcard-back > .wave-band{position:absolute;left:0;top:0;width:100%;height:30px;display:block;pointer-events:none;border-radius:23px 23px 0 0;}
+.qcard-back-body{flex:1;padding:34px 18px 18px;text-align:left;position:relative;}
 .qcard-back-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--navy-soft);}
 .qcard-back-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(16.5px * var(--fs));color:var(--navy);margin:2px 34px 6px 0;line-height:1.25;}
 .qcard-back-text{font-size:calc(13.5px * var(--fs));line-height:1.42;color:var(--navy-soft);}
@@ -679,7 +686,7 @@ button.cc-tile:active{transform:scale(.97);}
   transition:transform .12s ease;
 }
 .hint-q{top:8px;right:10px;font-size:18px;}
-.hint-x{top:20px;right:12px;font-size:22px;background:rgba(24,40,72,.06);border-color:rgba(24,40,72,.08);box-shadow:none;}
+.hint-x{top:38px;right:12px;font-size:22px;background:rgba(24,40,72,.06);border-color:rgba(24,40,72,.08);box-shadow:none;}
 .hint-q:active,.hint-x:active{transform:scale(.9);}
 .hint-q.hint-pulse{animation:hint-pulse 1.1s ease-in-out .5s 3;}
 /* připomínka u 2. karty barvy: bublina „Nápověda" u otazníku, pak zmizí */

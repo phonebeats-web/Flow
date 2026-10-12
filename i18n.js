@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '43';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '44';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -94,7 +94,7 @@ cs: {
 
   turn_of:'Na tahu: {0}', turn_label:'Na tahu', is_offline:'{0} je offline.',
   skip_turn_btn:'Přeskočit tah hráče {0}', skip_turn_confirm:'Přeskočit tah hráče {0}?',
-  roll_btn:'Hodit kostkami', rolling:'Kostky se točí…',
+  roll_btn:'Hodit kostkami', rolling:'Kostky se točí…', rolling_one:'Kostka se točí…',
   roll_hint:'Rozhoduje barva na první kostce. Dvě stejné barvy znamenají kartu šance.',
   roll_wait:'Čeká se, až {0} hodí kostkami', roll_label:'Hod:', roll_double:'dvě stejné — karta šance',
   leave_q:'Někdo odchází ze hry?', leave_title:'Kdo odchází?',
@@ -264,7 +264,7 @@ en: {
 
   turn_of:'Turn: {0}', turn_label:'Now playing', is_offline:'{0} is offline.',
   skip_turn_btn:'Skip {0}\'s turn', skip_turn_confirm:'Skip {0}\'s turn?',
-  roll_btn:'Roll the dice', rolling:'Rolling…',
+  roll_btn:'Roll the dice', rolling:'Rolling…', rolling_one:'Rolling…',
   roll_hint:'The colour on the first die decides. A double means a chance card.',
   roll_wait:'Waiting for {0} to roll the dice', roll_label:'Roll:', roll_double:'a double — chance card',
   leave_q:'Is someone leaving the game?', leave_title:'Who is leaving?',
