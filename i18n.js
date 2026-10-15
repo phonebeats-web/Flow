@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '46';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -24,6 +24,14 @@ cs: {
   bar_back:'Zpět', bar_leave:'Opustit', bar_exit_game:'Ukončit hru', bar_exit:'Ukončit',
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
+  about_toggle:'Kdo jsme?',
+  about_intro:'Jsme tři kamarádi, kteří pro vás připravili směs zábavy a (sebe)poznání.',
+  about_nada_name:'Naďa',
+  about_nada:'Hlavní tvůrkyně, která hře vdechla život – proměnila prvotní myšlenku ve skutečnost a stojí i za celým designem hry. Je to kreativní duše, kterou baví zkoumat a objevovat svět; ten je pro ni nekonečným zdrojem inspirace. Ráda tráví čas v přírodě, která ji naplňuje, a svou životní cestu popisuje jako jedno velké dobrodružství.',
+  about_martin_name:'Martin',
+  about_martin:'Tvořit, hrát si, být zvídavý a zvídavost podněcovat – podle těchto hodnot Martin žije. Je oddaný hudbě, umění a kouzlu samotného bytí. Zásadní součástí jeho života je sebepoznání, které bylo také hlavním impulzem ke vzniku této hry.',
+  about_michal_name:'Michal',
+  about_michal:'Jeho hlavním zájmem je sebepoznání a odvíjí se od něj vše, co dělá. Rád se dozvídá nové věci, rozvíjí svou zvědavost a každý den se snaží být o kousek lepším člověkem než včera. Ne vždy se to podaří, ale hlavu kvůli tomu nevěší – chyby jsou pro něj zdrojem zkušeností, které ho posouvají dál.',
   intro_ok:'Rozumím — ukázat otázku', true_label:'Pravda', steps_title:'Postup',
   steps_turn:'Na řadě:', steps_others:'ostatní', steps_you:'ty', steps_guessed:'kdo uhodl',
   step_roll:'{0} hází kostkami. Rozhoduje barva na první kostce, dvě stejné znamenají kartu šance.',
@@ -194,6 +202,14 @@ en: {
   bar_back:'Back', bar_leave:'Leave', bar_exit_game:'Exit game', bar_exit:'Exit',
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
+  about_toggle:'Who are we?',
+  about_intro:'We are three friends who have put together a mix of fun and (self-)discovery for you.',
+  about_nada_name:'Naďa',
+  about_nada:'The lead creator who brought the game to life – she turned the original idea into reality and is also behind the whole design of the game. She is a creative soul who loves exploring and discovering the world, an endless source of inspiration for her. She enjoys spending time in nature, which fulfils her, and describes her path through life as one big adventure.',
+  about_martin_name:'Martin',
+  about_martin:'Creating, playing, being curious and sparking curiosity in others – these are the values Martin lives by. He is devoted to music, art and the magic of simply being. Self-discovery is an essential part of his life, and it was also the main impulse behind this game.',
+  about_michal_name:'Michal',
+  about_michal:'His main interest is self-discovery, and everything he does stems from it. He loves learning new things, nurturing his curiosity and trying to be a slightly better person every day than he was the day before. It doesn\'t always work out, but he doesn\'t let it get him down – his mistakes are a source of experience that moves him forward.',
   intro_ok:'Got it — show the question', true_label:'True', steps_title:'What to do',
   steps_turn:'Turn:', steps_others:'everyone else', steps_you:'you', steps_guessed:'whoever guessed right',
   step_roll:'{0} rolls the dice. The colour on the first die decides; a double means a chance card.',

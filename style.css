@@ -815,6 +815,20 @@ button.cc-tile:active{transform:scale(.97);}
 [data-theme="dark"] .voter-chip{background:rgba(255,255,255,.1);}
 .reveal-opt.true .voter-chip{background:rgba(47,168,102,.16);color:var(--green);}
 
+/* ---------- Kdo jsme? ---------- */
+.rules.about{margin-top:6px;}
+.about-intro{margin:0 0 14px;font-size:calc(15px * var(--fs));line-height:1.5;color:var(--navy);text-align:center;}
+.about-person{display:flex;gap:12px;align-items:flex-start;}
+.about-person + .about-person{margin-top:14px;}
+.about-avatar{
+  flex-shrink:0;width:38px;height:38px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Baloo 2',sans-serif;font-weight:800;font-size:18px;color:#fff;
+  box-shadow:inset 0 -3px 4px rgba(0,0,0,.12), 0 3px 8px rgba(24,40,72,.15);
+}
+.about-avatar.dark-text{color:#182848;}
+.about-name{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(17px * var(--fs));color:var(--navy);margin:5px 0 2px;}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;

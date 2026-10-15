@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '46';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -666,6 +666,33 @@ function renderHome(s){
       rulesStep('#5B5FD6','6', t('r6_t'), t('r6_x'))
     ) : null
   ));
+
+  // Kdo jsme? — stejný rozbalovací prvek jako pravidla
+  const aboutOpen = !!state.aboutOpen;
+  s.appendChild(el('div',{class:'rules about'},
+    el('button',{class:'rules-toggle'+(aboutOpen?' open':''), 'aria-expanded': aboutOpen ? 'true' : 'false', onclick:()=>{
+      state.aboutOpen = !state.aboutOpen; render();
+    }},
+      el('span',{}, t('about_toggle')),
+      el('span',{class:'rules-chevron'},'⌄')
+    ),
+    aboutOpen ? el('div',{class:'rules-body glass about-body'},
+      el('p',{class:'about-intro'}, t('about_intro')),
+      aboutPerson('N', 'var(--red)', false, t('about_nada_name'), t('about_nada')),
+      aboutPerson('M', 'var(--yellow)', true, t('about_martin_name'), t('about_martin')),
+      aboutPerson('M', 'var(--blue)', true, t('about_michal_name'), t('about_michal'))
+    ) : null
+  ));
+}
+
+function aboutPerson(initial, color, darkText, name, text){
+  return el('div',{class:'about-person'},
+    el('div',{class:'about-avatar'+(darkText ? ' dark-text' : ''), style:'background:'+color, 'aria-hidden':'true'}, initial),
+    el('div',{},
+      el('div',{class:'about-name'}, name),
+      el('div',{class:'rules-step-text'}, text)
+    )
+  );
 }
 
 function rulesStep(color, num, title, text, darkText){
