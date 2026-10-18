@@ -844,6 +844,31 @@ button.cc-tile:active{transform:scale(.97);}
 .reveal-row:not(.ok) .round-status{color:var(--red);}
 [data-theme="dark"] .reveal-row:not(.ok) .round-status{color:#FF8A70;}
 
+/* ---------- Jednotné kapsle pro texty ---------- */
+.note.glass{display:block;width:100%;box-sizing:border-box;}
+.subtitle.note{margin-top:0;}
+.title-lg + .subtitle.note,.title-lg + .gap + .subtitle.note{margin-top:6px;}
+.dup-warn.note{color:var(--red-dark);font-weight:600;margin-top:10px;}
+[data-theme="dark"] .dup-warn.note{color:#FF8A70;}
+/* počítadlo otázek v sólo hře: malá kapsle */
+.solo-count.note{display:inline-block;width:auto;padding:5px 12px;border-radius:999px;font-size:calc(13px * var(--fs));}
+/* „Jak se hraje?" / „Kdo jsme?": skleněné kapsle */
+.rules{text-align:center;}
+.rules-body{text-align:left;}
+.rules-toggle{
+  display:inline-flex !important;width:auto !important;margin:0 auto;padding:8px 18px;border-radius:999px;
+  font-size:calc(15px * var(--fs)) !important;
+  background:var(--g-sheen), rgba(255,255,255,.55);border:1px solid var(--g-edge);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+  box-shadow:var(--g-shadow);color:var(--navy);
+}
+.screen-sea .rules-toggle{background:var(--g-sheen), rgba(255,255,255,.62);color:var(--navy);}
+[data-theme="dark"] .rules-toggle,[data-theme="dark"] .screen-sea .rules-toggle{background:var(--g-sheen), rgba(32,43,68,.82);color:var(--navy);}
+.rules + .rules{margin-top:10px;}
+.rules-body{margin-top:12px;}
+/* krok „Vyber barvu…" a podobné výzvy: odsazení od prvků pod nimi */
+.screen > .note.glass + .award-pick,.screen > .note.glass + .color-dots{margin-top:12px;}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;

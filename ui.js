@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '50';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '51';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -41,6 +41,16 @@ function waiting(...parts){
 }
 function playerById(room, id){ return room.players.find(p=>p.id===id); }
 
+
+/* ---------- JEDNOTNÝ VZHLED TEXTŮ (liquid glass) ----------
+   Každý popisný text, který neleží v jiném skleněném prvku, dostane
+   skleněnou kapsli. Nadpisy obrazovek zůstávají přímo na pozadí (jako v iOS). */
+function glassifyTexts(root){
+  root.querySelectorAll('.subtitle, .dup-warn, .solo-count').forEach(node=>{
+    if(node.closest('.glass, .dialog, .cc, .steps, .handoff')) return;
+    node.classList.add('note','glass');
+  });
+}
 
 /* ---------- DIALOGOVÁ OKNA VE STYLU HRY ----------
    Nahrazují systémové confirm()/alert(), které vypadají v každém systému
@@ -145,6 +155,7 @@ function render(){
   };
   (renderers[state.screen]||renderHome)(screen);
 
+  glassifyTexts(frag);
   const srcCard = app.querySelector('.qcard');
   flySourceRect = srcCard ? srcCard.getBoundingClientRect() : null;
   app.replaceChildren(frag);
