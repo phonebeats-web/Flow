@@ -397,8 +397,8 @@ button{touch-action:manipulation;}
 .round-row.now .round-status{color:var(--navy);}
 .round-row.ok .round-status{color:#2F8A4E;}
 .round-row.no .round-status{color:var(--red-dark);}
-.reveal-row.ok{box-shadow:inset 0 0 0 2px var(--blue-dark), var(--g-shadow);}
-.reveal-row.ok .round-status{color:var(--blue-dark);}
+.reveal-row.ok{box-shadow:inset 0 0 0 2px var(--green), var(--g-shadow);}
+.reveal-row.ok .round-status{color:var(--green);}
 .reveal-name{font-weight:700;}
 .reveal-guess{font-size:calc(13px * var(--fs));font-weight:500;color:var(--navy-soft);margin-top:2px;}
 .award-pick{padding:0 0 4px;}
@@ -829,6 +829,21 @@ button.cc-tile:active{transform:scale(.97);}
 .about-avatar.dark-text{color:#182848;}
 .about-name{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(17px * var(--fs));color:var(--navy);margin:5px 0 2px;}
 
+/* ---------- Hod jiného hráče (online) ---------- */
+.roll-overlay{
+  position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(24,40,72,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  animation:dlg-fade .18s ease both;
+}
+.roll-overlay.closing{animation:dlg-fade-out .2s ease both;}
+.roll-pop{border-radius:30px;padding:22px 26px 26px;text-align:center;animation:dlg-pop .26s cubic-bezier(.2,1.25,.4,1) both;}
+.roll-who{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(18px * var(--fs));color:var(--navy);margin-bottom:16px;}
+[data-theme="dark"] .roll-overlay{background:rgba(0,0,0,.35);}
+[data-theme="dark"] .roll-pop{background:var(--g-sheen), rgba(32,43,68,.92);}
+/* modrá: „neuhodl/a" červeně */
+.reveal-row:not(.ok) .round-status{color:var(--red);}
+[data-theme="dark"] .reveal-row:not(.ok) .round-status{color:#FF8A70;}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;
@@ -1113,7 +1128,7 @@ button.cc-tile:active{transform:scale(.97);}
 [data-theme="dark"] .color-dot-btn.selected{box-shadow:0 0 0 3px #0F1524, 0 0 0 6px #E9EEF7, inset 0 -6px 9px rgba(0,0,0,.2);}
 [data-theme="dark"] .round-row.ok .round-status{color:#62D394;}
 [data-theme="dark"] .round-row.no .round-status{color:#FF8A70;}
-[data-theme="dark"] .reveal-row.ok .round-status{color:#7FD2E6;}
+[data-theme="dark"] .reveal-row.ok .round-status{color:var(--green);}
 [data-theme="dark"] .dup-warn{color:#FF8A70;}
 [data-theme="dark"] .tip-saved{background:rgba(95,196,220,.14);border-color:rgba(127,210,230,.3);}
 [data-theme="dark"] .tip-hit{background:rgba(98,211,148,.16);color:#62D394;}

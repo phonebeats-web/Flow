@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -32,13 +32,16 @@ cs: {
   about_martin:'Tvořit, hrát si, být zvídavý a zvídavost podněcovat – podle těchto hodnot Martin žije. Je oddaný hudbě, umění a kouzlu samotného bytí. Zásadní součástí jeho života je sebepoznání, které bylo také hlavním impulzem ke vzniku této hry.',
   about_michal_name:'Michal',
   about_michal:'Jeho hlavním zájmem je sebepoznání a odvíjí se od něj vše, co dělá. Rád se dozvídá nové věci, rozvíjí svou zvědavost a každý den se snaží být o kousek lepším člověkem než včera. Ne vždy se to podaří, ale hlavu kvůli tomu nevěší – chyby jsou pro něj zdrojem zkušeností, které ho posouvají dál.',
+  remote_rolling:'{0} hází kostkami…',
+  vote_change:'Změnit odpověď (lze jednou)', vote_change_hint:'Vyber jinou odpověď. Změnit ji můžeš jen jednou.',
+  vote_keep:'Ponechat původní odpověď', vote_changed_once:'Odpověď už jsi jednou změnil/a.',
   intro_ok:'Rozumím — ukázat otázku', true_label:'Pravda', steps_title:'Postup',
   steps_turn:'Na řadě:', steps_others:'ostatní', steps_you:'ty', steps_guessed:'kdo uhodl',
   step_roll:'{0} hází kostkami. Rozhoduje barva na první kostce, dvě stejné znamenají kartu šance.',
   step_red:'{0} odpovídá na otázku. Ostatní se mohou doptat.', step_answers:'{0} odpovídá na otázku.',
   step_chance:'{0} řeší kartu šance.', step_rn:'{0} odpovídá na otázku místo hráče na tahu.',
   step_blue_write:'{0} píše 3 odpovědi: 1 pravdivou a 2 vymyšlené.', step_blue_mark:'{0} označuje pravdivou odpověď.',
-  step_round_first:'{0} odpovídá jako první, pak ostatní po řadě.', step_round:'{0} odpovídá na otázku.',
+  step_round_first:'{0} odpovídá jako první, pak ostatní po řadě. Když neodpoví, kolo končí a ostatní už neodpovídají.', step_round:'{0} odpovídá na otázku.',
   step_round_done:'Všichni se vystřídali — {0} bere {1} kartu.', step_offline:'{0} je offline — rozhodne hráč na tahu.',
   step_guess_all:'Ostatní hádají, která odpověď je pravdivá.', votes_count_short:'Hlasovalo {0}.',
   step_guess_local:'{0} hádá, která odpověď je pravdivá.', step_evaluate:'{0} vyhodnocuje hádání.',
@@ -210,13 +213,16 @@ en: {
   about_martin:'Creating, playing, being curious and sparking curiosity in others – these are the values Martin lives by. He is devoted to music, art and the magic of simply being. Self-discovery is an essential part of his life, and it was also the main impulse behind this game.',
   about_michal_name:'Michal',
   about_michal:'His main interest is self-discovery, and everything he does stems from it. He loves learning new things, nurturing his curiosity and trying to be a slightly better person every day than he was the day before. It doesn\'t always work out, but he doesn\'t let it get him down – his mistakes are a source of experience that moves him forward.',
+  remote_rolling:'{0} is rolling the dice…',
+  vote_change:'Change answer (once)', vote_change_hint:'Pick a different answer. You can only change it once.',
+  vote_keep:'Keep my original answer', vote_changed_once:'You have already changed your answer once.',
   intro_ok:'Got it — show the question', true_label:'True', steps_title:'What to do',
   steps_turn:'Turn:', steps_others:'everyone else', steps_you:'you', steps_guessed:'whoever guessed right',
   step_roll:'{0} rolls the dice. The colour on the first die decides; a double means a chance card.',
   step_red:'{0} answers the question. The others may ask follow-up questions.', step_answers:'{0} answers the question.',
   step_chance:'{0} resolves the chance card.', step_rn:'{0} answers the question instead of the player whose turn it is.',
   step_blue_write:'{0} writes 3 answers: 1 true and 2 made up.', step_blue_mark:'{0} marks the true answer.',
-  step_round_first:'{0} answers first, then everyone else in turn.', step_round:'{0} answers the question.',
+  step_round_first:'{0} answers first, then everyone else in turn. If they don\'t answer, the round ends and nobody else answers.', step_round:'{0} answers the question.',
   step_round_done:'Everyone has had their turn — {0} takes a {1} card.', step_offline:'{0} is offline — the player whose turn it is decides.',
   step_guess_all:'Everyone else guesses which answer is true.', votes_count_short:'Votes in: {0}.',
   step_guess_local:'{0} guesses which answer is true.', step_evaluate:'{0} reveals the answer.',

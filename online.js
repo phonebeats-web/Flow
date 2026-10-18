@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['online.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    ONLINE MODE — most mezi herním stavem a Firebase vrstvou.
    Nezná Firebase API přímo, volá pouze FlowNet (js/firebase.js).
@@ -178,7 +178,13 @@ const Online = {
       const same = state.room && prevScreen===state.screen && stableStr(room)===stableStr(state.room);
       // Stejný stav: ponecháme stávající objekt — tlačítka na obrazovce s ním pracují.
       // (Kdyby se vyměnil bez překreslení, kliknutí by měnilo starou kopii a nic by se neodeslalo.)
-      if(!same){ state.room = room; render(); }
+      if(!same){
+        const prev = state.room;
+        state.room = room;
+        if(typeof remoteRollBusy!=='undefined' && remoteRollBusy) return;   // vykreslí se po animaci
+        if(typeof isRemoteRoll==='function' && isRemoteRoll(prev, room)) playRemoteRoll(room, ()=>render());
+        else render();
+      }
     });
   },
 

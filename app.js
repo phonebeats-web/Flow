@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.
@@ -101,6 +101,9 @@ async function undoStep(){
       if(now){ p.online = now.online; }
     });
   }
+  // Balíčky se nevracejí: vytažená karta zůstává mimo balíček, takže
+  // po kroku zpět a novém hodu nepadne v téže hře znovu.
+  if(state.room && state.room.decks) prev.decks = JSON.parse(JSON.stringify(state.room.decks));
   clearTransientUI();
   state.room = prev;
   state.suppressFly = true;   // krok zpět není zisk karty — bez animace

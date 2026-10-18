@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '47';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -854,6 +854,8 @@ function renderLobby(s){
   s.appendChild(gap(8));
   s.appendChild(el('div',{class:'code-display glass'}, room.code));
   s.appendChild(shareRow(room.code));
+  // výzva ke sdílení hned pod kódem, kde ji každý uvidí
+  if(amHost(room)) s.appendChild(el('div',{class:'note glass', style:'margin-top:12px'}, t('lobby_share_hint')));
   s.appendChild(gap(18));
   s.appendChild(el('div',{class:'title-md'}, t('lobby_players', n+' / '+MAX_PLAYERS)));
   s.appendChild(gap(8));
@@ -871,7 +873,6 @@ function renderLobby(s){
       hostStartGame();
     }, n<2 || n>MAX_PLAYERS));
     if(n>MAX_PLAYERS) s.appendChild(el('div',{class:'dup-warn', role:'alert'}, t('err_too_many', MAX_PLAYERS)));
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin-top:8px'}, t('lobby_share_hint')));
   } else {
     s.appendChild(el('div',{class:'center-col'}, waiting(t('lobby_wait'))));
   }
@@ -1058,6 +1059,45 @@ function animateRoll(dice, btnEl){
       rollDice(results[0], results[1]);
     }, reduced ? 250 : 550);
   }, reduced ? 300 : 1150);
+}
+
+/* ---------- HOD JINÉHO HRÁČE (online) ----------
+   Když jiný hráč hodí, ostatní zařízení nejdřív přehrají animaci kostek
+   s výsledkem, který padl, a teprve potom ukážou kartu. */
+let remoteRollBusy = false;
+function isRemoteRoll(prev, next){
+  if(Store.mode!=='online' || !prev || !next || !next.lastRoll) return false;
+  if(prev.phase!=='idle' || next.phase==='idle' || next.phase==='lobby' || next.phase==='finished') return false;
+  const roller = next.players[next.turnIndex];
+  return !!roller && roller.id !== state.myPlayerId;
+}
+function playRemoteRoll(room, done){
+  remoteRollBusy = true;
+  const roller = room.players[room.turnIndex];
+  const res = room.lastRoll;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mk = ()=> el('div',{class:'die rolling'}, el('div',{class:'dot', style:'background:var(--navy-soft)'}));
+  const d1 = mk(), d2 = mk();
+  const overlay = el('div',{class:'roll-overlay', 'aria-live':'polite'},
+    el('div',{class:'roll-pop glass'},
+      el('div',{class:'roll-who'}, ...tn('remote_rolling', b(roller ? roller.name : ''))),
+      el('div',{class:'dice-pair'}, d1, d2)));
+  document.body.appendChild(overlay);
+  const seq = ['red','blue','yellow'];
+  let i = 0;
+  const spin = setInterval(()=>{
+    if(!d1.classList.contains('landed')) d1.firstChild.style.background = colorVar(seq[i % 3]);
+    if(!d2.classList.contains('landed')) d2.firstChild.style.background = colorVar(seq[(i+1) % 3]);
+    i++;
+  }, 90);
+  Sound.diceRoll(reduced ? 0.3 : 1.1);
+  const land = (d, c)=>{ d.classList.remove('rolling'); d.classList.add('landed'); d.firstChild.style.background = colorVar(c); Sound.diceLand(); };
+  setTimeout(()=>land(d1, res[0]), reduced ? 150 : 900);
+  setTimeout(()=>{ land(d2, res[1]); clearInterval(spin); }, reduced ? 250 : 1150);
+  setTimeout(()=>{
+    overlay.classList.add('closing');
+    setTimeout(()=>{ overlay.remove(); remoteRollBusy = false; done(); }, 200);
+  }, reduced ? 600 : 1900);
 }
 
 /* Hod jednou kostkou (karta šance „Hoď o záchranu"): kostka se roztočí,
@@ -1847,11 +1887,33 @@ function renderBlueGuessing(s, room, mine){
   }
 
   const myVote = votes[state.myPlayerId];
-  if(myVote !== undefined && myVote !== null){
+  // tip jde jednou opravit — pamatuje se pro tuto kartu na tomto zařízení
+  const voteKey = 'flou_vote_changed_'+room.code+'_'+room.turnIndex+'_'+card.idx;
+  let changed = false;
+  try{ changed = sessionStorage.getItem(voteKey)==='1'; }catch(e){}
+  const editing = state.voteEdit === voteKey;
+  if(myVote !== undefined && myVote !== null && !editing){
     s.appendChild(el('div',{class:'center-col'},
       el('div',{class:'banner-info glass'}, ...tn('your_pick', b(card.options[myVote]))),
+      changed ? el('div',{class:'note glass'}, t('vote_changed_once'))
+              : button(t('vote_change'),'btn-glass', ()=>{ state.voteEdit = voteKey; render(); }),
       waiting(t('waiting_others'))
     ));
+    return;
+  }
+  if(editing){
+    s.appendChild(stepPanel(t('vote_change_hint')));
+    s.appendChild(gap(12));
+    s.appendChild(optionButtons(card.options, i=>{
+      state.voteEdit = null;
+      if(i !== myVote){
+        try{ sessionStorage.setItem(voteKey, '1'); }catch(e){}
+        Online.pushVote(room.code, state.myPlayerId, i);
+      }
+      render();
+    }, myVote));
+    s.appendChild(gap(10));
+    s.appendChild(button(t('vote_keep'),'btn-ghost', ()=>{ state.voteEdit = null; render(); }));
     return;
   }
   const myTip = (room.tips||{})[state.myPlayerId];
@@ -1861,10 +1923,10 @@ function renderBlueGuessing(s, room, mine){
   s.appendChild(optionButtons(card.options, i=>{ Online.pushVote(room.code, state.myPlayerId, i); }));
 }
 
-function optionButtons(options, onPick){
+function optionButtons(options, onPick, selected){
   const list = el('div',{class:'stack stack-tight'});
   (options||[]).forEach((opt,i)=>{
-    list.appendChild(el('button',{class:'option-btn glass', onclick:()=>onPick(i)},
+    list.appendChild(el('button',{class:'option-btn glass'+(i===selected ? ' selected' : ''), 'aria-pressed': i===selected ? 'true' : null, onclick:()=>onPick(i)},
       el('span',{class:'opt-num'}, String(i+1)),
       el('span',{class:'opt-text'}, opt)
     ));
