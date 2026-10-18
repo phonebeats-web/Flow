@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['app.js'] = '50';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    APP — stav aplikace, historie (krok zpět), local mode,
    hra pro jednoho a herní akce.

@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '50';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -14,7 +14,7 @@ cs: {
   doc_title:'FLOU — karetní diskusní hra',
   tagline:'KARETNÍ DISKUSNÍ HRA',
   lang_label:'Jazyk',
-  lang_hint:'Jazyk si každý volí v nastavení (tlačítko vpravo nahoře) na svém zařízení — karty pak uvidí ve svém jazyce.',
+  lang_hint:'Hru si můžeš přepnout do angličtiny v nastavení (tlačítko vpravo nahoře). Každý hráč si to nastavuje na svém zařízení.',
   you:'ty',
 
   c_red:'červená', c_blue:'modrá', c_yellow:'žlutá',
@@ -195,7 +195,7 @@ en: {
   doc_title:'FLOU — the conversation card game',
   tagline:'CONVERSATION CARD GAME',
   lang_label:'Language',
-  lang_hint:'Everyone picks their language in the settings (the button at the top right) on their own device — the cards then appear in that language.',
+  lang_hint:'You can switch the game to Czech in the settings (the button at the top right). Each player sets this on their own device.',
   you:'you',
 
   c_red:'red', c_blue:'blue', c_yellow:'yellow',

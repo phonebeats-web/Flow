@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '49';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '50';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -739,7 +739,7 @@ function renderSetupLocal(s){
   } else {
     s.appendChild(el('div',{class:'subtitle center-text max-note'}, t('setup_max', MAX_PLAYERS)));
   }
-  s.appendChild(el('div',{class:'spacer'}));
+  s.appendChild(gap(20));   // tlačítko hned pod obsahem — klávesnice ho nezakryje
   const startBtn = button(t('setup_start'),'btn-primary',()=>{
     const names = state.setupNames.map(n=>n.trim()).filter(Boolean);
     if(duplicateAnswerIdx(names).size){ refreshDup(); return; }
@@ -758,8 +758,8 @@ function renderSetupHost(s){
   s.appendChild(gap(16));
   s.appendChild(el('input',{class:'card-input', 'data-fk':'host-name', placeholder:t('your_name'), value:state.myName, maxlength:'24',
     oninput:(e)=>{state.myName=e.target.value;}}));
-  s.appendChild(el('div',{class:'subtitle', style:'font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
-  s.appendChild(el('div',{class:'spacer'}));
+  s.appendChild(el('div',{class:'note glass', style:'margin-top:10px;font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
+  s.appendChild(gap(20));   // tlačítko hned pod obsahem — klávesnice ho nezakryje
   s.appendChild(button(state.busy ? t('host_busy') : t('host_btn'),'btn-primary', ()=>{
     const name = state.myName.trim();
     if(!name){ uiAlert(t('err_name')); return; }
@@ -778,8 +778,8 @@ function renderJoinRoom(s){
     el('input',{class:'card-input', 'data-fk':'join-name', placeholder:t('your_name'), value:state.myName, maxlength:'24',
       oninput:(e)=>{state.myName=e.target.value;}}),
   ));
-  s.appendChild(el('div',{class:'subtitle', style:'font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
-  s.appendChild(el('div',{class:'spacer'}));
+  s.appendChild(el('div',{class:'note glass', style:'margin-top:10px;font-size:calc(13.5px * var(--fs))'}, t('lang_hint')));
+  s.appendChild(gap(20));   // tlačítko hned pod obsahem — klávesnice ho nezakryje
   s.appendChild(button(state.busy ? t('join_busy') : t('join_btn'),'btn-primary', ()=>{
     const code = state.joinCode.trim();
     const name = state.myName.trim();
@@ -867,7 +867,7 @@ function renderLobby(s){
     ));
   });
   s.appendChild(list);
-  s.appendChild(el('div',{class:'spacer'}));
+  s.appendChild(gap(20));   // tlačítko hned pod obsahem — klávesnice ho nezakryje
   if(amHost(room)){
     s.appendChild(button(t('lobby_start', playersWord(n)),'btn-primary', ()=>{
       hostStartGame();
