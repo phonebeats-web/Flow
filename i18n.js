@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '51';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '52';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -24,7 +24,7 @@ cs: {
   bar_back:'Zpět', bar_leave:'Opustit', bar_exit_game:'Ukončit hru', bar_exit:'Ukončit',
   bar_undo:'Krok zpět', bar_undo_short:'Zpět',
   sound_mute:'Vypnout zvuky', sound_unmute:'Zapnout zvuky',
-  about_toggle:'Kdo jsme?',
+  about_toggle:'O tvůrcích',
   about_intro:'Jsme tři kamarádi, kteří pro vás připravili směs zábavy a (sebe)poznání.',
   about_nada_name:'Naďa',
   about_nada:'Hlavní tvůrkyně, která hře vdechla život – proměnila prvotní myšlenku ve skutečnost a stojí i za celým designem hry. Je to kreativní duše, kterou baví zkoumat a objevovat svět; ten je pro ni nekonečným zdrojem inspirace. Ráda tráví čas v přírodě, která ji naplňuje, a svou životní cestu popisuje jako jedno velké dobrodružství.',
@@ -68,7 +68,7 @@ cs: {
 
   home_local:'Hrát na jednom zařízení', home_create:'Vytvořit online místnost',
   home_join:'Připojit se ke kódu', home_solo:'Hrát o samotě',
-  rules_toggle:'Jak se hraje?',
+  rules_toggle:'Návod na hru',
   r1_t:'Hoď kostkami', r1_x:'Rozhoduje barva na první kostce. Padnou-li dvě stejné, táhneš nejdřív kartu šance a pak otázku té barvy.',
   r2_t:'Červená = hluboká otázka', r2_x:'Odpovídá jen ten, kdo kartu vytáhl. Ostatní se mohou doptat.',
   r3_t:'Modrá = hádání', r3_x:'Napíšeš tři odpovědi, jedna je pravdivá. Kdo ji uhodne, bere půl karty barvy dle výběru.',
@@ -76,7 +76,7 @@ cs: {
   r5_t:'Oranžová = šance', r5_x:'Karty, které umí pěkně zamíchat hrou.',
   r6_t:'Vyhrává', r6_x:'Kdo má 2 celé karty od každé barvy. Dvě půlky dají jednu celou. Kdo má na začátku tahu 3 karty jedné barvy, může 2 z nich směnit za 1 jinou.',
 
-  setup_title:'Kdo hraje?', setup_sub:'Zadej jména hráčů, kteří si budou hru podávat.',
+  setup_title:'Kdo hraje?', setup_sub:'Zadej jména všech, kdo budou společně hrát na tomto zařízení.',
   setup_ph:'Jméno hráče {0}', setup_max:'Maximálně {0} hráčů.', setup_dup:'Jména se nesmí opakovat — každý hráč musí mít jiné jméno.', setup_remove:'Odebrat hráče', setup_add:'+ Přidat hráče', setup_start:'Začít hru',
   setup_min2:'Zadej alespoň 2 jména. Pro hru o samotě zvol na úvodní obrazovce „Hrát o samotě“.',
   host_title:'Vytvořit místnost', host_sub:'Zadej své jméno, ostatní se pak připojí kódem.',
@@ -205,7 +205,7 @@ en: {
   bar_back:'Back', bar_leave:'Leave', bar_exit_game:'Exit game', bar_exit:'Exit',
   bar_undo:'Undo', bar_undo_short:'Undo',
   sound_mute:'Mute sounds', sound_unmute:'Turn sounds on',
-  about_toggle:'Who are we?',
+  about_toggle:'About the creators',
   about_intro:'We are three friends who have put together a mix of fun and (self-)discovery for you.',
   about_nada_name:'Naďa',
   about_nada:'The lead creator who brought the game to life – she turned the original idea into reality and is also behind the whole design of the game. She is a creative soul who loves exploring and discovering the world, an endless source of inspiration for her. She enjoys spending time in nature, which fulfils her, and describes her path through life as one big adventure.',
@@ -257,7 +257,7 @@ en: {
   r5_t:'Orange = chance', r5_x:'Cards that can really shake up the game.',
   r6_t:'How to win', r6_x:'Collect 2 whole cards of each colour. Two halves make one whole card. If you have 3 cards of one colour at the start of your turn, you can swap 2 of them for 1 of another colour.',
 
-  setup_title:'Who\'s playing?', setup_sub:'Enter the names of the players who will pass the device around.',
+  setup_title:'Who\'s playing?', setup_sub:'Enter the names of everyone playing together on this device.',
   setup_ph:'Player {0}', setup_max:'Maximum of {0} players.', setup_dup:'Names can\'t repeat — each player needs a different name.', setup_remove:'Remove player', setup_add:'+ Add player', setup_start:'Start game',
   setup_min2:'Enter at least 2 names. To play alone, choose "Play solo" on the home screen.',
   host_title:'Create a room', host_sub:'Enter your name — the others will join with a code.',
