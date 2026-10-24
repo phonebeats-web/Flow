@@ -967,6 +967,10 @@ button.cc-tile:active{transform:scale(.97);}
 .rules-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:none;border:none;font-family:'Baloo 2',sans-serif;font-size:calc(16px * var(--fs));font-weight:700;color:var(--navy-soft);padding:12px;cursor:pointer;}
 .rules-chevron{display:inline-flex;align-items:center;transition:transform .25s ease;}
 .rules-chevron svg{width:16px;height:16px;display:block;}
+/* text přesně uprostřed, šipka u pravého okraje kapsle;
+   obě kapsle stejně široké, aby pod sebou působily souměrně */
+.rules-toggle{position:relative;justify-content:center;min-width:210px;padding-left:42px !important;padding-right:42px !important;}
+.rules-toggle .rules-chevron{position:absolute;right:18px;top:50%;margin-top:-8px;}
 .rules-toggle.open .rules-chevron{transform:rotate(180deg);}
 .rules-body{border-radius:var(--radius);padding:16px 18px;animation:rules-in .22s ease both;}
 @keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
