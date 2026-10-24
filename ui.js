@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '54';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '55';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -297,10 +297,15 @@ function fitToScreen(){
   const app = document.getElementById('app');
   if(!app || !window.innerHeight) return;
   app.classList.remove(...FIT_LEVELS);
+  // Rozbalený návod / medailonky tvůrců se do zhuštění nepočítají — je to text
+  // ke čtení (rolování), tlačítka na úvodu se kvůli němu nesmí zmenšovat.
+  const reading = [...app.querySelectorAll('.rules-body')];
+  reading.forEach(n=>{ n.dataset.fitHide = n.style.display; n.style.display = 'none'; });
   for(const lvl of FIT_LEVELS){
     if(!overflowsScreen()) break;
     app.classList.add(lvl);
   }
+  reading.forEach(n=>{ n.style.display = n.dataset.fitHide || ''; delete n.dataset.fitHide; });
 }
 let fitQueued = false;
 window.addEventListener('resize', ()=>{
