@@ -878,8 +878,6 @@ button.cc-tile:active{transform:scale(.97);}
 
 /* „Návod na hru" a „O tvůrcích": oddělené od hlavních voleb, tmavé sklo */
 .rules.rules-first{margin-top:30px;}
-.rules-ico{display:inline-flex;}
-.rules-ico svg{width:17px;height:17px;display:block;}
 .rules-toggle,.screen-sea .rules-toggle{
   background:var(--g-sheen), rgba(24,40,72,.58) !important;color:#fff !important;
   border:1px solid rgba(255,255,255,.22) !important;
@@ -967,7 +965,8 @@ button.cc-tile:active{transform:scale(.97);}
 /* ---------- Pravidla ---------- */
 .rules{margin-top:12px;}
 .rules-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:none;border:none;font-family:'Baloo 2',sans-serif;font-size:calc(16px * var(--fs));font-weight:700;color:var(--navy-soft);padding:12px;cursor:pointer;}
-.rules-chevron{display:inline-block;font-size:calc(19px * var(--fs));line-height:1;transition:transform .22s ease;}
+.rules-chevron{display:inline-flex;align-items:center;transition:transform .25s ease;}
+.rules-chevron svg{width:16px;height:16px;display:block;}
 .rules-toggle.open .rules-chevron{transform:rotate(180deg);}
 .rules-body{border-radius:var(--radius);padding:16px 18px;animation:rules-in .22s ease both;}
 @keyframes rules-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}

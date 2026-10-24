@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '52';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '53';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -665,9 +665,8 @@ function renderHome(s){
     el('button',{class:'rules-toggle'+(open?' open':''), onclick:()=>{
       state.rulesOpen = !state.rulesOpen; render();
     }},
-      el('span',{class:'rules-ico', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'}),
       el('span',{}, t('rules_toggle')),
-      el('span',{class:'rules-chevron'},'⌄')
+      el('span',{class:'rules-chevron', html:ICON_CHEV})
     ),
     open ? el('div',{class:'rules-body glass'},
       rulesStep('#34456A','1', t('r1_t'), t('r1_x')),
@@ -685,9 +684,8 @@ function renderHome(s){
     el('button',{class:'rules-toggle'+(aboutOpen?' open':''), 'aria-expanded': aboutOpen ? 'true' : 'false', onclick:()=>{
       state.aboutOpen = !state.aboutOpen; render();
     }},
-      el('span',{class:'rules-ico', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.4 6-5.4s5.4 2 6 5.4"/><circle cx="17" cy="9" r="2.6"/><path d="M16.2 14.7c2.6.1 4.4 1.9 4.8 4.9"/></g></svg>'}),
       el('span',{}, t('about_toggle')),
-      el('span',{class:'rules-chevron'},'⌄')
+      el('span',{class:'rules-chevron', html:ICON_CHEV})
     ),
     aboutOpen ? el('div',{class:'rules-body glass about-body'},
       el('p',{class:'about-intro'}, t('about_intro')),
