@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '55';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '56';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -308,7 +308,14 @@ function fitToScreen(){
   reading.forEach(n=>{ n.style.display = n.dataset.fitHide || ''; delete n.dataset.fitHide; });
 }
 let fitQueued = false;
+let fitW = window.innerWidth, fitH = window.innerHeight;
 window.addEventListener('resize', ()=>{
+  // Mobilní prohlížeč při rolování schovává/ukazuje adresní řádek a hlásí to jako
+  // změnu velikosti — kvůli tomu se zhuštění nepřepočítává (jen při skutečné změně:
+  // otočení telefonu, změna šířky, velká změna výšky).
+  const w = window.innerWidth, h = window.innerHeight;
+  if(w === fitW && Math.abs(h - fitH) < 150) return;
+  fitW = w; fitH = h;
   if(fitQueued) return;
   fitQueued = true;
   raf(()=>{ fitQueued = false; fitToScreen(); scheduleScrollHint(); });
@@ -609,10 +616,15 @@ function hiddenContentBelow(){
   if(!el) return 0;
   return el.getBoundingClientRect().bottom - window.innerHeight;
 }
+let hintLang = null;
 function scheduleScrollHint(){
   ensureScrollHint();
-  hintLabel.textContent = t('scroll_more');
-  hintEl.setAttribute('aria-label', t('scroll_more_aria'));
+  // text šipky jen při změně jazyka — zápis do stránky při každém posunu brzdil rolování
+  if(hintLang !== LANG){
+    hintLang = LANG;
+    hintLabel.textContent = t('scroll_more');
+    hintEl.setAttribute('aria-label', t('scroll_more_aria'));
+  }
   if(hintQueued) return;
   hintQueued = true;
   raf(()=>{

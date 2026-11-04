@@ -888,6 +888,17 @@ button.cc-tile:active{transform:scale(.97);}
   background:var(--g-sheen), rgba(70,89,138,.55) !important;border-color:rgba(255,255,255,.16) !important;
 }
 
+/* 3) Rozbalený návod / medailonky: dlouhá plocha ke čtení — bez živého rozmazání
+   pozadí (na telefonu je při rolování nejdražší), místo něj sytější podklad.
+   Vzhled zůstává skleněný (lesk, okraj, stín). */
+.rules-body.glass{
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+  background:var(--g-sheen), rgba(240,248,252,.94) !important;
+}
+[data-theme="dark"] .rules-body.glass{background:var(--g-sheen), rgba(30,42,66,.96) !important;}
+/* plynulejší rolování: pozadí stránky na vlastní vrstvě */
+body::before,body::after{will-change:transform;transform:translateZ(0);}
+
 /* ---------- Karta přilétá k hráči ---------- */
 .fly-card{
   position:fixed;z-index:60;width:46px;height:34px;border-radius:8px;pointer-events:none;
