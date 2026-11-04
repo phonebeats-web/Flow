@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '56';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '58';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -300,12 +300,16 @@ function fitToScreen(){
   // Rozbalený návod / medailonky tvůrců se do zhuštění nepočítají — je to text
   // ke čtení (rolování), tlačítka na úvodu se kvůli němu nesmí zmenšovat.
   const reading = [...app.querySelectorAll('.rules-body')];
+  // dočasné schování textu stránku zkrátí a prohlížeč by posunul pohled nahoru —
+  // pozici posunu si proto zapamatujeme a vrátíme
+  const keepY = window.scrollY;
   reading.forEach(n=>{ n.dataset.fitHide = n.style.display; n.style.display = 'none'; });
   for(const lvl of FIT_LEVELS){
     if(!overflowsScreen()) break;
     app.classList.add(lvl);
   }
   reading.forEach(n=>{ n.style.display = n.dataset.fitHide || ''; delete n.dataset.fitHide; });
+  if(reading.length && window.scrollY !== keepY) window.scrollTo(0, keepY);
 }
 let fitQueued = false;
 let fitW = window.innerWidth, fitH = window.innerHeight;
@@ -677,40 +681,46 @@ function renderHome(s){
     button(t('home_solo'),'btn-glass btn-home tone-orange',()=>{ startSolo(); }),
   ));
 
-  const open = !!state.rulesOpen;
-  s.appendChild(el('div',{class:'rules rules-first'},
-    el('button',{class:'rules-toggle'+(open?' open':''), onclick:()=>{
-      state.rulesOpen = !state.rulesOpen; render();
-    }},
-      el('span',{}, t('rules_toggle')),
-      el('span',{class:'rules-chevron', html:ICON_CHEV})
-    ),
-    open ? el('div',{class:'rules-body glass'},
-      rulesStep('#34456A','1', t('r1_t'), t('r1_x')),
-      rulesStep('var(--red)','2', t('r2_t'), t('r2_x')),
-      rulesStep('var(--blue)','3', t('r3_t'), t('r3_x'), true),
-      rulesStep('var(--yellow)','4', t('r4_t'), t('r4_x'), true),
-      rulesStep('var(--orange)','5', t('r5_t'), t('r5_x'), true),
-      rulesStep('#5B5FD6','6', t('r6_t'), t('r6_x'))
-    ) : null
-  ));
+  // Návod na hru a O tvůrcích: rozbalení NEPŘEKRESLUJE obrazovku — panel se jen
+  // vloží/odebere pod tlačítko. Zbytek stránky zůstane nedotčený, takže se pohled
+  // nikam neposune (ani v mobilním Safari).
+  s.appendChild(homeDisclosure('rules rules-first', 'rulesOpen', t('rules_toggle'), ()=>el('div',{class:'rules-body glass'},
+    rulesStep('#34456A','1', t('r1_t'), t('r1_x')),
+    rulesStep('var(--red)','2', t('r2_t'), t('r2_x')),
+    rulesStep('var(--blue)','3', t('r3_t'), t('r3_x'), true),
+    rulesStep('var(--yellow)','4', t('r4_t'), t('r4_x'), true),
+    rulesStep('var(--orange)','5', t('r5_t'), t('r5_x'), true),
+    rulesStep('#5B5FD6','6', t('r6_t'), t('r6_x'))
+  )));
+  s.appendChild(homeDisclosure('rules about', 'aboutOpen', t('about_toggle'), ()=>el('div',{class:'rules-body glass about-body'},
+    el('p',{class:'about-intro'}, t('about_intro')),
+    aboutPerson('N', 'var(--red)', false, t('about_nada_name'), t('about_nada')),
+    aboutPerson('M', 'var(--yellow)', true, t('about_martin_name'), t('about_martin')),
+    aboutPerson('M', 'var(--blue)', true, t('about_michal_name'), t('about_michal'))
+  )));
+}
 
-  // Kdo jsme? — stejný rozbalovací prvek jako pravidla
-  const aboutOpen = !!state.aboutOpen;
-  s.appendChild(el('div',{class:'rules about'},
-    el('button',{class:'rules-toggle'+(aboutOpen?' open':''), 'aria-expanded': aboutOpen ? 'true' : 'false', onclick:()=>{
-      state.aboutOpen = !state.aboutOpen; render();
-    }},
-      el('span',{}, t('about_toggle')),
-      el('span',{class:'rules-chevron', html:ICON_CHEV})
-    ),
-    aboutOpen ? el('div',{class:'rules-body glass about-body'},
-      el('p',{class:'about-intro'}, t('about_intro')),
-      aboutPerson('N', 'var(--red)', false, t('about_nada_name'), t('about_nada')),
-      aboutPerson('M', 'var(--yellow)', true, t('about_martin_name'), t('about_martin')),
-      aboutPerson('M', 'var(--blue)', true, t('about_michal_name'), t('about_michal'))
-    ) : null
-  ));
+/* Rozbalovací sekce na úvodu — přepíná se přímo v místě, bez překreslení. */
+function homeDisclosure(cls, stateKey, label, makeBody){
+  const open = !!state[stateKey];
+  const wrap = el('div',{class:cls});
+  const btn = el('button',{class:'rules-toggle'+(open ? ' open' : ''), 'aria-expanded': open ? 'true' : 'false'},
+    el('span',{}, label),
+    el('span',{class:'rules-chevron', html:ICON_CHEV})
+  );
+  btn.addEventListener('click', ()=>{
+    const nowOpen = !state[stateKey];
+    state[stateKey] = nowOpen;
+    btn.classList.toggle('open', nowOpen);
+    btn.setAttribute('aria-expanded', nowOpen ? 'true' : 'false');
+    const body = wrap.querySelector('.rules-body');
+    if(nowOpen && !body) wrap.appendChild(makeBody());
+    if(!nowOpen && body) body.remove();
+    scheduleScrollHint();
+  });
+  wrap.appendChild(btn);
+  if(open) wrap.appendChild(makeBody());
+  return wrap;
 }
 
 function aboutPerson(initial, color, darkText, name, text){
