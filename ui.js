@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '58';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['ui.js'] = '59';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    UI — DOM helpery a všechny render* funkce.
    Volá engine.js (herní pravidla), app.js (state, akce)
@@ -1992,7 +1992,6 @@ function renderBlueGuessingLocal(s, room, ap, card){
       s.appendChild(button(t('handoff_iam', p.name),'btn-blue', ()=>{ state.handoff = bt.current; render(); }));
       return;
     }
-    s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:12px'}, ...tn('guess_q_named', b(p.name))));
     s.appendChild(optionButtons(card.options, i=>{ blueLocalVote(i); }));
     return;
   }
@@ -2026,7 +2025,13 @@ function renderBlueReveal(s, room, mine){
   // u každé odpovědi štítky se jmény těch, kdo ji tipli
   s.appendChild(cardEl(card));
   s.appendChild(gap(14));
-  s.appendChild(stepPanel(t('step_award')));
+  // Pokyn jen v panelu, přesně pro danou situaci
+  const iWonHere = Store.mode!=='local' && winners.some(p=>p.id===state.myPlayerId);
+  const steps = winners.length===0 ? tn('step_award_none', b(blueBeneficiary(room).name))
+    : iWonHere ? [t(colors[state.myPlayerId] ? 'award_change_step' : 'step_award_me')]
+    : winners.length===1 ? tn('step_award_one', b(winners[0].name))
+    : [t('step_award')];
+  s.appendChild(stepPanel(...steps));
   s.appendChild(gap(12));
   const opts = el('div',{class:'stack stack-tight reveal-opts', role:'list', 'aria-label':t('true_answer')});
   (card.options||[]).forEach((txt, k)=>{
@@ -2060,7 +2065,7 @@ function renderBlueReveal(s, room, mine){
     // Jedno zařízení: kdo uhodl, rovnou si tu vybere barvu půlkarty.
     if(local && ok){
       list.appendChild(el('div',{class:'award-pick'},
-        el('div',{class:'subtitle center-text', style:'margin:0'}, t('award_pick_named', p.name)),
+        winners.length > 1 ? el('div',{class:'subtitle center-text', style:'margin:0'}, t('award_pick_named', p.name)) : null,
         colorPicker(COLORS, colors[p.id], c=>{
           room.awardColors = Object.assign({}, room.awardColors, {[p.id]: c});
           saveAndRender();
@@ -2074,7 +2079,6 @@ function renderBlueReveal(s, room, mine){
     const iWon = winners.some(p=>p.id===state.myPlayerId);
     if(iWon){
       s.appendChild(gap(14));
-      s.appendChild(el('div',{class:'subtitle center-text'}, colors[state.myPlayerId] ? t('award_change') : t('award_pick_me')));
       s.appendChild(colorPicker(COLORS, colors[state.myPlayerId], c=>{
         Online.pushAwardColor(room.code, state.myPlayerId, c);
       }));
@@ -2088,13 +2092,11 @@ function renderBlueReveal(s, room, mine){
 
   const pending = winners.filter(p=>!colors[p.id] && (local || p.online!==false));
   s.appendChild(gap(18));
-  if(pending.length){
+  // u jednoho výherce to říká už panel Postup — poznámka jen když jich je víc
+  if(pending.length && winners.length > 1){
     s.appendChild(el('div',{class:'subtitle center-text', style:'margin-bottom:8px'},
       t('award_pending', pending.map(p=>p.name).join(', '))));
     s.lastChild.className = 'note glass';
-  }
-  if(!winners.length){
-    s.appendChild(el('div',{class:'note glass', style:'margin-bottom:10px'}, t('nobody_guessed')));
   }
   s.appendChild(button(t('blue_continue', blueBeneficiary(room).name),'btn-primary', ()=>{ blueFinish(); }, pending.length>0));
 }

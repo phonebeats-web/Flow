@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '58';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['i18n.js'] = '59';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    I18N — texty hry v češtině a angličtině.
    Jazyk patří ZAŘÍZENÍ (uloží se v prohlížeči), ne hře:
@@ -33,6 +33,8 @@ cs: {
   about_michal_name:'Michal',
   about_michal:'Jeho hlavním zájmem je sebepoznání a odvíjí se od něj vše, co dělá. Rád se dozvídá nové věci, rozvíjí svou zvědavost a každý den se snaží být o kousek lepším člověkem než včera. Ne vždy se to podaří, ale hlavu kvůli tomu nevěší – chyby jsou pro něj zdrojem zkušeností, které ho posouvají dál.',
   remote_rolling:'{0} hází kostkami…',
+  step_award_none:'Nikdo neuhodl. {0} bere modrou kartu.', step_award_one:'{0} si vybírá barvu půlkarty.',
+  step_award_me:'Uhodl/a jsi! Vyber si barvu půlkarty.', award_change_step:'Barvu půlkarty můžeš ještě změnit.',
   vote_change:'Změnit odpověď (lze jednou)', vote_change_hint:'Vyber jinou odpověď. Změnit ji můžeš jen jednou.',
   vote_keep:'Ponechat původní odpověď', vote_changed_once:'Odpověď už jsi jednou změnil/a.',
   intro_ok:'Rozumím — ukázat otázku', true_label:'Pravda', steps_title:'Postup',
@@ -214,6 +216,8 @@ en: {
   about_michal_name:'Michal',
   about_michal:'His main interest is self-discovery, and everything he does stems from it. He loves learning new things, nurturing his curiosity and trying to be a slightly better person every day than he was the day before. It doesn\'t always work out, but he doesn\'t let it get him down – his mistakes are a source of experience that moves him forward.',
   remote_rolling:'{0} is rolling the dice…',
+  step_award_none:'Nobody guessed right. {0} takes the blue card.', step_award_one:'{0} picks the colour of their half card.',
+  step_award_me:'You guessed right! Pick the colour of your half card.', award_change_step:'You can still change the colour of your half card.',
   vote_change:'Change answer (once)', vote_change_hint:'Pick a different answer. You can only change it once.',
   vote_keep:'Keep my original answer', vote_changed_once:'You have already changed your answer once.',
   intro_ok:'Got it — show the question', true_label:'True', steps_title:'What to do',
