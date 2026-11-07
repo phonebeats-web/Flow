@@ -1,4 +1,4 @@
-(window.FLOU_FILES = window.FLOU_FILES || {})['firebase.js'] = '59';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
+(window.FLOU_FILES = window.FLOU_FILES || {})['firebase.js'] = '60';   /* verze souboru — kontrola, že jsou na webu všechny soubory stejné verze */
 /* ============================================================
    FIREBASE LAYER — JEDINÉ místo v aplikaci, které ví o Firebase.
    Nikde jinde (engine.js, ui.js) se Firebase API nesmí volat.
@@ -218,24 +218,46 @@ const FlowNet = (function(){
     activeHandler = null;
   }
 
-  /* Uklidí hráče při zavření karty (best-effort). */
+  /* PŘÍTOMNOST (online / offline)
+     Mobil po minimalizaci prohlížeče přeruší spojení — databáze pak hráče sama
+     označí jako offline (onDisconnect). Po návratu se spojení obnoví, a proto
+     hráče při KAŽDÉM obnovení spojení znovu označíme jako online a znovu
+     nastavíme „při výpadku offline". (Hráče při výpadku nemažeme — po návratu
+     nebo obnovení stránky musí zůstat v místnosti.) */
+  let presenceRef = null, connRef = null;
+  function markPresent(){
+    const ref = presenceRef;
+    if(!ref) return Promise.resolve();
+    return ref.onDisconnect().set(false).then(()=>ref.set(true)).catch(()=>{});
+  }
   async function setupDisconnect(code){
     await ready();
-    // záměrně NEodstraňujeme hráče při disconnectu — reconnect (KROK 10)
-    // vyžaduje, aby hráč po refreshi zůstal v místnosti.
-    await db.ref('rooms/'+safeCode(code)+'/players/'+myUid+'/online').set(true);
-    db.ref('rooms/'+safeCode(code)+'/players/'+myUid+'/online').onDisconnect().set(false);
+    presenceRef = db.ref('rooms/'+safeCode(code)+'/players/'+myUid+'/online');
+    if(!connRef){
+      connRef = db.ref('.info/connected');
+      connRef.on('value', snap=>{ if(snap.val()===true) markPresent(); });
+    }
+    await markPresent();
+  }
+  // návrat do prohlížeče (z jiné aplikace / zamčené obrazovky): hned se nahlásit
+  if(typeof document!=='undefined'){
+    const back = ()=>{ if(document.visibilityState==='visible' && presenceRef) markPresent(); };
+    document.addEventListener('visibilitychange', back);
+    window.addEventListener('pageshow', back);
+    window.addEventListener('focus', back);
   }
 
   /* Hostitel smaže svou místnost (čekárna nebo dohraná hra). */
   async function deleteRoom(code){
     await ready();
+    presenceRef = null;
     await db.ref('rooms/'+safeCode(code)).remove();
   }
 
   /* Hráč odchází z místnosti tlačítkem (ne zavřením karty). */
   async function markOffline(code){
     await ready();
+    presenceRef = null;   // hráč odchází sám — po obnovení spojení už ho neoznačovat jako online
     const ref = db.ref('rooms/'+safeCode(code)+'/players/'+myUid+'/online');
     await ref.onDisconnect().cancel();
     await ref.set(false);
